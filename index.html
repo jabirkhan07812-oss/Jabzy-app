@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -11,7 +12,6 @@ h1{color:#ff4d91;text-align:center;font-size:38px}
 .card{background:#202033;padding:16px;border-radius:14px;margin:15px 0}
 input,textarea,button{box-sizing:border-box;width:100%;padding:13px;margin:7px 0;border:0;border-radius:9px}
 button{background:#ff4d91;color:white;font-weight:bold}
-small{color:#bbb}
 .hidden{display:none}
 .user{padding:12px;background:#303047;margin:8px 0;border-radius:9px}
 .photo{width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin:10px auto;border:3px solid #ff4d91}
@@ -34,10 +34,7 @@ small{color:#bbb}
 
 <div class="card hidden" id="app">
 <h3>Your Profile</h3>
-
-<img id="myPhoto" class="photo hidden" alt="Your profile photo">
-
-<label>Choose Profile Photo</label>
+<img id="myPhoto" class="photo hidden" alt="Your photo">
 <input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">
 <button onclick="uploadPhoto()">Upload Photo</button>
 
@@ -46,8 +43,11 @@ small{color:#bbb}
 <textarea id="bio" placeholder="About yourself"></textarea>
 <button onclick="saveProfile()">Save Profile</button>
 
-<h3>Discover People</h3>
+<h3>Discover People ❤️</h3>
 <div id="people">Loading...</div>
+
+<h3>Your Matches 💕</h3>
+<div id="matches">No matches yet.</div>
 
 <h3 id="chatTitle">Chat</h3>
 <div id="messages"></div>
@@ -59,48 +59,30 @@ small{color:#bbb}
 </div>
 
 <script>
-const SUPABASE_URL =
-"https://rpgclomsjxvwhuwusvii.supabase.co";
-const SUPABASE_KEY =
-"sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
+const SUPABASE_URL="https://rpgclomsjxvwhuwusvii.supabase.co";
+const SUPABASE_KEY="sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const db = window.supabase.createClient(
-SUPABASE_URL,SUPABASE_KEY
-);
+let me=null;
+let selected=null;
 
-let me = null;
-let selected = null;
-
-function status(t){
-document.getElementById("status").innerText=t;
-}
-
-function appStatus(t){
-document.getElementById("appStatus").innerText=t;
-}
+function status(t){document.getElementById("status").innerText=t}
+function appStatus(t){document.getElementById("appStatus").innerText=t}
 
 async function signup(){
 const email=document.getElementById("email").value;
 const password=document.getElementById("password").value;
-
 const {error}=await db.auth.signUp({email,password});
-
-status(error ? error.message :
-"Account created. Check your email for confirmation.");
+status(error?error.message:"Account created. Check your email for confirmation.");
 }
 
 async function signin(){
 const email=document.getElementById("email").value;
 const password=document.getElementById("password").value;
-
-const {data,error}=await db.auth.signInWithPassword({
-email,password
-});
-
+const {data,error}=await db.auth.signInWithPassword({email,password});
 if(error){status(error.message);return}
-
 me=data.user;
-startApp();
+await startApp();
 }
 
 async function startApp(){
@@ -108,40 +90,26 @@ document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 await loadProfile();
 await loadPeople();
+await loadMatches();
 }
 
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
 const age=Number(document.getElementById("age").value);
 const bio=document.getElementById("bio").value;
-
-if(!username || age<18){
-appStatus("Name aur age 18+ zaroori hai.");
-return;
-}
-
-const {error}=await db.from("profiles").upsert({
-id:me.id,username,age,bio
-});
-
-appStatus(error ? error.message : "Profile saved!");
+if(!username||age<18){appStatus("Name aur age 18+ zaroori hai.");return}
+const {error}=await db.from("profiles").upsert({id:me.id,username,age,bio});
+appStatus(error?error.message:"Profile saved!");
 await loadPeople();
 }
 
 async function loadProfile(){
-const {data,error}=await db.from("profiles")
-.select("*").eq("id",me.id).maybeSingle();
-
-if(error){
-appStatus(error.message);
-return;
-}
-
+const {data,error}=await db.from("profiles").select("*").eq("id",me.id).maybeSingle();
+if(error){appStatus(error.message);return}
 if(data){
 document.getElementById("username").value=data.username||"";
 document.getElementById("age").value=data.age||"";
 document.getElementById("bio").value=data.bio||"";
-
 if(data.photo_url){
 const img=document.getElementById("myPhoto");
 img.src=data.photo_url;
@@ -152,86 +120,37 @@ img.classList.remove("hidden");
 
 async function uploadPhoto(){
 const file=document.getElementById("photoFile").files[0];
-
-if(!file){
-appStatus("Pehle photo choose karein.");
-return;
+if(!file){appStatus("Pehle photo choose karein.");return}
+if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+appStatus("JPG, PNG ya WEBP photo select karein.");return;
 }
+if(file.size>5*1024*1024){appStatus("Photo 5 MB se chhoti honi chahiye.");return}
 
-if(!file.type.startsWith("image/")){
-appStatus("Sirf image file upload karein.");
-return;
-}
-
-if(file.size>5*1024*1024){
-appStatus("Photo 5 MB se chhoti honi chahiye.");
-return;
-}
-
-const ext={
-"image/jpeg":"jpg",
-"image/png":"png",
-"image/webp":"webp"
-}[file.type];
-
-if(!ext){
-appStatus("JPG, PNG ya WEBP photo select karein.");
-return;
-}
-
+const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[file.type];
+const path=me.id+"/avatar-"+Date.now()+"."+ext;
 appStatus("Photo upload ho rahi hai...");
 
-const path=me.id+"/avatar-"+Date.now()+"."+ext;
+const {error:uploadError}=await db.storage.from("profile-photos")
+.upload(path,file,{contentType:file.type,cacheControl:"3600"});
 
-const {error:uploadError}=await db.storage
-.from("profile-photos")
-.upload(path,file,{
-contentType:file.type,
-cacheControl:"3600"
-});
+if(uploadError){appStatus(uploadError.message);return}
 
-if(uploadError){
-appStatus(uploadError.message);
-return;
-}
-
-const {data}=db.storage
-.from("profile-photos")
-.getPublicUrl(path);
-
-const publicUrl=data.publicUrl;
-
-const {error:saveError}=await db.from("profiles")
-.upsert({
-id:me.id,
-photo_url:publicUrl
-});
-
-if(saveError){
-appStatus(saveError.message);
-return;
-}
+const {data}=db.storage.from("profile-photos").getPublicUrl(path);
+const {error:saveError}=await db.from("profiles").upsert({id:me.id,photo_url:data.publicUrl});
+if(saveError){appStatus(saveError.message);return}
 
 const img=document.getElementById("myPhoto");
-img.src=publicUrl;
+img.src=data.publicUrl;
 img.classList.remove("hidden");
-
 document.getElementById("photoFile").value="";
-appStatus("Profile photo uploaded successfully!");
+appStatus("Profile photo uploaded!");
 await loadPeople();
 }
 
 async function loadPeople(){
-const {data,error}=await db.from("profiles")
-.select("id,username,age,bio,photo_url");
-
+const {data,error}=await db.from("profiles").select("id,username,age,bio,photo_url");
 const box=document.getElementById("people");
-
-if(error){
-box.innerText=error.message;
-return;
-}
-
+if(error){box.innerText=error.message;return}
 box.innerHTML="";
 
 (data||[]).filter(p=>p.id!==me.id).forEach(p=>{
@@ -248,21 +167,80 @@ div.appendChild(img);
 
 const name=document.createElement("b");
 name.textContent=p.username||"User";
-
 const info=document.createElement("p");
 info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
-const btn=document.createElement("button");
-btn.textContent="Chat";
-btn.onclick=()=>chooseUser(p.id,p.username);
+const likeBtn=document.createElement("button");
+likeBtn.textContent="Like ❤️";
+likeBtn.onclick=()=>sendLike(p.id,p.username);
 
-div.append(name,info,btn);
+const chatBtn=document.createElement("button");
+chatBtn.textContent="Chat 💬";
+chatBtn.onclick=()=>chooseUser(p.id,p.username);
+
+div.append(name,info,likeBtn,chatBtn);
 box.appendChild(div);
 });
 
-if(!box.children.length){
-box.innerText="Abhi koi doosra profile nahi hai.";
+if(!box.children.length)box.innerText="Abhi koi doosra profile nahi hai.";
 }
+
+async function sendLike(targetId,targetName){
+appStatus("Like bheja ja raha hai...");
+
+const {error}=await db.from("likes").upsert({
+from_user:me.id,
+to_user:targetId
+},{onConflict:"from_user,to_user",ignoreDuplicates:true});
+
+if(error){appStatus(error.message);return}
+
+const {data:reverse,error:checkError}=await db.from("likes")
+.select("id")
+.eq("from_user",targetId)
+.eq("to_user",me.id)
+.maybeSingle();
+
+if(checkError){appStatus(checkError.message);return}
+
+if(reverse){
+appStatus("💕 It's a Match! Aap dono ek doosre ko pasand karte hain.");
+await loadMatches();
+}else{
+appStatus("❤️ Like bhej diya! Agar woh bhi Like karega to Match hoga.");
+}
+}
+
+async function loadMatches(){
+const box=document.getElementById("matches");
+const {data:sent,error}=await db.from("likes")
+.select("to_user").eq("from_user",me.id);
+
+if(error){box.innerText=error.message;return}
+
+const ids=(sent||[]).map(x=>x.to_user);
+if(!ids.length){box.innerText="No matches yet.";return}
+
+const {data:received,error:matchError}=await db.from("likes")
+.select("from_user").in("from_user",ids).eq("to_user",me.id);
+
+if(matchError){box.innerText=matchError.message;return}
+
+const matchIds=(received||[]).map(x=>x.from_user);
+if(!matchIds.length){box.innerText="No matches yet.";return}
+
+const {data:profiles,error:profileError}=await db.from("profiles")
+.select("id,username").in("id",matchIds);
+
+if(profileError){box.innerText=profileError.message;return}
+
+box.innerHTML="";
+(profiles||[]).forEach(p=>{
+const btn=document.createElement("button");
+btn.textContent="💕 "+(p.username||"User")+" - Chat";
+btn.onclick=()=>chooseUser(p.id,p.username);
+box.appendChild(btn);
+});
 }
 
 async function chooseUser(id,name){
@@ -273,21 +251,13 @@ await loadMessages();
 
 async function loadMessages(){
 if(!selected)return;
-
-const {data,error}=await db.from("messages")
-.select("*")
-.or(
-"and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")"
-)
+const {data,error}=await db.from("messages").select("*")
+.or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")")
 .order("created_at",{ascending:true});
 
 const box=document.getElementById("messages");
 box.innerHTML="";
-
-if(error){
-box.innerText=error.message;
-return;
-}
+if(error){box.innerText=error.message;return}
 
 (data||[]).forEach(m=>{
 const p=document.createElement("p");
@@ -297,27 +267,15 @@ box.appendChild(p);
 }
 
 async function sendMessage(){
-if(!selected){
-appStatus("Pehle kisi user ko Chat select karein.");
-return;
-}
-
+if(!selected){appStatus("Pehle kisi user ko Chat select karein.");return}
 const input=document.getElementById("message");
 const message=input.value.trim();
-
 if(!message)return;
 
 const {error}=await db.from("messages").insert({
-sender_id:me.id,
-receiver_id:selected,
-message
+sender_id:me.id,receiver_id:selected,message
 });
-
-if(error){
-appStatus(error.message);
-return;
-}
-
+if(error){appStatus(error.message);return}
 input.value="";
 await loadMessages();
 }
@@ -335,5 +293,4 @@ startApp();
 });
 </script>
 </body>
- </html>
- 
+</html>
