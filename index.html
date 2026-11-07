@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JABZY - Make New Friends</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#10101b;color:white;font-family:Arial;padding:20px}
+h1{color:#ff4d91;text-align:center;font-size:38px}
+.card{background:#202033;padding:16px;border-radius:14px;margin:15px 0}
+input,textarea,button{box-sizing:border-box;width:100%;padding:13px;margin:7px 0;border:0;border-radius:9px}
+button{background:#ff4d91;color:white;font-weight:bold}
+small{color:#bbb}
+.hidden{display:none}
+.user{padding:12px;background:#303047;margin:8px 0;border-radius:9px}
+</style>
+</head>
+<body>
+<h1>JABZY ❤️</h1>
+<p style="text-align:center">Make New Friends • 18+</p>
+
+<div class="card" id="login">
+<h3>Login / Sign Up</h3>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="signup()">Create Account</button>
+<button onclick="signin()">Login</button>
+<p id="status"></p>
+</div>
+
+<div class="card hidden" id="app">
+<h3>Your Profile</h3>
+<input id="username" placeholder="Your name">
+<input id="age" type="number" placeholder="Your age (18+)">
+<textarea id="bio" placeholder="About yourself"></textarea>
+<button onclick="saveProfile()">Save Profile</button>
+
+<h3>Discover People</h3>
+<div id="people">Loading...</div>
+
+<h3 id="chatTitle">Chat</h3>
+<div id="messages"></div>
+<input id="message" placeholder="Write a message">
+<button onclick="sendMessage()">Send Message</button>
+<button onclick="loadMessages()">Refresh Chat</button>
+<button onclick="logout()">Logout</button>
+<p id="appStatus"></p>
+</div>
+
+<script>
+const SUPABASE_URL = "PASTE_PROJECT_URL_HERE";
+const SUPABASE_KEY = "PASTE_PUBLISHABLE_KEY_HERE";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let me = null;
+let selected = null;
+
+function status(t){document.getElementById("status").innerText=t}
+function appStatus(t){document.getElementById("appStatus").innerText=t}
+
+async function signup(){
+ const email=document.getElementById("email").value;
+ const password=document.getElementById("password").value;
+ const {error}=await db.auth.signUp({email,password});
+ status(error?error.message:"Account created. Check your email for confirmation.");
+}
+
+async function signin(){
+ const email=document.getElementById("email").value;
+ const password=document.getElementById("password").value;
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){status(error.message);return}
+ me=data.user;
+ startApp();
+}
+
+async function startApp(){
+ document.getElementById("login").classList.add("hidden");
+ document.getElementById("app").classList.remove("hidden");
+ await loadProfile();
+ await loadPeople();
+}
+
+async function saveProfile(){
+ const username=document.getElementById("username").value.trim();
+ const age=Number(document.getElementById("age").value);
+ const bio=document.getElementById("bio").value;
+ if(!username || age<18){appStatus("Name aur age 18+ zaroori hai.");return}
+ const {error}=await db.from("profiles").upsert({
+ id:me.id,username,age,bio
+ });
+ appStatus(error?error.message:"Profile saved!");
+ await loadPeople();
+}
+
+async function loadProfile(){
+ const {data}=await db.from("profiles").select("*").eq("id",me.id).maybeSingle();
+ if(data){
+ document.getElementById("username").value=data.username||"";
+ document.getElementById("age").value=data.age||"";
+ document.getElementById("bio").value=data.bio||"";
+ }
+}
+
+async function loadPeople(){
+ const {data,error}=await db.from("profiles").select("id,username,age,bio");
+ const box=document.getElementById("people");
+ if(error){box.innerText=error.message;return}
+ box.innerHTML="";
+ (data||[]).filter(p=>p.id!==me.id).forEach(p=>{
+ const div=document.createElement("div");
+ div.className="user";
+ const name=document.createElement("b");
+ name.textContent=p.username||"User";
+ const info=document.createElement("p");
+ info.textContent=(p.age||"")+" years • "+(p.bio||"");
+ const btn=document.createElement("button");
+ btn.textContent="Chat";
+ btn.onclick=()=>chooseUser(p.id,p.username);
+ div.append(name,info,btn);
+ box.appendChild(div);
+ });
+ if(!box.children.length)box.innerText="Abhi koi doosra profile nahi hai.";
+}
+
+async function chooseUser(id,name){
+ selected=id;
+ document.getElementById("chatTitle").innerText="Chat with "+name;
+ await loadMessages();
+}
+
+async function loadMessages(){
+ if(!selected)return;
+ const {data,error}=await db.from("messages").select("*")
+ .or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")")
+ .order("created_at",{ascending:true});
+ const box=document.getElementById("messages");
+ box.innerHTML="";
+ if(error){box.innerText=error.message;return}
+ (data||[]).forEach(m=>{
+ const p=document.createElement("p");
+ p.textContent=(m.sender_id===me.id?"You: ":"Them: ")+m.message;
+ box.appendChild(p);
+ });
+}
+
+async function sendMessage(){
+ if(!selected){appStatus("Pehle kisi user ko Chat select karein.");return}
+ const input=document.getElementById("message");
+ const message=input.value.trim();
+ if(!message)return;
+ const {error}=await db.from("messages").insert({
+ sender_id:me.id,receiver_id:selected,message
+ });
+ if(error){appStatus(error.message);return}
+ input.value="";
+ await loadMessages();
+}
+
+async function logout(){
+ await db.auth.signOut();
+ location.reload();
+}
+
+db.auth.getSession().then(({data})=>{
+ if(data.session){me=data.session.user;startApp()}
+});
+</script>
+</body>
+  </html>
+  
