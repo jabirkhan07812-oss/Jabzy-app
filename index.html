@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -15,9 +14,12 @@ button{background:#ff4d91;color:white;font-weight:bold}
 small{color:#bbb}
 .hidden{display:none}
 .user{padding:12px;background:#303047;margin:8px 0;border-radius:9px}
+.photo{width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin:10px auto;border:3px solid #ff4d91}
+.userphoto{width:65px;height:65px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px}
 </style>
 </head>
 <body>
+
 <h1>JABZY ❤️</h1>
 <p style="text-align:center">Make New Friends • 18+</p>
 
@@ -32,6 +34,13 @@ small{color:#bbb}
 
 <div class="card hidden" id="app">
 <h3>Your Profile</h3>
+
+<img id="myPhoto" class="photo hidden" alt="Your profile photo">
+
+<label>Choose Profile Photo</label>
+<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">
+<button onclick="uploadPhoto()">Upload Photo</button>
+
 <input id="username" placeholder="Your name">
 <input id="age" type="number" placeholder="Your age (18+)">
 <textarea id="bio" placeholder="About yourself"></textarea>
@@ -51,124 +60,280 @@ small{color:#bbb}
 
 <script>
 const SUPABASE_URL =
- "https://rpgclomsjxvwhuwusvii.supabase.co";
-const SUPABASE_KEY = "sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+"https://rpgclomsjxvwhuwusvii.supabase.co";
+const SUPABASE_KEY =
+"sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
+
+const db = window.supabase.createClient(
+SUPABASE_URL,SUPABASE_KEY
+);
 
 let me = null;
 let selected = null;
 
-function status(t){document.getElementById("status").innerText=t}
-function appStatus(t){document.getElementById("appStatus").innerText=t}
+function status(t){
+document.getElementById("status").innerText=t;
+}
+
+function appStatus(t){
+document.getElementById("appStatus").innerText=t;
+}
 
 async function signup(){
- const email=document.getElementById("email").value;
- const password=document.getElementById("password").value;
- const {error}=await db.auth.signUp({email,password});
- status(error?error.message:"Account created. Check your email for confirmation.");
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
+
+const {error}=await db.auth.signUp({email,password});
+
+status(error ? error.message :
+"Account created. Check your email for confirmation.");
 }
 
 async function signin(){
- const email=document.getElementById("email").value;
- const password=document.getElementById("password").value;
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error){status(error.message);return}
- me=data.user;
- startApp();
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
+
+const {data,error}=await db.auth.signInWithPassword({
+email,password
+});
+
+if(error){status(error.message);return}
+
+me=data.user;
+startApp();
 }
 
 async function startApp(){
- document.getElementById("login").classList.add("hidden");
- document.getElementById("app").classList.remove("hidden");
- await loadProfile();
- await loadPeople();
+document.getElementById("login").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
+await loadProfile();
+await loadPeople();
 }
 
 async function saveProfile(){
- const username=document.getElementById("username").value.trim();
- const age=Number(document.getElementById("age").value);
- const bio=document.getElementById("bio").value;
- if(!username || age<18){appStatus("Name aur age 18+ zaroori hai.");return}
- const {error}=await db.from("profiles").upsert({
- id:me.id,username,age,bio
- });
- appStatus(error?error.message:"Profile saved!");
- await loadPeople();
+const username=document.getElementById("username").value.trim();
+const age=Number(document.getElementById("age").value);
+const bio=document.getElementById("bio").value;
+
+if(!username || age<18){
+appStatus("Name aur age 18+ zaroori hai.");
+return;
+}
+
+const {error}=await db.from("profiles").upsert({
+id:me.id,username,age,bio
+});
+
+appStatus(error ? error.message : "Profile saved!");
+await loadPeople();
 }
 
 async function loadProfile(){
- const {data}=await db.from("profiles").select("*").eq("id",me.id).maybeSingle();
- if(data){
- document.getElementById("username").value=data.username||"";
- document.getElementById("age").value=data.age||"";
- document.getElementById("bio").value=data.bio||"";
- }
+const {data,error}=await db.from("profiles")
+.select("*").eq("id",me.id).maybeSingle();
+
+if(error){
+appStatus(error.message);
+return;
+}
+
+if(data){
+document.getElementById("username").value=data.username||"";
+document.getElementById("age").value=data.age||"";
+document.getElementById("bio").value=data.bio||"";
+
+if(data.photo_url){
+const img=document.getElementById("myPhoto");
+img.src=data.photo_url;
+img.classList.remove("hidden");
+}
+}
+}
+
+async function uploadPhoto(){
+const file=document.getElementById("photoFile").files[0];
+
+if(!file){
+appStatus("Pehle photo choose karein.");
+return;
+}
+
+if(!file.type.startsWith("image/")){
+appStatus("Sirf image file upload karein.");
+return;
+}
+
+if(file.size>5*1024*1024){
+appStatus("Photo 5 MB se chhoti honi chahiye.");
+return;
+}
+
+const ext={
+"image/jpeg":"jpg",
+"image/png":"png",
+"image/webp":"webp"
+}[file.type];
+
+if(!ext){
+appStatus("JPG, PNG ya WEBP photo select karein.");
+return;
+}
+
+appStatus("Photo upload ho rahi hai...");
+
+const path=me.id+"/avatar-"+Date.now()+"."+ext;
+
+const {error:uploadError}=await db.storage
+.from("profile-photos")
+.upload(path,file,{
+contentType:file.type,
+cacheControl:"3600"
+});
+
+if(uploadError){
+appStatus(uploadError.message);
+return;
+}
+
+const {data}=db.storage
+.from("profile-photos")
+.getPublicUrl(path);
+
+const publicUrl=data.publicUrl;
+
+const {error:saveError}=await db.from("profiles")
+.upsert({
+id:me.id,
+photo_url:publicUrl
+});
+
+if(saveError){
+appStatus(saveError.message);
+return;
+}
+
+const img=document.getElementById("myPhoto");
+img.src=publicUrl;
+img.classList.remove("hidden");
+
+document.getElementById("photoFile").value="";
+appStatus("Profile photo uploaded successfully!");
+await loadPeople();
 }
 
 async function loadPeople(){
- const {data,error}=await db.from("profiles").select("id,username,age,bio");
- const box=document.getElementById("people");
- if(error){box.innerText=error.message;return}
- box.innerHTML="";
- (data||[]).filter(p=>p.id!==me.id).forEach(p=>{
- const div=document.createElement("div");
- div.className="user";
- const name=document.createElement("b");
- name.textContent=p.username||"User";
- const info=document.createElement("p");
- info.textContent=(p.age||"")+" years • "+(p.bio||"");
- const btn=document.createElement("button");
- btn.textContent="Chat";
- btn.onclick=()=>chooseUser(p.id,p.username);
- div.append(name,info,btn);
- box.appendChild(div);
- });
- if(!box.children.length)box.innerText="Abhi koi doosra profile nahi hai.";
+const {data,error}=await db.from("profiles")
+.select("id,username,age,bio,photo_url");
+
+const box=document.getElementById("people");
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+box.innerHTML="";
+
+(data||[]).filter(p=>p.id!==me.id).forEach(p=>{
+const div=document.createElement("div");
+div.className="user";
+
+if(p.photo_url){
+const img=document.createElement("img");
+img.className="userphoto";
+img.src=p.photo_url;
+img.alt="Profile photo";
+div.appendChild(img);
+}
+
+const name=document.createElement("b");
+name.textContent=p.username||"User";
+
+const info=document.createElement("p");
+info.textContent=(p.age||"")+" years • "+(p.bio||"");
+
+const btn=document.createElement("button");
+btn.textContent="Chat";
+btn.onclick=()=>chooseUser(p.id,p.username);
+
+div.append(name,info,btn);
+box.appendChild(div);
+});
+
+if(!box.children.length){
+box.innerText="Abhi koi doosra profile nahi hai.";
+}
 }
 
 async function chooseUser(id,name){
- selected=id;
- document.getElementById("chatTitle").innerText="Chat with "+name;
- await loadMessages();
+selected=id;
+document.getElementById("chatTitle").innerText="Chat with "+name;
+await loadMessages();
 }
 
 async function loadMessages(){
- if(!selected)return;
- const {data,error}=await db.from("messages").select("*")
- .or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")")
- .order("created_at",{ascending:true});
- const box=document.getElementById("messages");
- box.innerHTML="";
- if(error){box.innerText=error.message;return}
- (data||[]).forEach(m=>{
- const p=document.createElement("p");
- p.textContent=(m.sender_id===me.id?"You: ":"Them: ")+m.message;
- box.appendChild(p);
- });
+if(!selected)return;
+
+const {data,error}=await db.from("messages")
+.select("*")
+.or(
+"and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")"
+)
+.order("created_at",{ascending:true});
+
+const box=document.getElementById("messages");
+box.innerHTML="";
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+(data||[]).forEach(m=>{
+const p=document.createElement("p");
+p.textContent=(m.sender_id===me.id?"You: ":"Them: ")+m.message;
+box.appendChild(p);
+});
 }
 
 async function sendMessage(){
- if(!selected){appStatus("Pehle kisi user ko Chat select karein.");return}
- const input=document.getElementById("message");
- const message=input.value.trim();
- if(!message)return;
- const {error}=await db.from("messages").insert({
- sender_id:me.id,receiver_id:selected,message
- });
- if(error){appStatus(error.message);return}
- input.value="";
- await loadMessages();
+if(!selected){
+appStatus("Pehle kisi user ko Chat select karein.");
+return;
+}
+
+const input=document.getElementById("message");
+const message=input.value.trim();
+
+if(!message)return;
+
+const {error}=await db.from("messages").insert({
+sender_id:me.id,
+receiver_id:selected,
+message
+});
+
+if(error){
+appStatus(error.message);
+return;
+}
+
+input.value="";
+await loadMessages();
 }
 
 async function logout(){
- await db.auth.signOut();
- location.reload();
+await db.auth.signOut();
+location.reload();
 }
 
 db.auth.getSession().then(({data})=>{
- if(data.session){me=data.session.user;startApp()}
+if(data.session){
+me=data.session.user;
+startApp();
+}
 });
 </script>
 </body>
-  </html>
-  
+ </html>
+ 
