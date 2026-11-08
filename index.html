@@ -353,10 +353,10 @@ document.getElementById("messages").innerHTML="";
 }
 
 appStatus(targetName+" ko block kar diya gaya.");
+await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
 }
-
 async function reportUser(targetId,targetName){
 const reason=prompt(
 targetName+" ko report karne ka reason likhein:"
