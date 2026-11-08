@@ -441,7 +441,18 @@ p.textContent=(m.sender_id===me.id?"You: ":"Them: ")+m.message;
 box.appendChild(p);
 });
 }
+async function updateTypingStatus(){
+if(!me||!selected)return;
 
+const {error}=await db.from("typing_status").upsert({
+user_id:me.id,
+receiver_id:selected,
+updated_at:new Date().toISOString()
+});
+
+if(error)appStatus(error.message);
+}
+  
 async function sendMessage(){
 if(!selected){
 appStatus("Pehle kisi user ko Chat select karein.");
