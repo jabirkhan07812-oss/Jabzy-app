@@ -192,7 +192,7 @@ if(error)appStatus(error.message);
 async function loadPeople(){
 const box=document.getElementById("people");
 const {data,error}=await db.from("profiles")
-.select("id,username,age,bio,photo_url");
+.select("id,username,age,bio,photo_url,last_seen");
 
 if(error){box.innerText=error.message;return}
 
@@ -218,7 +218,11 @@ div.appendChild(img);
 
 const name=document.createElement("b");
 name.textContent=p.username||"User";
-
+  
+const online=document.createElement("span");
+const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000);
+online.textContent=isOnline?" 🟢 Online":" ⚪ Offline";
+  
 const info=document.createElement("p");
 info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
@@ -240,8 +244,7 @@ reportBtn.className="danger";
 reportBtn.textContent="Report ⚠️";
 reportBtn.onclick=()=>reportUser(p.id,p.username);
 
-div.append(name,info,likeBtn,chatBtn,blockBtn,reportBtn);
-box.appendChild(div);
+div.append(name,online,info,likeBtn,chatBtn,blockBtn,reportBtn);
 });
 
 if(!box.children.length){
