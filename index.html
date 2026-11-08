@@ -112,6 +112,34 @@ margin:8px 0;
 #typingStatus,#appStatus{
 color:#ff70ae;
   }
+
+.app-screen{
+display:none;
+}
+
+#discoverScreen{
+display:block;
+}
+
+.bottom-nav{
+display:flex;
+gap:5px;
+position:sticky;
+bottom:0;
+background:#171727;
+padding:8px;
+border-radius:14px;
+margin-top:15px;
+}
+
+.bottom-nav button{
+flex:1;
+width:auto;
+padding:10px 4px;
+margin:0;
+font-size:12px;
+  }
+  
   
 </style>
 </head>
@@ -129,36 +157,54 @@ color:#ff70ae;
 <p id="status"></p>
 </div>
 
+
 <div class="card hidden" id="app">
-<h3>Your Profile</h3>
+
+<div id="profileScreen" class="app-screen">
+<h3>Your Profile 👤</h3>
 <img id="myPhoto" class="photo hidden" alt="Your photo">
 <input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">
 <button onclick="uploadPhoto()">Upload Photo</button>
-
 <input id="username" placeholder="Your name">
 <input id="age" type="number" placeholder="Your age (18+)">
 <textarea id="bio" placeholder="About yourself"></textarea>
 <button onclick="saveProfile()">Save Profile</button>
-
-<div id="people">Loading...</div>
-
 <h3>Blocked Users 🚫</h3>
 <div id="blockedUsers">No blocked users.</div>
+</div>
 
+<div id="discoverScreen" class="app-screen">
+<h3>Discover People ❤️</h3>
+<div id="people">Loading...</div>
+</div>
+
+<div id="matchesScreen" class="app-screen" style="display:none">
 <h3>Your Matches 💕</h3>
 <div id="matches">No matches yet.</div>
+</div>
 
+<div id="chatsScreen" class="app-screen" style="display:none">
 <h3 id="chatTitle">Chat</h3>
 <div id="messages"></div>
-  <p id="typingStatus"></p>
-  <input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp">
+<p id="typingStatus"></p>
+<input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp">
 <input id="message" placeholder="Write a message" oninput="updateTypingStatus()">
-  <button type="button" onclick="sendChatPhoto()">Send Photo 📷</button>
+<button type="button" onclick="sendChatPhoto()">Send Photo 📷</button>
 <button onclick="sendMessage()">Send Message</button>
 <button onclick="loadMessages()">Refresh Chat</button>
 <button onclick="logout()">Logout</button>
 <p id="appStatus"></p>
 </div>
+
+<div class="bottom-nav">
+<button onclick="showTab('discover')">🔍<br>Discover</button>
+<button onclick="showTab('matches')">💕<br>Matches</button>
+<button onclick="showTab('chats')">💬<br>Chats</button>
+<button onclick="showTab('profile')">👤<br>Profile</button>
+</div>
+
+</div>
+  
 
 <script>
 const SUPABASE_URL="https://rpgclomsjxvwhuwusvii.supabase.co";
@@ -168,6 +214,15 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let me=null;
 let selected=null;
 
+function showTab(tab){
+const screens=["discover","matches","chats","profile"];
+
+screens.forEach(name=>{
+document.getElementById(name+"Screen").style.display=
+name===tab?"block":"none";
+});
+}
+  
 function status(t){
 document.getElementById("status").innerText=t;
 }
