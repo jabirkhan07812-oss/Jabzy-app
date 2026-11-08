@@ -54,7 +54,9 @@ button{background:#ff4d91;color:white;font-weight:bold}
 <h3 id="chatTitle">Chat</h3>
 <div id="messages"></div>
   <p id="typingStatus"></p>
+  <input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp">
 <input id="message" placeholder="Write a message" oninput="updateTypingStatus()">
+  <button onclick="sendChatPhoto()">Send Photo 📷</button>
 <button onclick="sendMessage()">Send Message</button>
 <button onclick="loadMessages()">Refresh Chat</button>
 <button onclick="logout()">Logout</button>
