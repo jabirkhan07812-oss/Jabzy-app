@@ -95,6 +95,7 @@ await startApp();
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 await loadProfile();
+await updateOnlineStatus();
 await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
@@ -177,7 +178,16 @@ ids.add(b.blocked_id);
 ids.delete(me.id);
 return ids;
 }
+async function updateOnlineStatus(){
+if(!me)return;
 
+const {error}=await db.from("profiles").update({
+last_seen:new Date().toISOString()
+}).eq("id",me.id);
+
+if(error)appStatus(error.message);
+  }
+  
 async function loadPeople(){
 const box=document.getElementById("people");
 const {data,error}=await db.from("profiles")
