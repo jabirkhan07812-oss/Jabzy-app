@@ -474,7 +474,68 @@ updated_at:new Date().toISOString()
 if(error)appStatus(error.message);
 }
   
-async function sendMessage(){
+async function sendChatPhoto(){
+if(!me||!selected){
+appStatus("Pehle kisi user ko Chat select karein.");
+return;
+}
+
+let blocked;
+try{blocked=await getBlockedIds()}
+catch(e){appStatus(e.message);return}
+
+if(blocked.has(selected)){
+appStatus("Blocked user ko photo nahi bhej sakte.");
+return;
+}
+
+const file=document.getElementById("chatPhotoFile").files[0];
+if(!file){
+appStatus("Pehle photo select karein.");
+return;
+}
+
+const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[file.type];
+if(!ext){
+appStatus("JPG, PNG ya WEBP photo select karein.");
+return;
+}
+
+if(file.size>10*1024*1024){
+appStatus("Photo 10 MB se chhoti honi chahiye.");
+return;
+}
+
+const path=me.id+"/"+selected+"/"+Date.now()+"."+ext;
+
+appStatus("Photo upload ho rahi hai...");
+
+const {error:uploadError}=await db.storage
+.from("chat-photos")
+.upload(path,file,{contentType:file.type});
+
+if(uploadError){
+appStatus(uploadError.message);
+return;
+}
+
+const {error}=await db.from("messages").insert({
+sender_id:me.id,
+receiver_id:selected,
+message:"PHOTO:"+path
+});
+
+if(error){
+appStatus(error.message);
+return;
+}
+
+document.getElementById("chatPhotoFile").value="";
+appStatus("Photo send ho gayi!");
+await loadMessages();
+}
+  
+ async function sendMessage(){
 if(!selected){
 appStatus("Pehle kisi user ko Chat select karein.");
 return;
