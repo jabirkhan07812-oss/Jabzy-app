@@ -437,6 +437,7 @@ typing?"✍️ Typing...":"";
 }
   
 
+
 async function loadMessages(){
 if(!selected)return;
 
@@ -458,11 +459,12 @@ box.innerHTML="";
 if(error){box.innerText=error.message;return}
 
 for(const m of (data||[])){
+const own=m.sender_id===me.id;
 const p=document.createElement("p");
-const sender=m.sender_id===me.id?"You: ":"Them: ";
+p.textContent=own?"You: ":"Them: ";
 
 if(m.message.startsWith("PHOTO:")){
-p.textContent=sender+"📷 Photo";
+p.textContent+= "📷 Photo";
 box.appendChild(p);
 
 const path=m.message.slice(6);
@@ -472,11 +474,9 @@ const {data:imageData,error:imageError}=await db.storage
 
 if(imageError){
 const note=document.createElement("p");
-note.textContent="Photo load nahi hui: "+imageError.message;
+note.textContent="Photo load nahi hui.";
 box.appendChild(note);
-continue;
-}
-
+}else{
 const img=document.createElement("img");
 img.src=imageData.signedUrl;
 img.alt="Chat photo";
@@ -486,13 +486,51 @@ img.style.objectFit="contain";
 img.style.borderRadius="10px";
 img.style.display="block";
 box.appendChild(img);
-
+}
 }else{
-p.textContent=sender+m.message;
+p.textContent+=m.message;
 box.appendChild(p);
 }
+
+if(own){
+const btn=document.createElement("button");
+btn.type="button";
+btn.textContent="Unsend";
+btn.onclick=()=>unsendMessage(m.id,m.message);
+box.appendChild(btn);
 }
-  }
+}
+}
+
+async function unsendMessage(id,message){
+if(!confirm("Is message ko sabke liye Unsend karein?"))return;
+
+if(message.startsWith("PHOTO:")){
+const path=message.slice(6);
+const {error:photoError}=await db.storage
+.from("chat-photos")
+.remove([path]);
+
+if(photoError){
+appStatus(photoError.message);
+return;
+}
+}
+
+const {error}=await db.from("messages")
+.delete()
+.eq("id",id)
+.eq("sender_id",me.id);
+
+if(error){
+appStatus(error.message);
+return;
+}
+
+appStatus("Message Unsend ho gaya!");
+await loadMessages();
+}
+  
   
 async function updateTypingStatus(){
 if(!me||!selected)return;
