@@ -414,7 +414,23 @@ selected=id;
 document.getElementById("chatTitle").innerText="Chat with "+name;
 await loadMessages();
 }
+async function checkTypingStatus(){
+if(!me||!selected)return;
 
+const {data,error}=await db.from("typing_status")
+.select("updated_at")
+.eq("user_id",selected)
+.eq("receiver_id",me.id)
+.maybeSingle();
+
+if(error)return;
+
+const typing=data && (Date.now()-new Date(data.updated_at).getTime()<4000);
+
+document.getElementById("typingStatus").innerText=
+typing?"✍️ Typing...":"";
+}
+  
 async function loadMessages(){
 if(!selected)return;
 
