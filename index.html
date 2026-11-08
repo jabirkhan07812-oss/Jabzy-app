@@ -302,7 +302,38 @@ btn.onclick=()=>chooseUser(p.id,p.username);
 box.appendChild(btn);
 });
 }
+async function loadBlockedUsers(){
+const box=document.getElementById("blockedUsers");
+const {data,error}=await db.from("blocks")
+.select("blocked_id").eq("blocker_id",me.id);
 
+if(error){box.innerText=error.message;return;}
+box.innerHTML="";
+
+for(const b of (data||[])){
+const {data:p}=await db.from("profiles")
+.select("id,username").eq("id",b.blocked_id).maybeSingle();
+
+if(!p)continue;
+const btn=document.createElement("button");
+btn.textContent="Unblock "+p.username+" 🔓";
+btn.onclick=()=>unblockUser(p.id,p.username);
+box.appendChild(btn);
+}
+if(!box.children.length)box.innerText="No blocked users.";
+}
+
+async function unblockUser(id,name){
+if(!confirm(name+" ko unblock karna hai?"))return;
+const {error}=await db.from("blocks").delete()
+.eq("blocker_id",me.id).eq("blocked_id",id);
+if(error){appStatus(error.message);return;}
+appStatus(name+" unblock ho gaya!");
+await loadBlockedUsers();
+await loadPeople();
+await loadMatches();
+}
+  
 async function blockUser(targetId,targetName){
 if(!confirm(targetName+" ko block karna chahte hain?"))return;
 
