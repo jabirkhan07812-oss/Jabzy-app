@@ -304,14 +304,16 @@ const matchIds=(received||[])
 if(!matchIds.length){box.innerText="No matches yet.";return}
 
 const {data:profiles,error:profileError}=await db.from("profiles")
-.select("id,username").in("id",matchIds);
+.select("id,username,last_seen").in("id",matchIds);
 
 if(profileError){box.innerText=profileError.message;return}
 
 box.innerHTML="";
 (profiles||[]).forEach(p=>{
 const btn=document.createElement("button");
-btn.textContent="💕 "+(p.username||"User")+" - Chat";
+const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000);
+const status=isOnline?" 🟢 Online":" ⚪ Offline";
+btn.textContent="💕 "+(p.username||"User")+" - Chat"+status;
 btn.onclick=()=>chooseUser(p.id,p.username);
 box.appendChild(btn);
 });
