@@ -91,13 +91,14 @@ me=data.user;
 await startApp();
 }
 
-async function startApp(){
+  async function startApp(){
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 await loadProfile();
+await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
-}
+  }
 
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
