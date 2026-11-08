@@ -6,16 +6,113 @@
 <title>JABZY - Make New Friends</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{margin:0;background:#10101b;color:white;font-family:Arial;padding:20px}
-h1{color:#ff4d91;text-align:center;font-size:38px}
-.card{background:#202033;padding:16px;border-radius:14px;margin:15px 0}
-input,textarea,button{box-sizing:border-box;width:100%;padding:13px;margin:7px 0;border:0;border-radius:9px}
-button{background:#ff4d91;color:white;font-weight:bold}
-.hidden{display:none}
-.user{padding:12px;background:#303047;margin:8px 0;border-radius:9px}
-.photo{width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin:10px auto;border:3px solid #ff4d91}
-.userphoto{width:65px;height:65px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px}
-.danger{background:#a83245}
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+background:#10101c;
+color:#fff;
+font-family:Arial,sans-serif;
+padding:16px;
+padding-bottom:30px;
+}
+
+h1{
+color:#ff4d9d;
+text-align:center;
+font-size:32px;
+}
+
+h3{
+color:#ff70ae;
+margin-top:24px;
+}
+
+p{line-height:1.5;}
+
+.card{
+background:#202033;
+padding:18px;
+border:1px solid #34344b;
+border-radius:18px;
+margin:15px 0;
+box-shadow:0 5px 18px #0004;
+}
+  
+input,textarea{
+width:100%;
+padding:15px;
+margin:8px 0;
+border:1px solid #44445b;
+border-radius:12px;
+font-size:16px;
+background:#fff;
+color:#171727;
+}
+
+button{
+width:100%;
+padding:15px;
+margin:7px 0;
+background:#ff4295;
+color:white;
+font-size:16px;
+font-weight:bold;
+border:0;
+border-radius:13px;
+}
+
+button:active{opacity:.75;}
+
+.hidden{display:none!important;}
+
+.user{
+background:#292941;
+padding:14px;
+margin:12px 0;
+border-radius:16px;
+}
+
+.photo{
+width:110px;
+height:110px;
+border-radius:50%;
+object-fit:cover;
+display:block;
+margin:10px auto;
+border:3px solid #ff4d9d;
+}
+
+.userphoto{
+width:65px;
+height:65px;
+border-radius:50%;
+object-fit:cover;
+vertical-align:middle;
+margin-right:10px;
+}
+
+.danger{background:#a83245;}
+
+#messages{
+background:#191929;
+padding:12px;
+border-radius:15px;
+margin:12px 0;
+overflow-wrap:anywhere;
+}
+
+#messages img{
+margin:8px 0;
+}
+
+#typingStatus,#appStatus{
+color:#ff70ae;
+  }
+  
 </style>
 </head>
 <body>
