@@ -96,6 +96,7 @@ document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 await loadProfile();
 await updateOnlineStatus();
+setInterval(updateOnlineStatus,60000);
 await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
