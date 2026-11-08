@@ -102,8 +102,8 @@ setInterval(checkTypingStatus,2000);
 await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
-  }
-
+setInterval(loadMatches,60000);
+    
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
 const age=Number(document.getElementById("age").value);
