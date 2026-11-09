@@ -516,6 +516,7 @@ const latest=new Map();
 
 (messages||[]).forEach(m=>{
 const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
+
 if(!blocked.has(other)&&!latest.has(other)){
 latest.set(other,m);
 }
@@ -529,37 +530,64 @@ return;
 }
 
 const {data:profiles,error:profileError}=await db.from("profiles")
-.select("id,username,photo_url").in("id",ids);
+.select("id,username,photo_url,last_seen").in("id",ids);
 
 if(profileError){box.innerText=profileError.message;return}
 
 box.innerHTML="";
 
-(profiles||[]).forEach(p=>{
+(profiles||[]).sort((a,b)=>
+new Date(latest.get(b.id).created_at)-new Date(latest.get(a.id).created_at)
+).forEach(p=>{
+
 const m=latest.get(p.id);
 const btn=document.createElement("button");
 
-const last=m.message.startsWith("PHOTO:")
-?"📷 Photo":m.message;
-
-btn.textContent=(p.username||"User")+" — "+last;
-btn.style.display="block";
+btn.style.display="flex";
+btn.style.alignItems="center";
+btn.style.gap="10px";
 btn.style.width="100%";
 btn.style.margin="8px 0";
+btn.style.textAlign="left";
 
 if(p.photo_url){
 const img=document.createElement("img");
 img.src=p.photo_url;
 img.alt="Profile photo";
-img.style.width="40px";
-img.style.height="40px";
+img.style.width="45px";
+img.style.height="45px";
 img.style.objectFit="cover";
 img.style.borderRadius="50%";
-img.style.verticalAlign="middle";
-btn.prepend(img);
+btn.appendChild(img);
 }
 
+const info=document.createElement("div");
+
+const name=document.createElement("div");
+name.textContent=p.username||"User";
+
+const last=document.createElement("div");
+last.textContent=m.message.startsWith("PHOTO:")
+?"📷 Photo":m.message;
+
+const time=document.createElement("small");
+time.textContent=new Date(m.created_at).toLocaleTimeString("en-IN",{
+hour:"2-digit",minute:"2-digit"
+});
+
+const status=document.createElement("small");
+const online=p.last_seen &&
+(Date.now()-new Date(p.last_seen).getTime()<120000);
+
+status.textContent=online?"🟢 Online":
+p.last_seen?"⚪ Last seen "+
+new Date(p.last_seen).toLocaleString("en-IN"):"⚪ Offline";
+
+info.append(name,last,time,status);
+btn.appendChild(info);
+
 btn.onclick=()=>chooseUser(p.id,p.username||"User");
+
 box.appendChild(btn);
 });
   }
