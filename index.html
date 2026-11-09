@@ -184,16 +184,29 @@ font-size:12px;
 </div>
 
 <div id="chatsScreen" class="app-screen" style="display:none">
+
+<div id="chatList">
+<h3>Your Chats 💬</h3>
+<div id="chatListItems">Loading chats...</div>
+</div>
+
+<div id="chatWindow" style="display:none">
+<button onclick="backToChatList()">← Back to Chats</button>
+
 <h3 id="chatTitle">Chat</h3>
 <div id="messages"></div>
 <p id="typingStatus"></p>
+
 <input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp">
 <input id="message" placeholder="Write a message" oninput="updateTypingStatus()">
+
 <button type="button" onclick="sendChatPhoto()">Send Photo 📷</button>
 <button onclick="sendMessage()">Send Message</button>
 <button onclick="loadMessages()">Refresh Chat</button>
 <button onclick="logout()">Logout</button>
 <p id="appStatus"></p>
+</div>
+
 </div>
 
 <div class="bottom-nav">
@@ -477,6 +490,74 @@ btn.onclick=()=>chooseUser(p.id,p.username);
 box.appendChild(btn);
 });
 }
+async function loadChatList(){
+const box=document.getElementById("chatListItems");
+
+if(!me)return;
+
+const {data:messages,error}=await db.from("messages")
+.select("sender_id,receiver_id,message,created_at")
+.or("sender_id.eq."+me.id+",receiver_id.eq."+me.id)
+.order("created_at",{ascending:false});
+
+if(error){box.innerText=error.message;return}
+
+let blocked;
+try{blocked=await getBlockedIds()}
+catch(e){box.innerText=e.message;return}
+
+const latest=new Map();
+
+(messages||[]).forEach(m=>{
+const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
+if(!blocked.has(other)&&!latest.has(other)){
+latest.set(other,m);
+}
+});
+
+const ids=[...latest.keys()];
+
+if(!ids.length){
+box.innerText="Abhi koi chat nahi hai.";
+return;
+}
+
+const {data:profiles,error:profileError}=await db.from("profiles")
+.select("id,username,photo_url").in("id",ids);
+
+if(profileError){box.innerText=profileError.message;return}
+
+box.innerHTML="";
+
+(profiles||[]).forEach(p=>{
+const m=latest.get(p.id);
+const btn=document.createElement("button");
+
+const last=m.message.startsWith("PHOTO:")
+?"📷 Photo":m.message;
+
+btn.textContent=(p.username||"User")+" — "+last;
+btn.style.display="block";
+btn.style.width="100%";
+btn.style.margin="8px 0";
+
+if(p.photo_url){
+const img=document.createElement("img");
+img.src=p.photo_url;
+img.alt="Profile photo";
+img.style.width="40px";
+img.style.height="40px";
+img.style.objectFit="cover";
+img.style.borderRadius="50%";
+img.style.verticalAlign="middle";
+btn.prepend(img);
+}
+
+btn.onclick=()=>chooseUser(p.id,p.username||"User");
+box.appendChild(btn);
+});
+  }
+  
 async function loadBlockedUsers(){
 const box=document.getElementById("blockedUsers");
 const {data,error}=await db.from("blocks")
@@ -568,7 +649,12 @@ return;
 }
 
 selected=id;
+
+document.getElementById("chatList").style.display="none";
+document.getElementById("chatWindow").style.display="block";
+
 document.getElementById("chatTitle").innerText="Chat with "+name;
+
 await loadMessages();
 }
 async function checkTypingStatus(){
