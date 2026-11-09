@@ -516,7 +516,6 @@ const latest=new Map();
 
 (messages||[]).forEach(m=>{
 const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
-
 if(!blocked.has(other)&&!latest.has(other)){
 latest.set(other,m);
 }
@@ -537,7 +536,8 @@ if(profileError){box.innerText=profileError.message;return}
 box.innerHTML="";
 
 (profiles||[]).sort((a,b)=>
-new Date(latest.get(b.id).created_at)-new Date(latest.get(a.id).created_at)
+new Date(latest.get(b.id).created_at)-
+new Date(latest.get(a.id).created_at)
 ).forEach(p=>{
 
 const m=latest.get(p.id);
@@ -545,35 +545,40 @@ const btn=document.createElement("button");
 
 btn.style.display="flex";
 btn.style.alignItems="center";
-btn.style.gap="10px";
+btn.style.gap="12px";
 btn.style.width="100%";
 btn.style.margin="8px 0";
+btn.style.padding="12px";
 btn.style.textAlign="left";
+btn.style.background="#292940";
+btn.style.borderRadius="14px";
 
 if(p.photo_url){
 const img=document.createElement("img");
 img.src=p.photo_url;
 img.alt="Profile photo";
-img.style.width="45px";
-img.style.height="45px";
+img.style.width="52px";
+img.style.height="52px";
 img.style.objectFit="cover";
 img.style.borderRadius="50%";
 btn.appendChild(img);
 }
 
 const info=document.createElement("div");
+info.style.flex="1";
+info.style.minWidth="0";
 
 const name=document.createElement("div");
 name.textContent=p.username||"User";
+name.style.fontWeight="bold";
 
 const last=document.createElement("div");
 last.textContent=m.message.startsWith("PHOTO:")
 ?"📷 Photo":m.message;
-
-const time=document.createElement("small");
-time.textContent=new Date(m.created_at).toLocaleTimeString("en-IN",{
-hour:"2-digit",minute:"2-digit"
-});
+last.style.fontSize="14px";
+last.style.overflow="hidden";
+last.style.textOverflow="ellipsis";
+last.style.whiteSpace="nowrap";
 
 const status=document.createElement("small");
 const online=p.last_seen &&
@@ -583,14 +588,21 @@ status.textContent=online?"🟢 Online":
 p.last_seen?"⚪ Last seen "+
 new Date(p.last_seen).toLocaleString("en-IN"):"⚪ Offline";
 
-info.append(name,last,time,status);
-btn.appendChild(info);
+info.append(name,last,status);
+
+const time=document.createElement("small");
+time.textContent=new Date(m.created_at).toLocaleTimeString("en-IN",{
+hour:"2-digit",minute:"2-digit"
+});
+time.style.whiteSpace="nowrap";
+
+btn.append(info,time);
 
 btn.onclick=()=>chooseUser(p.id,p.username||"User");
 
 box.appendChild(btn);
 });
-  }
+}
   
 async function loadBlockedUsers(){
 const box=document.getElementById("blockedUsers");
