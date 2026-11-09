@@ -234,6 +234,12 @@ screens.forEach(name=>{
 document.getElementById(name+"Screen").style.display=
 name===tab?"block":"none";
 });
+
+if(tab==="chats"){
+document.getElementById("chatList").style.display="block";
+document.getElementById("chatWindow").style.display="none";
+loadChatList();
+}
 }
   
 function status(t){
@@ -647,7 +653,13 @@ if(blocked.has(id)){
 appStatus("Yeh user block hai. Chat nahi kar sakte.");
 return;
 }
-
+function backToChatList(){
+document.getElementById("chatWindow").style.display="none";
+document.getElementById("chatList").style.display="block";
+selected=null;
+loadChatList();
+}
+  
 selected=id;
 
 document.getElementById("chatList").style.display="none";
