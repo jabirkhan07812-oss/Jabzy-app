@@ -586,7 +586,13 @@ const online=p.last_seen &&
 
 status.textContent=online?"🟢 Online":
 p.last_seen?"⚪ Last seen "+
-new Date(p.last_seen).toLocaleString("en-IN"):"⚪ Offline";
+new Date(p.last_seen).toLocaleString("en-IN",{
+day:"numeric",
+month:"short",
+hour:"2-digit",
+minute:"2-digit",
+hour12:true
+}):"⚪ Offline";
 
 info.append(name,last,status);
 
