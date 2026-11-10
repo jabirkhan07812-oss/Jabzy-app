@@ -493,6 +493,7 @@ if(profileError){box.innerText=profileError.message;return}
 box.innerHTML="";
 (profiles||[]).forEach(p=>{
 const btn=document.createElement("button");
+  btn.type="button";
 const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000);
 const minutes=Math.floor((Date.now()-new Date(p.last_seen).getTime())/60000);
 const status=isOnline?" 🟢 Online":p.last_seen?" ⚪ Last seen "+minutes+" min ago":" ⚪ Offline";
