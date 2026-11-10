@@ -702,6 +702,7 @@ loadChatList();
 }
 
 
+
 async function chooseUser(id,name){
 let blocked;
 
@@ -719,7 +720,15 @@ return;
 
 selected=id;
 
-showTab("chats");
+document.getElementById("chatList").style.display="none";
+document.getElementById("chatWindow").style.display="block";
+document.getElementById("chatTitle").innerText="Chat with "+name;
+
+const photo=document.getElementById("chatProfilePhoto");
+const info=document.getElementById("chatProfileInfo");
+
+photo.classList.add("hidden");
+info.textContent="";
 
 const {data:profile,error:profileError}=await db
 .from("profiles")
@@ -729,13 +738,7 @@ const {data:profile,error:profileError}=await db
 
 if(profileError){
 appStatus(profileError.message);
-return;
-}
-
-const photo=document.getElementById("chatProfilePhoto");
-const info=document.getElementById("chatProfileInfo");
-
-if(profile){
+}else if(profile){
 info.textContent=(profile.username||name)+
 " • "+(profile.age||"")+" years • "+
 (profile.bio||"");
@@ -743,19 +746,13 @@ info.textContent=(profile.username||name)+
 if(profile.photo_url){
 photo.src=profile.photo_url;
 photo.classList.remove("hidden");
-}else{
-photo.classList.add("hidden");
 }
 }
 
 await markChatRead(id);
-
-document.getElementById("chatList").style.display="none";
-document.getElementById("chatWindow").style.display="block";
-document.getElementById("chatTitle").innerText="Chat with "+name;
-
 await loadMessages();
 }
+  
   
   
 async function checkTypingStatus(){
