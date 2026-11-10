@@ -711,6 +711,7 @@ selected=null;
 loadChatList();
 }
 
+
 async function chooseUser(id,name){
 let blocked;
 
@@ -728,6 +729,9 @@ return;
 
 selected=id;
 
+showTab("chats");
+await markChatRead(id);
+
 document.getElementById("chatList").style.display="none";
 document.getElementById("chatWindow").style.display="block";
 
@@ -736,7 +740,7 @@ document.getElementById("chatTitle").innerText="Chat with "+name;
 await loadMessages();
   }
   
-
+  
 async function checkTypingStatus(){
 if(!me||!selected)return;
 
