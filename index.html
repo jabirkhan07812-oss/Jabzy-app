@@ -498,7 +498,7 @@ const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000
 const minutes=Math.floor((Date.now()-new Date(p.last_seen).getTime())/60000);
 const status=isOnline?" 🟢 Online":p.last_seen?" ⚪ Last seen "+minutes+" min ago":" ⚪ Offline";
 btn.textContent="💕 "+(p.username||"User")+" - Chat"+status;
-btn.onclick=()=>chooseUser(p.id,p.username);
+btn.onclick=()=>alert("Match button working");
 box.appendChild(btn);
 });
 }
