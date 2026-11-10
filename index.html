@@ -593,6 +593,18 @@ hour:"2-digit",
 minute:"2-digit",
 hour12:true
 }):"⚪ Offline";
+  
+if(unread>0){
+const badge=document.createElement("span");
+badge.textContent=unread;
+badge.style.background="#ff2d75";
+badge.style.color="white";
+badge.style.borderRadius="50%";
+badge.style.padding="3px 8px";
+badge.style.fontSize="12px";
+badge.style.marginLeft="8px";
+name.appendChild(badge);
+}
 
 info.append(name,last,status);
 
