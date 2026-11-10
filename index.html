@@ -411,6 +411,7 @@ likeBtn.textContent="Like ❤️";
 likeBtn.onclick=()=>sendLike(p.id,p.username);
 
 const chatBtn=document.createElement("button");
+  chatBtn.type="button";
 chatBtn.textContent="Chat 💬";
 chatBtn.onclick=()=>chooseUser(p.id,p.username);
 
