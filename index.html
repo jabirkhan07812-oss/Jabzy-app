@@ -1398,6 +1398,8 @@ async function openAdminUserProfile(userId){
 
 const box=document.getElementById("adminUserProfile");
 box.style.display="block";
+box.scrollIntoView({behavior:"smooth",block:"start"});
+window.scrollTo({top:box.getBoundingClientRect().top+window.scrollY-20,behavior:"smooth"});
 box.innerText="Loading profile...";
 
 const {data:user,error}=await db
