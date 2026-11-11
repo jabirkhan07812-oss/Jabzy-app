@@ -1217,10 +1217,11 @@ return;
 box.innerText=JSON.stringify(data,null,2);
 }
 
+
 async function loadAdminUsers(){
 const box=document.getElementById("adminUsers");
 
-const {data,error}=await db
+const {data:users,error}=await db
 .from("profiles")
 .select("id,username,age,bio");
 
@@ -1229,13 +1230,77 @@ box.innerText=error.message;
 return;
 }
 
-box.innerText=JSON.stringify(data,null,2);
+const {data:banned,error:banError}=await db
+.from("banned_users")
+.select("user_id");
+
+if(banError){
+box.innerText=banError.message;
+return;
+}
+
+box.innerHTML="";
+
+users.forEach(user=>{
+const item=document.createElement("div");
+item.style.padding="10px";
+item.style.margin="8px 0";
+item.style.border="1px solid #888";
+
+const name=document.createElement("p");
+name.textContent=user.username+" ("+user.age+")";
+item.appendChild(name);
+
+const isBanned=banned.some(b=>b.user_id===user.id);
+
+const btn=document.createElement("button");
+btn.textContent=isBanned?"Unban User":"Ban User";
+
+btn.onclick=()=>isBanned?
+unbanUser(user.id):banUser(user.id);
+
+item.appendChild(btn);
+box.appendChild(item);
+});
+}
+
+async function banUser(id){
+if(id===me.id){
+alert("You cannot ban yourself!");
+return;
+}
+
+const reason=prompt("Ban reason:");
+if(!reason)return;
+
+const {error}=await db.from("banned_users").insert({
+user_id:id,
+banned_by:me.id,
+reason:reason
+});
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert("User Banned!");
+await loadAdminUsers();
+}
+
+async function unbanUser(id){
+const {error}=await db.from("banned_users")
+.delete().eq("user_id",id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert("User Unbanned!");
+await loadAdminUsers();
   }
   
-async function logout(){
-await db.auth.signOut();
-location.reload();
-}
 
 db.auth.getSession().then(({data})=>{
 if(data.session){
