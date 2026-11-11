@@ -388,8 +388,19 @@ document.getElementById("resetStatus").innerText=error.message;
 return;
 }
 
-document.getElementById("resetStatus").innerText="Password successfully updated!";
+const {data,error:userError}=await db.auth.getUser();
+
+if(userError || !data.user){
+document.getElementById("resetStatus").innerText="Login nahi ho paya. Dobara login karein.";
+return;
 }
+
+me=data.user;
+
+document.getElementById("resetPassword").classList.add("hidden");
+
+await startApp();
+  }
   
  async function startApp(){
 document.getElementById("login").classList.add("hidden");
