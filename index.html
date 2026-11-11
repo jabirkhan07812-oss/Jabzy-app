@@ -194,7 +194,10 @@ onclick="openAdminDashboard()">
 
 <h4>👥 All Users</h4>
 <div id="adminUsers">Loading...</div>
-
+  
+<h4>💬 All User Chats</h4>
+<div id="adminAllChats">Loading...</div>
+  
 <button onclick="closeAdminDashboard()">← Back to Profile</button>
 </div>
   
@@ -1230,6 +1233,7 @@ document.getElementById("adminUsers").innerText="Loading...";
 
 await loadAdminReports();
 await loadAdminUsers();
+await loadAdminAllChats();
 }
 
 function closeAdminDashboard(){
@@ -1298,6 +1302,45 @@ box.appendChild(item);
 });
 }
 
+async function loadAdminAllChats(){
+const box=document.getElementById("adminAllChats");
+box.innerText="Loading...";
+
+const {data:messages,error}=await db
+.from("messages")
+.select("id,sender_id,receiver_id,message,created_id")
+.order("created_id",{ascending:false})
+.limit(200);
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+box.innerHTML="";
+
+if(!messages || messages.length===0){
+box.innerText="No messages found.";
+return;
+}
+
+messages.forEach(msg=>{
+const item=document.createElement("div");
+item.style.padding="10px";
+item.style.margin="8px 0";
+item.style.border="1px solid #888";
+item.style.borderRadius="8px";
+
+item.innerHTML=
+"<b>From:</b> "+msg.sender_id+
+"<br><b>To:</b> "+msg.receiver_id+
+"<br><b>Message:</b> "+msg.message+
+"<br><small>"+new Date(msg.created_id).toLocaleString()+"</small>";
+
+box.appendChild(item);
+});
+  }
+  
 async function banUser(id){
 if(id===me.id){
 alert("You cannot ban yourself!");
