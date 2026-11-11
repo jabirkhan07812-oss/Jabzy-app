@@ -1511,6 +1511,31 @@ me=data.session.user;
 startApp();
 }
 });
+
+  
+async function logout(){
+
+const {error}=await db.auth.signOut();
+
+if(error){
+status(error.message);
+return;
+}
+
+me=null;
+selected=null;
+
+document.getElementById("app").classList.add("hidden");
+document.getElementById("login").classList.remove("hidden");
+
+document.getElementById("email").value="";
+document.getElementById("password").value="";
+document.getElementById("privacyConsent").checked=false;
+
+status("Logged out successfully.");
+}
+  
+  
 </script>
 </body>
   </html>
