@@ -297,7 +297,26 @@ if(error){status(error.message);return}
 me=data.user;
 await startApp();
 }
+async function forgotPassword(){
+const email=document.getElementById("email").value;
 
+if(!email){
+status("Pehle apna email likhiye.");
+return;
+}
+
+const {error}=await db.auth.resetPasswordForEmail(email,{
+redirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
+});
+
+if(error){
+status(error.message);
+return;
+}
+
+status("Password reset link email par bhej diya gaya hai.");
+}
+  
  async function startApp(){
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
