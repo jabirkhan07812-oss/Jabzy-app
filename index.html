@@ -859,6 +859,7 @@ typing?"✍️ Typing...":"";
 }
   
 
+
 async function loadMessages(){
 if(!selected)return;
 
@@ -881,12 +882,17 @@ if(error){box.innerText=error.message;return}
 
 for(const m of (data||[])){
 const own=m.sender_id===me.id;
+
+const row=document.createElement("div");
+row.style.position="relative";
+row.style.margin="12px 0";
+
 const p=document.createElement("p");
 p.textContent=own?"You: ":"Them: ";
 
 if(m.message.startsWith("PHOTO:")){
-p.textContent+= "📷 Photo";
-box.appendChild(p);
+p.textContent+="📷 Photo";
+row.appendChild(p);
 
 const path=m.message.slice(6);
 const {data:imageData,error:imageError}=await db.storage
@@ -894,9 +900,7 @@ const {data:imageData,error:imageError}=await db.storage
 .createSignedUrl(path,3600);
 
 if(imageError){
-const note=document.createElement("p");
-note.textContent="Photo load nahi hui.";
-box.appendChild(note);
+p.textContent+=" (Photo load nahi hui)";
 }else{
 const img=document.createElement("img");
 img.src=imageData.signedUrl;
@@ -906,22 +910,49 @@ img.style.maxHeight="250px";
 img.style.objectFit="contain";
 img.style.borderRadius="10px";
 img.style.display="block";
-box.appendChild(img);
+row.appendChild(img);
 }
 }else{
 p.textContent+=m.message;
-box.appendChild(p);
+row.appendChild(p);
 }
 
 if(own){
 const btn=document.createElement("button");
 btn.type="button";
 btn.textContent="Unsend";
+btn.style.display="none";
+
 btn.onclick=()=>unsendMessage(m.id,m.message);
-box.appendChild(btn);
+
+row.appendChild(btn);
+
+let timer;
+
+row.addEventListener("touchstart",()=>{
+timer=setTimeout(()=>{
+btn.style.display="inline-block";
+},600);
+});
+
+row.addEventListener("touchend",()=>{
+clearTimeout(timer);
+});
+
+row.addEventListener("touchmove",()=>{
+clearTimeout(timer);
+});
+
+row.addEventListener("contextmenu",(e)=>{
+e.preventDefault();
+btn.style.display="inline-block";
+});
 }
+
+box.appendChild(row);
 }
-}
+  }
+                
 
 async function unsendMessage(id,message){
 if(!confirm("Is message ko sabke liye Unsend karein?"))return;
