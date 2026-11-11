@@ -1312,31 +1312,41 @@ const {data:messages,error}=await db
 .order("created_at",{ascending:false})
 .limit(200);
 
-if(error){
-box.innerText=error.message;
-return;
-}
+if(error){box.innerText=error.message;return;}
+
+const {data:profiles,error:profileError}=await db
+.from("profiles")
+.select("id,username");
+
+if(profileError){box.innerText=profileError.message;return;}
 
 box.innerHTML="";
 
-if(!messages || messages.length===0){
+if(!messages.length){
 box.innerText="No messages found.";
 return;
 }
 
 messages.forEach(msg=>{
+const sender=profiles.find(p=>p.id===msg.sender_id);
+const receiver=profiles.find(p=>p.id===msg.receiver_id);
+
 const item=document.createElement("div");
-item.style.padding="10px";
-item.style.margin="8px 0";
-item.style.border="1px solid #888";
-item.style.borderRadius="8px";
+item.style.cssText="padding:10px;margin:8px 0;border:1px solid #888;border-radius:8px;";
 
-item.innerHTML=
-"<b>From:</b> "+msg.sender_id+
-"<br><b>To:</b> "+msg.receiver_id+
-"<br><b>Message:</b> "+msg.message+
-"<br><small>"+new Date(msg.created_at).toLocaleString()+"</small>";
+const from=document.createElement("p");
+from.textContent="From: "+(sender?.username||"Unknown");
 
+const to=document.createElement("p");
+to.textContent="To: "+(receiver?.username||"Unknown");
+
+const message=document.createElement("p");
+message.textContent="Message: "+msg.message;
+
+const time=document.createElement("small");
+time.textContent=new Date(msg.created_at).toLocaleString();
+
+item.append(from,to,message,time);
 box.appendChild(item);
 });
   }
