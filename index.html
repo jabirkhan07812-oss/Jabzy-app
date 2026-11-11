@@ -1105,7 +1105,8 @@ await loadMessages();
   
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
-
+console.log("Selected photo:",photoInput.files.length);
+  
 if(photoInput.files.length>0){
 await sendChatPhoto();
 return;
