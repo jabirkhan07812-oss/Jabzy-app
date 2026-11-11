@@ -1386,6 +1386,50 @@ item.appendChild(time);
 box.appendChild(item);
 }
   }
+
+async function openAdminUserProfile(userId){
+
+const box=document.getElementById("adminUserProfile");
+box.style.display="block";
+box.innerText="Loading profile...";
+
+const {data:user,error}=await db
+.from("profiles")
+.select("id,username,age,bio,photo_url")
+.eq("id",userId)
+.maybeSingle();
+
+if(error || !user){
+box.innerText="Profile not found";
+return;
+}
+
+box.innerHTML="";
+
+const title=document.createElement("h3");
+title.textContent="👤 User Profile";
+
+const img=document.createElement("img");
+img.src=user.photo_url || "";
+img.style.width="100px";
+img.style.height="100px";
+img.style.objectFit="cover";
+img.style.borderRadius="50%";
+
+const name=document.createElement("p");
+name.textContent="Username: "+(user.username||"");
+
+const age=document.createElement("p");
+age.textContent="Age: "+(user.age||"");
+
+const bio=document.createElement("p");
+bio.textContent="Bio: "+(user.bio||"");
+
+const id=document.createElement("p");
+id.textContent="User ID: "+user.id;
+
+box.append(title,img,name,age,bio,id);
+  }  
   
 async function banUser(id){
 if(id===me.id){
