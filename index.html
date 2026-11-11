@@ -208,14 +208,18 @@ font-size:12px;
 <p id="chatProfileInfo"></p>
 <div id="messages"></div>
 <p id="typingStatus"></p>
+  
 <div id="chatComposer" style="
 display:flex;
 align-items:center;
 gap:8px;
 position:sticky;
 bottom:0;
-background:#1f1e30;
-padding:10px 0;
+background:white;
+border:2px solid #ddd;
+border-radius:35px;
+padding:8px 12px;
+margin:12px 0;
 ">
 
 <input id="chatPhotoFile" type="file"
@@ -223,7 +227,7 @@ accept="image/jpeg,image/png,image/webp"
 style="display:none">
 
 <label for="chatPhotoFile" style="
-font-size:26px;
+font-size:25px;
 cursor:pointer;
 ">📷</label>
 
@@ -233,29 +237,37 @@ oninput="updateTypingStatus()"
 style="
 flex:1;
 min-width:0;
+border:none;
+outline:none;
+background:transparent;
+color:#222;
 margin:0;
 ">
 
 <button type="button"
-onclick="sendMessage()"
-style="width:55px;margin:0;">
-➤
-</button>
+onclick="sendChatPhoto()"
+style="
+width:42px;
+height:42px;
+padding:0;
+margin:0;
+border-radius:50%;
+">📤</button>
 
 <button type="button"
-onclick="sendChatPhoto()"
-style="width:55px;margin:0;">
-📤
-</button>
+onclick="sendMessage()"
+style="
+width:42px;
+height:42px;
+padding:0;
+margin:0;
+border-radius:50%;
+">➤</button>
 
 </div>
-
-<button onclick="loadMessages()">Refresh Chat</button>
-<button onclick="logout()">Logout</button>
 
 <p id="appStatus"></p>
-</div>
-
+  
 </div>
 
 <div class="bottom-nav">
