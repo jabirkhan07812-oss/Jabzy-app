@@ -240,6 +240,14 @@ let me=null;
 let selected=null;
 let chatChannel=null;
 
+db.auth.onAuthStateChange((event, session)=>{
+if(event==="PASSWORD_RECOVERY"){
+document.getElementById("login").classList.add("hidden");
+document.getElementById("app").classList.add("hidden");
+document.getElementById("resetPassword").classList.remove("hidden");
+}
+});
+
 function showTab(tab){
 const screens=["discover","matches","chats","profile"];
 
