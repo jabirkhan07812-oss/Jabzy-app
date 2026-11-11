@@ -161,6 +161,21 @@ font-size:12px;
 <div class="card hidden" id="resetPassword">
 <h3>Set New Password 🔐</h3>
 <input id="newPassword" type="password" placeholder="New Password">
+
+<p style="font-size:13px;color:#ddd;line-height:1.6;">
+<strong>JABZY Privacy Notice 🔒</strong><br>
+Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation. Please do not share passwords or sensitive personal information.
+</p>
+  
+<div style="margin:12px 0;font-size:14px;line-height:1.6;">
+<label style="display:flex;align-items:flex-start;gap:8px;">
+<input id="privacyConsent" type="checkbox" style="width:auto;margin-top:4px;">
+<span>
+I agree to the JABZY Privacy Notice. I understand that authorized admins may review my chats and shared photos for safety and moderation.
+</span>
+</label>
+</div>
+  
 <button onclick="saveNewPassword()">Update Password</button>
 <p id="resetStatus"></p>
 </div>
@@ -371,12 +386,24 @@ function appStatus(t){
 document.getElementById("appStatus").innerText=t;
 }
 
+
 async function signup(){
+
+const accepted=document.getElementById("privacyConsent");
+
+if(!accepted || !accepted.checked){
+status("Please accept the Privacy Notice first.");
+return;
+}
+
 const email=document.getElementById("email").value;
 const password=document.getElementById("password").value;
+
 const {error}=await db.auth.signUp({email,password});
+
 status(error?error.message:"Account created. Check your email for confirmation.");
 }
+  
 
 async function signin(){
 const email=document.getElementById("email").value;
