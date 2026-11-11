@@ -1173,7 +1173,58 @@ if(error){appStatus(error.message);return}
 input.value="";
 await loadMessages();
   } 
+async function openAdminDashboard(){
 
+const {data}=await db.auth.getUser();
+const user=data.user;
+
+if(!user || user.email!=="jabirkhanmewati01@gmail.com"){
+alert("Admin access denied!");
+return;
+}
+
+document.getElementById("adminDashboard").style.display="block";
+document.getElementById("adminReports").innerText="Loading...";
+document.getElementById("adminUsers").innerText="Loading...";
+
+await loadAdminReports();
+await loadAdminUsers();
+}
+
+function closeAdminDashboard(){
+document.getElementById("adminDashboard").style.display="none";
+}
+
+async function loadAdminReports(){
+const box=document.getElementById("adminReports");
+
+const {data,error}=await db
+.from("reports")
+.select("*");
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+box.innerText=JSON.stringify(data,null,2);
+}
+
+async function loadAdminUsers(){
+const box=document.getElementById("adminUsers");
+
+const {data,error}=await db
+.from("profiles")
+.select("id,username,age,bio");
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+box.innerText=JSON.stringify(data,null,2);
+  }
+  
 async function logout(){
 await db.auth.signOut();
 location.reload();
