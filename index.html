@@ -208,14 +208,51 @@ font-size:12px;
 <p id="chatProfileInfo"></p>
 <div id="messages"></div>
 <p id="typingStatus"></p>
+<div id="chatComposer" style="
+display:flex;
+align-items:center;
+gap:8px;
+position:sticky;
+bottom:0;
+background:#1f1e30;
+padding:10px 0;
+">
 
-<input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp">
-<input id="message" placeholder="Write a message" oninput="updateTypingStatus()">
+<input id="chatPhotoFile" type="file"
+accept="image/jpeg,image/png,image/webp"
+style="display:none">
 
-<button type="button" onclick="sendChatPhoto()">Send Photo 📷</button>
-<button onclick="sendMessage()">Send Message</button>
+<label for="chatPhotoFile" style="
+font-size:26px;
+cursor:pointer;
+">📷</label>
+
+<input id="message"
+placeholder="Write a message"
+oninput="updateTypingStatus()"
+style="
+flex:1;
+min-width:0;
+margin:0;
+">
+
+<button type="button"
+onclick="sendMessage()"
+style="width:55px;margin:0;">
+➤
+</button>
+
+<button type="button"
+onclick="sendChatPhoto()"
+style="width:55px;margin:0;">
+📤
+</button>
+
+</div>
+
 <button onclick="loadMessages()">Refresh Chat</button>
 <button onclick="logout()">Logout</button>
+
 <p id="appStatus"></p>
 </div>
 
