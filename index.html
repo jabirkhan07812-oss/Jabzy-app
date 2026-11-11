@@ -1308,8 +1308,8 @@ box.innerText="Loading...";
 
 const {data:messages,error}=await db
 .from("messages")
-.select("id,sender_id,receiver_id,message,created_id")
-.order("created_id",{ascending:false})
+.select("id,sender_id,receiver_id,message,created_at")
+.order("created_at",{ascending:false})
 .limit(200);
 
 if(error){
@@ -1335,7 +1335,7 @@ item.innerHTML=
 "<b>From:</b> "+msg.sender_id+
 "<br><b>To:</b> "+msg.receiver_id+
 "<br><b>Message:</b> "+msg.message+
-"<br><small>"+new Date(msg.created_id).toLocaleString()+"</small>";
+"<br><small>"+new Date(msg.created_at).toLocaleString()+"</small>";
 
 box.appendChild(item);
 });
