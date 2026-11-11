@@ -1322,12 +1322,13 @@ if(profileError){box.innerText=profileError.message;return;}
 
 box.innerHTML="";
 
-if(!messages.length){
+if(!messages || messages.length===0){
 box.innerText="No messages found.";
 return;
 }
 
-messages.forEach(msg=>{
+for(const msg of messages){
+
 const sender=profiles.find(p=>p.id===msg.sender_id);
 const receiver=profiles.find(p=>p.id===msg.receiver_id);
 
@@ -1341,14 +1342,42 @@ const to=document.createElement("p");
 to.textContent="To: "+(receiver?.username||"Unknown");
 
 const message=document.createElement("p");
+
+item.append(from,to);
+
+if(msg.message.startsWith("PHOTO:")){
+
+const photoPath=msg.message.substring(6);
+
+const {data:photo,error:photoError}=await db
+.storage.from("chat-photos")
+.createSignedUrl(photoPath,3600);
+
+if(photoError){
+message.textContent="Photo could not load";
+item.appendChild(message);
+}else{
+message.textContent="📷 Photo:";
+const img=document.createElement("img");
+img.src=photo.signedUrl;
+img.style.width="180px";
+img.style.maxWidth="100%";
+img.style.borderRadius="10px";
+img.style.display="block";
+item.append(message,img);
+}
+
+}else{
 message.textContent="Message: "+msg.message;
+item.appendChild(message);
+}
 
 const time=document.createElement("small");
 time.textContent=new Date(msg.created_at).toLocaleString();
 
-item.append(from,to,message,time);
+item.appendChild(time);
 box.appendChild(item);
-});
+}
   }
   
 async function banUser(id){
