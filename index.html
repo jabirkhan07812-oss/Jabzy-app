@@ -247,6 +247,33 @@ loadChatList();
 }
 }
   
+async function startChatRealtime(){
+if(chatChannel){
+await db.removeChannel(chatChannel);
+chatChannel=null;
+}
+
+if(!me||!selected)return;
+
+chatChannel=db.channel("chat-"+me.id+"-"+selected)
+.on("postgres_changes",{
+event:"INSERT",
+schema:"public",
+table:"messages"
+},payload=>{
+const m=payload.new;
+
+if(
+(m.sender_id===me.id&&m.receiver_id===selected)||
+(m.sender_id===selected&&m.receiver_id===me.id)
+){
+loadMessages();
+}
+})
+.subscribe();
+}
+  
+  
 function status(t){
 document.getElementById("status").innerText=t;
 }
