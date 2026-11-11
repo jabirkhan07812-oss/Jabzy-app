@@ -224,6 +224,7 @@ margin:12px 0;
 
 <input id="chatPhotoFile" type="file"
 accept="image/jpeg,image/png,image/webp"
+onchange="appStatus(this.files.length ? 'Photo selected: '+this.files[0].name : 'No photo selected')"
 style="display:none">
 
 <label for="chatPhotoFile" style="
