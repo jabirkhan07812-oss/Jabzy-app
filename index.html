@@ -1097,11 +1097,19 @@ return;
 }
 
 document.getElementById("chatPhotoFile").value="";
+document.getElementById("message").value="";
 appStatus("Photo send ho gayi!");
 await loadMessages();
 }
   
- async function sendMessage(){
+async function sendMessage(){
+const photoInput=document.getElementById("chatPhotoFile");
+
+if(photoInput.files.length>0){
+await sendChatPhoto();
+return;
+}
+
 if(!selected){
 appStatus("Pehle kisi user ko Chat select karein.");
 return;
@@ -1127,7 +1135,7 @@ sender_id:me.id,receiver_id:selected,message
 if(error){appStatus(error.message);return}
 input.value="";
 await loadMessages();
-}
+  } 
 
 async function logout(){
 await db.auth.signOut();
