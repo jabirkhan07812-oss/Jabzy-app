@@ -426,11 +426,12 @@ document.getElementById("resetPassword").classList.add("hidden");
 await startApp();
   }
   
+
 async function startApp(){
 
 const {data:banned,error}=await db
 .from("banned_users")
-.select("user_id")
+.select("user_id,reason")
 .eq("user_id",me.id)
 .maybeSingle();
 
@@ -440,10 +441,17 @@ return;
 }
 
 if(banned){
+const reason=banned.reason || "Reason not provided";
+
 await db.auth.signOut();
 me=null;
+
+document.getElementById("login").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
+
 document.getElementById("status").innerText=
-"Your account has been banned. You cannot use JABZY.";
+"Your account has been banned. Reason: "+reason;
+
 return;
 }
 
@@ -451,6 +459,7 @@ document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 
 await loadProfile();
+
 const adminButton=document.getElementById("adminButton");
 
 if(me && me.email==="jabirkhanmewati01@gmail.com"){
@@ -466,7 +475,7 @@ await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
 setInterval(loadMatches,60000);
-  }
+}
   
   
 async function saveProfile(){
