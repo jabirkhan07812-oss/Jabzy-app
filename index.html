@@ -323,6 +323,25 @@ return;
 
 status("Password reset link email par bhej diya gaya hai.");
 }
+async function saveNewPassword(){
+const password=document.getElementById("newPassword").value;
+
+if(password.length<6){
+document.getElementById("resetStatus").innerText="Password kam se kam 6 characters ka hona chahiye.";
+return;
+}
+
+const {error}=await db.auth.updateUser({
+password:password
+});
+
+if(error){
+document.getElementById("resetStatus").innerText=error.message;
+return;
+}
+
+document.getElementById("resetStatus").innerText="Password successfully updated!";
+}
   
  async function startApp(){
 document.getElementById("login").classList.add("hidden");
