@@ -1343,10 +1343,17 @@ const item=document.createElement("div");
 item.style.cssText="padding:10px;margin:8px 0;border:1px solid #888;border-radius:8px;";
 
 const from=document.createElement("p");
-from.textContent="From: "+(sender?.username||"Unknown");
+from.textContent="From: ";
+const senderBtn=document.createElement("button");
+senderBtn.textContent=sender?.username||"Unknown";
+senderBtn.onclick=()=>openAdminUserProfile(msg.sender_id);
+from.appendChild(senderBtn);
 
-const to=document.createElement("p");
-to.textContent="To: "+(receiver?.username||"Unknown");
+to.textContent="To: ";
+const receiverBtn=document.createElement("button");
+receiverBtn.textContent=receiver?.username||"Unknown";
+receiverBtn.onclick=()=>openAdminUserProfile(msg.receiver_id);
+to.appendChild(receiverBtn);
 
 const message=document.createElement("p");
 
