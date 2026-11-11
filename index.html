@@ -886,6 +886,11 @@ const own=m.sender_id===me.id;
 const row=document.createElement("div");
 row.style.position="relative";
 row.style.margin="12px 0";
+  
+row.style.userSelect="none";
+row.style.webkitUserSelect="none";
+row.style.webkitTouchCallout="none";
+row.style.touchAction="pan-y";
 
 const p=document.createElement("p");
 p.textContent=own?"You: ":"Them: ";
