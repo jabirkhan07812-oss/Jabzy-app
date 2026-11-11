@@ -430,6 +430,13 @@ await startApp();
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 await loadProfile();
+const adminButton=document.getElementById("adminButton");
+
+if(me && me.email==="jabirkhanmewati01@gmail.com"){
+adminButton.style.display="block";
+}else{
+adminButton.style.display="none";
+ }
 await updateOnlineStatus();
 setInterval(updateOnlineStatus,60000);
 setInterval(checkTypingStatus,2000);
