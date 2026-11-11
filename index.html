@@ -297,6 +297,11 @@ document.getElementById(name+"Screen").style.display=
 name===tab?"block":"none";
 });
 
+const nav=document.querySelector(".bottom-nav");
+if(nav){
+nav.style.display="flex";
+}
+
 if(tab==="chats"){
 document.getElementById("chatList").style.display="block";
 document.getElementById("chatWindow").style.display="none";
