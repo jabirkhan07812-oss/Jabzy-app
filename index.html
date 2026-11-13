@@ -389,6 +389,7 @@ document.getElementById("appStatus").innerText=t;
 }
 
 
+
 async function signup(){
 
 const accepted=document.getElementById("privacyConsent");
@@ -401,10 +402,17 @@ return;
 const email=document.getElementById("email").value;
 const password=document.getElementById("password").value;
 
-const {error}=await db.auth.signUp({email,password});
+const {error}=await db.auth.signUp({
+email,
+password,
+options:{
+emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
+}
+});
 
 status(error?error.message:"Account created. Check your email for confirmation.");
 }
+  
   
 
 async function signin(){
