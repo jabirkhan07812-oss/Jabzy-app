@@ -1495,12 +1495,12 @@ box.appendChild(item);
 }
   }
 
+
 async function openAdminUserProfile(userId){
 
 const box=document.getElementById("adminUserProfile");
 box.style.display="block";
 box.scrollIntoView({behavior:"smooth",block:"start"});
-window.scrollTo({top:box.getBoundingClientRect().top+window.scrollY-20,behavior:"smooth"});
 box.innerText="Loading profile...";
 
 const {data:user,error}=await db
@@ -1513,6 +1513,12 @@ if(error || !user){
 box.innerText="Profile not found";
 return;
 }
+
+const {data:ban}=await db
+.from("banned_users")
+.select("user_id")
+.eq("user_id",userId)
+.maybeSingle();
 
 box.innerHTML="";
 
@@ -1538,8 +1544,65 @@ bio.textContent="Bio: "+(user.bio||"");
 const id=document.createElement("p");
 id.textContent="User ID: "+user.id;
 
-box.append(title,img,name,age,bio,id);
-  }  
+const action=document.createElement("button");
+
+if(ban){
+action.textContent="Unban User";
+action.onclick=()=>unbanUser(userId);
+}else{
+action.textContent="Ban User";
+action.onclick=()=>banUser(userId);
+}
+
+box.append(title,img,name,age,bio,id,action);
+}
+
+async function banUser(id){
+
+if(id===me.id){
+alert("You cannot ban yourself!");
+return;
+}
+
+const reason=prompt("Ban reason:");
+if(!reason)return;
+
+const {error}=await db.from("banned_users").insert({
+user_id:id,
+banned_by:me.id,
+reason:reason
+});
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert("User Banned!");
+await loadAdminUsers();
+await openAdminUserProfile(id);
+}
+
+async function unbanUser(id){
+
+if(!confirm("Are you sure you want to unban this user?"))
+return;
+
+const {error}=await db
+.from("banned_users")
+.delete()
+.eq("user_id",id);
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert("User Unbanned!");
+await loadAdminUsers();
+await openAdminUserProfile(id);
+  }
+  
   
 async function banUser(id){
 if(id===me.id){
