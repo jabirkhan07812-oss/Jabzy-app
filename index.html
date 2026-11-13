@@ -1312,7 +1312,6 @@ return;
 }
 
 const users={};
-
 (profiles||[]).forEach(p=>{
 users[p.id]=p.username;
 });
@@ -1328,9 +1327,17 @@ const reporter=document.createElement("p");
 reporter.textContent="Reporter Name: "+
 (users[r.reporter_id]||"Unknown");
 
+const reporterBtn=document.createElement("button");
+reporterBtn.textContent="View Reporter Profile";
+reporterBtn.onclick=()=>openAdminUserProfile(r.reporter_id);
+
 const reported=document.createElement("p");
 reported.textContent="Reported User Name: "+
 (users[r.reported_id]||"Unknown");
+
+const reportedBtn=document.createElement("button");
+reportedBtn.textContent="View Reported User Profile";
+reportedBtn.onclick=()=>openAdminUserProfile(r.reported_id);
 
 const reason=document.createElement("p");
 reason.textContent="Reason: "+(r.reason||"Not specified");
@@ -1339,7 +1346,15 @@ const date=document.createElement("p");
 date.textContent="Date: "+
 new Date(r.created_at).toLocaleString();
 
-card.append(reporter,reported,reason,date);
+card.append(
+reporter,
+reporterBtn,
+reported,
+reportedBtn,
+reason,
+date
+);
+
 box.appendChild(card);
 
 });
@@ -1347,6 +1362,7 @@ box.appendChild(card);
   }
   
 
+  
 
 async function loadAdminUsers(){
 const box=document.getElementById("adminUsers");
