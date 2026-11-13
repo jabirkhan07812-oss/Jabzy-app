@@ -1276,20 +1276,76 @@ function closeAdminDashboard(){
 document.getElementById("adminDashboard").style.display="none";
 }
 
-async function loadAdminReports(){
-const box=document.getElementById("adminReports");
 
-const {data,error}=await db
+async function loadAdminReports(){
+
+const box=document.getElementById("adminReports");
+box.innerText="Loading reports...";
+
+const {data:reports,error}=await db
 .from("reports")
-.select("*");
+.select("*")
+.order("created_at",{ascending:false});
 
 if(error){
 box.innerText=error.message;
 return;
 }
 
-box.innerText=JSON.stringify(data,null,2);
+if(!reports || reports.length===0){
+box.innerText="No reports found.";
+return;
 }
+
+const ids=[...new Set(
+reports.flatMap(r=>[r.reporter_id,r.reported_id])
+)];
+
+const {data:profiles,error:profileError}=await db
+.from("profiles")
+.select("id,username")
+.in("id",ids);
+
+if(profileError){
+box.innerText=profileError.message;
+return;
+}
+
+const users={};
+
+(profiles||[]).forEach(p=>{
+users[p.id]=p.username;
+});
+
+box.innerHTML="";
+
+reports.forEach(r=>{
+
+const card=document.createElement("div");
+card.className="card";
+
+const reporter=document.createElement("p");
+reporter.textContent="Reporter Name: "+
+(users[r.reporter_id]||"Unknown");
+
+const reported=document.createElement("p");
+reported.textContent="Reported User Name: "+
+(users[r.reported_id]||"Unknown");
+
+const reason=document.createElement("p");
+reason.textContent="Reason: "+(r.reason||"Not specified");
+
+const date=document.createElement("p");
+date.textContent="Date: "+
+new Date(r.created_at).toLocaleString();
+
+card.append(reporter,reported,reason,date);
+box.appendChild(card);
+
+});
+
+  }
+  
 
 
 async function loadAdminUsers(){
