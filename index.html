@@ -152,6 +152,9 @@ font-size:12px;
 <h3>Login / Sign Up</h3>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
+<input id="signupName" placeholder="Your Name">
+<input id="signupDob" type="date">
+<textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
 <p style="font-size:13px;color:#ddd;line-height:1.6;">
 <strong>JABZY Privacy Notice 🔒</strong><br>
 Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation. Please do not share passwords or sensitive personal information.
@@ -389,29 +392,48 @@ document.getElementById("appStatus").innerText=t;
 }
 
 
-
 async function signup(){
 
 const accepted=document.getElementById("privacyConsent");
-
 if(!accepted || !accepted.checked){
 status("Please accept the Privacy Notice first.");
 return;
 }
 
-const email=document.getElementById("email").value;
+const email=document.getElementById("email").value.trim();
 const password=document.getElementById("password").value;
+const username=document.getElementById("signupName").value.trim();
+const dob=document.getElementById("signupDob").value;
+const bio=document.getElementById("signupBio").value.trim();
+
+if(!username || !dob){
+status("Name aur Date of Birth zaroori hai.");
+return;
+}
+
+if(password.length < 6){
+status("Password kam se kam 6 characters ka hona chahiye.");
+return;
+}
 
 const {error}=await db.auth.signUp({
 email,
 password,
 options:{
+data:{
+username:username,
+date_of_birth:dob,
+bio:bio
+},
 emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
 }
 });
 
-status(error?error.message:"Account created. Check your email for confirmation.");
+status(error ? error.message : "Account created. Check your email for confirmation.");
 }
+  
+  
+
   
 async function signin(){
 const email=document.getElementById("email").value;
