@@ -148,7 +148,7 @@ font-size:12px;
 <h1>JABZY ❤️</h1>
 <p style="text-align:center">Make New Friends • 18+</p>
 
-<div class="card" id="login">
+<div class="card hidden" id="login">
 <h3>Login / Sign Up</h3>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
@@ -1653,6 +1653,9 @@ db.auth.getSession().then(({data})=>{
 if(data.session){
 me=data.session.user;
 startApp();
+}else{
+document.getElementById("login").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
 }
 });
 
