@@ -1236,10 +1236,13 @@ appStatus("Photo send ho gayi!");
 await loadMessages();
 }
   
+
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
 appStatus("Selected photo: "+photoInput.files.length);
-  
+
+try{
+
 if(photoInput.files.length>0){
 await sendChatPhoto();
 return;
@@ -1250,9 +1253,7 @@ appStatus("Pehle kisi user ko Chat select karein.");
 return;
 }
 
-let blocked;
-try{blocked=await getBlockedIds()}
-catch(e){appStatus(e.message);return}
+let blocked=await getBlockedIds();
 
 if(blocked.has(selected)){
 appStatus("Blocked user ko message nahi bhej sakte.");
@@ -1264,13 +1265,25 @@ const message=input.value.trim();
 if(!message)return;
 
 const {error}=await db.from("messages").insert({
-sender_id:me.id,receiver_id:selected,message
+sender_id:me.id,
+receiver_id:selected,
+message
 });
 
-if(error){appStatus(error.message);return}
+if(error){
+appStatus(error.message);
+return;
+}
+
 input.value="";
 await loadMessages();
-  } 
+
+}catch(e){
+appStatus("Message send nahi hua. Internet connection check karein aur dobara try karein.");
+}
+  }
+  
+  
 async function openAdminDashboard(){
 
 const {data}=await db.auth.getUser();
