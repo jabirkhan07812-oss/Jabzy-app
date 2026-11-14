@@ -1659,43 +1659,6 @@ await openAdminUserProfile(id);
   }
   
   
-async function banUser(id){
-if(id===me.id){
-alert("You cannot ban yourself!");
-return;
-}
-
-const reason=prompt("Ban reason:");
-if(!reason)return;
-
-const {error}=await db.from("banned_users").insert({
-user_id:id,
-banned_by:me.id,
-reason:reason
-});
-
-if(error){
-alert(error.message);
-return;
-}
-
-alert("User Banned!");
-await loadAdminUsers();
-}
-
-async function unbanUser(id){
-const {error}=await db.from("banned_users")
-.delete().eq("user_id",id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-alert("User Unbanned!");
-await loadAdminUsers();
-  }
-  
 
 db.auth.getSession().then(({data})=>{
 if(data.session){
