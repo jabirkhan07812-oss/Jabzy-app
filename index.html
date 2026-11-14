@@ -1279,7 +1279,9 @@ input.value="";
 await loadMessages();
 
 }catch(e){
-appStatus("Message send nahi hua. Internet connection check karein aur dobara try karein.");
+appStatus("ERROR: "+e.message);
+console.error(e);
+  }
 }
   }
   
