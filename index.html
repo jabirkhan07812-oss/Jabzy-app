@@ -413,16 +413,27 @@ emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
 status(error?error.message:"Account created. Check your email for confirmation.");
 }
   
-  
-
 async function signin(){
 const email=document.getElementById("email").value;
 const password=document.getElementById("password").value;
+
+try{
 const {data,error}=await db.auth.signInWithPassword({email,password});
-if(error){status(error.message);return}
+
+if(error){
+status(error.message);
+return;
+}
+
 me=data.user;
 await startApp();
+
+}catch(error){
+status("Internet connection nahi hai. Please check your internet and try again.");
 }
+}  
+
+
 async function forgotPassword(){
 const email=document.getElementById("email").value;
 
