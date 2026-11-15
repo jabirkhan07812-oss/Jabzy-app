@@ -285,7 +285,12 @@ border-radius:12px;
 </div>
 </div>
 </div>
-
+  
+<div id="likesScreen" class="app-screen" style="display:none">
+<h3>People Who Liked You ❤️</h3>
+<div id="likesReceived">Loading likes...</div>
+</div>
+  
 <div id="matchesScreen" class="app-screen" style="display:none">
 <h3>Your Matches 💕</h3>
 <div id="matches">No matches yet.</div>
@@ -362,6 +367,7 @@ border-radius:50%;
 
 <div class="bottom-nav">
 <button onclick="showTab('discover')">🔍<br>Discover</button>
+<button onclick="showTab('likes')">❤️<br>Likes</button>
 <button onclick="showTab('matches')">💕<br>Matches</button>
 <button onclick="showTab('chats')">💬<br>Chats</button>
 <button onclick="showTab('profile')">👤<br>Profile</button>
@@ -387,8 +393,9 @@ document.getElementById("resetPassword").classList.remove("hidden");
 }
 });
 
+
 function showTab(tab){
-const screens=["discover","matches","chats","profile"];
+const screens=["discover","likes","matches","chats","profile"];
 
 screens.forEach(name=>{
 document.getElementById(name+"Screen").style.display=
@@ -405,7 +412,12 @@ document.getElementById("chatList").style.display="block";
 document.getElementById("chatWindow").style.display="none";
 loadChatList();
 }
+
+if(tab==="likes"){
+loadLikesReceived();
 }
+  }
+  
   
 async function startChatRealtime(){
 if(chatChannel){
@@ -703,6 +715,7 @@ last_seen:new Date().toISOString()
 if(error)appStatus(error.message);
   }
   
+
 async function loadPeople(){
 const box=document.getElementById("people");
 
@@ -731,7 +744,6 @@ showSwipeCard();
 }
 
 function showSwipeCard(){
-
 const card=document.getElementById("swipeCard");
 const people=window.jabzyPeople||[];
 const p=people[window.jabzyIndex];
@@ -758,17 +770,23 @@ info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
 card.append(name,info);
 
+  const followBtn=document.createElement("button");
+followBtn.type="button";
+followBtn.textContent="➕ Follow";
+followBtn.onclick=()=>toggleFollow(p.id,followBtn);
+card.appendChild(followBtn);
+
 card.ontouchstart=function(e){
 window.swipeStartX=e.touches[0].clientX;
 };
 
 card.ontouchend=function(e){
 const distance=e.changedTouches[0].clientX-window.swipeStartX;
-
 if(distance>80)likeUser();
 if(distance< -80)dislikeUser();
 };
-}
+  }
+  
 
 async function likeUser(){
 const p=window.jabzyPeople[window.jabzyIndex];
@@ -855,6 +873,104 @@ btn.onclick=()=>chooseUser(p.id,p.username);
 box.appendChild(btn);
 });
 }
+
+async function loadLikesReceived(){
+const box=document.getElementById("likesReceived");
+
+const {data,error}=await db.from("likes")
+.select("from_user")
+.eq("to_user",me.id);
+
+if(error){
+box.innerText=error.message;
+return;
+}
+
+let blocked;
+try{
+blocked=await getBlockedIds();
+}catch(e){
+box.innerText=e.message;
+return;
+}
+
+const ids=[...new Set((data||[])
+.map(x=>x.from_user)
+.filter(id=>id!==me.id&&!blocked.has(id)))];
+
+if(!ids.length){
+box.innerText="Abhi kisi ne Like nahi kiya ❤️";
+return;
+}
+
+const {data:profiles,error:profileError}=await db.from("profiles")
+.select("id,username,age,bio,photo_url")
+.in("id",ids);
+
+if(profileError){
+box.innerText=profileError.message;
+return;
+}
+
+box.innerHTML="";
+
+(profiles||[]).forEach(p=>{
+const item=document.createElement("div");
+item.className="card";
+
+const name=document.createElement("h3");
+name.textContent=p.username||"User";
+
+const info=document.createElement("p");
+info.textContent=(p.age||"")+" years • "+(p.bio||"");
+
+item.append(name,info);
+
+if(p.photo_url){
+const img=document.createElement("img");
+img.src=p.photo_url;
+img.style.cssText="width:100%;max-height:250px;object-fit:cover;border-radius:12px";
+item.appendChild(img);
+}
+
+box.appendChild(item);
+});
+  }
+
+async function toggleFollow(userId,button){
+const {data:existing,error:checkError}=await db
+.from("follows")
+.select("id")
+.eq("follower_id",me.id)
+.eq("following_id",userId)
+.maybeSingle();
+
+if(checkError){
+appStatus(checkError.message);
+return;
+}
+
+if(existing){
+const {error}=await db.from("follows")
+.delete()
+.eq("id",existing.id);
+
+if(error){appStatus(error.message);return;}
+
+button.textContent="➕ Follow";
+}else{
+const {error}=await db.from("follows")
+.insert({
+follower_id:me.id,
+following_id:userId
+});
+
+if(error){appStatus(error.message);return;}
+
+button.textContent="✓ Following";
+}
+  }
+    
 async function loadChatList(){
 const box=document.getElementById("chatListItems");
 
