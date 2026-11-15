@@ -874,6 +874,7 @@ box.appendChild(btn);
 });
 }
 
+
 async function loadLikesReceived(){
 const box=document.getElementById("likesReceived");
 
@@ -926,6 +927,7 @@ info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
 item.append(name,info);
 
+// Profile photo
 if(p.photo_url){
 const img=document.createElement("img");
 img.src=p.photo_url;
@@ -933,9 +935,24 @@ img.style.cssText="width:100%;max-height:250px;object-fit:cover;border-radius:12
 item.appendChild(img);
 }
 
+// Follow button
+const followBtn=document.createElement("button");
+followBtn.type="button";
+followBtn.textContent="➕ Follow";
+followBtn.onclick=()=>toggleFollow(p.id,followBtn);
+item.appendChild(followBtn);
+
+// Like Back button
+const likeBackBtn=document.createElement("button");
+likeBackBtn.type="button";
+likeBackBtn.textContent="❤️ Like Back";
+likeBackBtn.onclick=()=>sendLike(p.id,p.username);
+item.appendChild(likeBackBtn);
+
 box.appendChild(item);
 });
-  }
+}
+  
 
 async function toggleFollow(userId,button){
 const {data:existing,error:checkError}=await db
