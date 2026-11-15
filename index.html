@@ -930,7 +930,7 @@ card.appendChild(followBtn);
 const likeBtn=document.createElement("button");
 likeBtn.type="button";
 likeBtn.textContent=likeResult.data?"❤️ Liked":"❤️ Like";
-likeBtn.onclick=()=>sendLike(p.id,p.username,likeBtn);
+likeBtn.onclick=()=>likeUser();
 card.appendChild(likeBtn);
 
 card.ontouchstart=function(e){
