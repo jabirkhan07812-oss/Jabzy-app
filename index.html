@@ -234,7 +234,12 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
 
 
 <div id="discoverScreen" class="app-screen" style="display:block">
+  <div style="display:flex;justify-content:space-between;align-items:center">
   <h2>Discover 🔍</h2>
+  <button type="button" onclick="openNotifications()" class="notification-bell">
+    🔔 <span id="notificationCountDiscover">0</span>
+  </button>
+  </div>
 
   <div class="swipe-container">
     <div id="swipeCard" class="card">
@@ -332,15 +337,31 @@ border-radius:12px;
 </div>
   
 <div id="matchesScreen" class="app-screen" style="display:none">
-<h3>Your Matches 💕</h3>
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+  <h3>Your Matches 💕</h3>
+  <button type="button" onclick="openNotifications()" class="notification-bell">
+    🔔 <span id="notificationCountMatches">0</span>
+  </button>
+</div>
+
 <div id="matches">No matches yet.</div>
+
 </div>
 
 <div id="chatsScreen" class="app-screen" style="display:none">
 
 <div id="chatList">
-<h3>Your Chats 💬</h3>
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+  <h3>Your Chats 💬</h3>
+  <button type="button" onclick="openNotifications()" class="notification-bell">
+    🔔 <span id="notificationCountChats">0</span>
+  </button>
+</div>
+
 <div id="chatListItems">Loading chats...</div>
+</div>
 </div>
 
 <div id="chatWindow" style="display:none">
@@ -405,9 +426,21 @@ border-radius:50%;
 </div>
 </div>
 
+<div id="notificationsScreen" class="app-screen" style="display:none">
+
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2>🔔 Notifications</h2>
+    <button onclick="showTab('discover')">← Back</button>
+  </div>
+
+  <div id="notificationsList">
+    <p>No notifications yet.</p>
+  </div>
+
+</div>
+  
 <div class="bottom-nav">
 <button onclick="showTab('discover')">🔍<br>Discover</button>
-<button onclick="showTab('likes')">❤️<br>Likes</button>
 <button onclick="showTab('matches')">💕<br>Matches</button>
 <button onclick="showTab('chats')">💬<br>Chats</button>
 <button onclick="showTab('profile')">👤<br>Profile</button>
@@ -434,9 +467,8 @@ document.getElementById("resetPassword").classList.remove("hidden");
 });
 
 
-
 function showTab(tab){
-const screens=["discover","likes","matches","chats","profile"];
+const screens=["discover","likes","matches","chats","profile","notifications"];
 
 screens.forEach(name=>{
 const screen=document.getElementById(name+"Screen");
@@ -461,17 +493,78 @@ if(chatWindow) chatWindow.style.display="none";
 loadChatList();
 }
 
-if(tab==="likes"){
-loadLikesReceived();
-}
-
 if(tab==="profile"){
 loadProfile();
 }
+}
+
+
+async function openNotifications(){
+  showTab("notifications");
+
+  const box=document.getElementById("notificationsList");
+  box.innerText="Loading notifications...";
+
+  const {data:notifications,error}=await db
+    .from("notifications")
+    .select("id,type,actor_id,is_read,created_at")
+    .eq("recipient_id",me.id)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    box.innerText=error.message;
+    return;
+  }
+
+  if(!notifications || notifications.length===0){
+    box.innerText="No notifications yet ❤️";
+    return;
+  }
+
+  const ids=[...new Set(notifications.map(n=>n.actor_id))];
+
+  const {data:profiles}=await db
+    .from("profiles")
+    .select("id,username")
+    .in("id",ids);
+
+  const names={};
+  (profiles||[]).forEach(p=>{
+    names[p.id]=p.username||"Someone";
+  });
+
+  box.innerHTML="";
+
+  notifications.forEach(n=>{
+    const item=document.createElement("div");
+    item.style.cssText="padding:12px;margin:8px 0;background:#252538;border-radius:10px;";
+
+    const messages={
+      like:"❤️ liked you",
+      match:"💕 It's a Match!",
+      follow:"➕ started following you",
+      message:"💬 sent you a message"
+    };
+
+    item.textContent=(names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification");
+    box.appendChild(item);
+  });
+
+  const unread=notifications.filter(n=>!n.is_read).map(n=>n.id);
+
+  if(unread.length){
+    await db.from("notifications")
+      .update({is_read:true})
+      .in("id",unread);
+  }
+
+  ["Discover","Matches","Chats"].forEach(name=>{
+    const count=document.getElementById("notificationCount"+name);
+    if(count) count.textContent="0";
+  });
   }
   
-  
-  
+                                               
 async function startChatRealtime(){
 if(chatChannel){
 await db.removeChannel(chatChannel);
@@ -668,7 +761,8 @@ loadBlockedUsers(),
 loadPeople(),
 loadMatches()
 ]);
-
+await loadNotificationCount();
+  
 if(!window.jabzyTimersStarted){
 window.jabzyTimersStarted=true;
 setInterval(updateOnlineStatus,60000);
@@ -677,7 +771,29 @@ setInterval(loadMatches,60000);
 }
 
 }
-  
+  }
+
+async function loadNotificationCount(){
+
+  const {count,error}=await db
+    .from("notifications")
+    .select("id",{count:"exact",head:true})
+    .eq("recipient_id",me.id)
+    .eq("is_read",false);
+
+  if(error){
+    console.log(error.message);
+    return;
+  }
+
+  ["Discover","Matches","Chats"].forEach(name=>{
+    const badge=document.getElementById("notificationCount"+name);
+    if(badge){
+      badge.textContent=count||0;
+      badge.style.display=count>0?"inline":"none";
+    }
+  });
+            }
 
 function openEditProfile(){
 document.getElementById("profileView").style.display="none";
