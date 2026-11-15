@@ -10,7 +10,7 @@
 width:100%;
 max-width:420px;
 margin:20px auto;
-text-align:center;
+text-align:center; 
 }
 
 #swipeCard{
@@ -416,12 +416,16 @@ document.getElementById("resetPassword").classList.remove("hidden");
 });
 
 
+
 function showTab(tab){
 const screens=["discover","likes","matches","chats","profile"];
 
 screens.forEach(name=>{
-document.getElementById(name+"Screen").style.display=
-name===tab?"block":"none";
+const screen=document.getElementById(name+"Screen");
+
+if(screen){
+screen.style.display=name===tab?"block":"none";
+}
 });
 
 const nav=document.querySelector(".bottom-nav");
@@ -430,15 +434,24 @@ nav.style.display="flex";
 }
 
 if(tab==="chats"){
-document.getElementById("chatList").style.display="block";
-document.getElementById("chatWindow").style.display="none";
+const chatList=document.getElementById("chatList");
+const chatWindow=document.getElementById("chatWindow");
+
+if(chatList) chatList.style.display="block";
+if(chatWindow) chatWindow.style.display="none";
+
 loadChatList();
 }
 
 if(tab==="likes"){
 loadLikesReceived();
 }
+
+if(tab==="profile"){
+loadProfile();
+}
   }
+  
   
   
 async function startChatRealtime(){
