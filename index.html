@@ -935,31 +935,73 @@ window.jabzyIndex++;
 showSwipeCard();
 }
 
-async function sendLike(targetId,targetName){
-appStatus("Like bheja ja raha hai...");
 
-const {error}=await db.from("likes").upsert({
+async function sendLike(targetId,targetName,button){
+appStatus("Checking Like status...");
+
+const {data:existing,error:checkError}=await db
+.from("likes")
+.select("id")
+.eq("from_user",me.id)
+.eq("to_user",targetId)
+.maybeSingle();
+
+if(checkError){
+appStatus(checkError.message);
+return;
+}
+
+if(existing){
+
+const {error}=await db.from("likes")
+.delete()
+.eq("from_user",me.id)
+.eq("to_user",targetId);
+
+if(error){
+appStatus(error.message);
+return;
+}
+
+if(button) button.textContent="❤️ Like";
+
+appStatus("Like hata diya. Unlike successful.");
+await loadMatches();
+return;
+}
+
+const {error}=await db.from("likes").insert({
 from_user:me.id,
 to_user:targetId
-},{onConflict:"from_user,to_user",ignoreDuplicates:true});
+});
 
-if(error){appStatus(error.message);return}
+if(error){
+appStatus(error.message);
+return;
+}
 
-const {data:reverse,error:checkError}=await db.from("likes")
+if(button) button.textContent="❤️ Liked";
+
+const {data:reverse,error:reverseError}=await db
+.from("likes")
 .select("id")
 .eq("from_user",targetId)
 .eq("to_user",me.id)
 .maybeSingle();
 
-if(checkError){appStatus(checkError.message);return}
+if(reverseError){
+appStatus(reverseError.message);
+return;
+}
 
 if(reverse){
-appStatus("💕 It's a Match! Aap dono ek doosre ko pasand karte hain.");
+appStatus("💕 It's a Match!");
 await loadMatches();
 }else{
-appStatus("❤️ Like bhej diya! Agar woh bhi Like karega to Match hoga.");
+appStatus("❤️ Like bhej diya!");
 }
-}
+  }
+  
 
 async function loadMatches(){
 const box=document.getElementById("matches");
@@ -1005,6 +1047,7 @@ box.appendChild(btn);
 }
 
 
+
 async function loadLikesReceived(){
 const box=document.getElementById("likesReceived");
 
@@ -1043,6 +1086,22 @@ box.innerText=profileError.message;
 return;
 }
 
+// Check existing Following status
+const {data:followRows,error:followError}=await db
+.from("follows")
+.select("following_id")
+.eq("follower_id",me.id)
+.in("following_id",ids);
+
+if(followError){
+box.innerText=followError.message;
+return;
+}
+
+const followingIds=new Set(
+(followRows||[]).map(x=>x.following_id)
+);
+
 box.innerHTML="";
 
 (profiles||[]).forEach(p=>{
@@ -1057,7 +1116,6 @@ info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
 item.append(name,info);
 
-// Profile photo
 if(p.photo_url){
 const img=document.createElement("img");
 img.src=p.photo_url;
@@ -1065,14 +1123,16 @@ img.style.cssText="width:100%;max-height:250px;object-fit:cover;border-radius:12
 item.appendChild(img);
 }
 
-// Follow button
 const followBtn=document.createElement("button");
 followBtn.type="button";
-followBtn.textContent="➕ Follow";
+
+followBtn.textContent=followingIds.has(p.id)
+?"✓ Following"
+:"➕ Follow";
+
 followBtn.onclick=()=>toggleFollow(p.id,followBtn);
 item.appendChild(followBtn);
 
-// Like Back button
 const likeBackBtn=document.createElement("button");
 likeBackBtn.type="button";
 likeBackBtn.textContent="❤️ Like Back";
@@ -1081,7 +1141,8 @@ item.appendChild(likeBackBtn);
 
 box.appendChild(item);
 });
-}
+  }
+  
   
 
 async function toggleFollow(userId,button){
