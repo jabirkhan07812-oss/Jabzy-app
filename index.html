@@ -873,13 +873,35 @@ window.jabzyIndex=0;
 showSwipeCard();
 }
 
-function showSwipeCard(){
+
+async function showSwipeCard(){
 const card=document.getElementById("swipeCard");
 const people=window.jabzyPeople||[];
 const p=people[window.jabzyIndex];
 
 if(!p){
 card.innerHTML="Abhi koi aur profile nahi hai ❤️";
+return;
+}
+
+card.innerHTML="Loading...";
+
+const [followResult,likeResult]=await Promise.all([
+db.from("follows")
+.select("id")
+.eq("follower_id",me.id)
+.eq("following_id",p.id)
+.maybeSingle(),
+
+db.from("likes")
+.select("id")
+.eq("from_user",me.id)
+.eq("to_user",p.id)
+.maybeSingle()
+]);
+
+if(followResult.error || likeResult.error){
+card.innerText=followResult.error?.message||likeResult.error?.message;
 return;
 }
 
@@ -897,14 +919,19 @@ name.textContent=p.username||"User";
 
 const info=document.createElement("p");
 info.textContent=(p.age||"")+" years • "+(p.bio||"");
-
 card.append(name,info);
 
-  const followBtn=document.createElement("button");
+const followBtn=document.createElement("button");
 followBtn.type="button";
-followBtn.textContent="➕ Follow";
+followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
 followBtn.onclick=()=>toggleFollow(p.id,followBtn);
 card.appendChild(followBtn);
+
+const likeBtn=document.createElement("button");
+likeBtn.type="button";
+likeBtn.textContent=likeResult.data?"❤️ Liked":"❤️ Like";
+likeBtn.onclick=()=>sendLike(p.id,p.username,likeBtn);
+card.appendChild(likeBtn);
 
 card.ontouchstart=function(e){
 window.swipeStartX=e.touches[0].clientX;
@@ -915,15 +942,13 @@ const distance=e.changedTouches[0].clientX-window.swipeStartX;
 if(distance>80)likeUser();
 if(distance< -80)dislikeUser();
 };
-  }
-  
+}
 
 async function likeUser(){
 const p=window.jabzyPeople[window.jabzyIndex];
 if(!p)return;
 
 await sendLike(p.id,p.username);
-
 window.jabzyIndex++;
 showSwipeCard();
 }
@@ -933,8 +958,8 @@ if(!window.jabzyPeople[window.jabzyIndex])return;
 
 window.jabzyIndex++;
 showSwipeCard();
-}
-
+  }
+  
 
 async function sendLike(targetId,targetName,button){
 appStatus("Checking Like status...");
