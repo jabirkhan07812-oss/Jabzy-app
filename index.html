@@ -233,6 +233,24 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
 <div class="card hidden" id="app">
 
 
+<div id="discoverScreen" class="app-screen" style="display:block">
+  <h2>Discover 🔍</h2>
+
+  <div class="swipe-container">
+    <div id="swipeCard" class="card">
+      Loading profiles...
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:15px">
+      <button type="button" onclick="dislikeUser()">❌ Skip</button>
+      <button type="button" onclick="likeUser()">❤️ Like</button>
+    </div>
+  </div>
+
+  <div id="people" style="display:none"></div>
+</div>
+  
+  
 <div id="profileScreen" class="app-screen">
 
 <div id="profileView">
