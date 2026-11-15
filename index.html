@@ -232,19 +232,49 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
 
 <div class="card hidden" id="app">
 
+
 <div id="profileScreen" class="app-screen">
-<h3>Your Profile 👤</h3>
+
+<div id="profileView">
+<h2>My Profile 👤</h2>
+
 <img id="myPhoto" class="photo hidden" alt="Your photo">
-<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">
+
+<h3 id="viewUsername">Your Name</h3>
+<p id="viewAge"></p>
+<p id="viewBio"></p>
+
+<div class="profile-stats">
+<div>❤️ Likes <strong id="myLikes">0</strong></div>
+<div>👥 Followers <strong id="myFollowers">0</strong></div>
+<div>➕ Following <strong id="myFollowing">0</strong></div>
+</div>
+
+<button onclick="openEditProfile()">✏️ Edit Profile</button>
+</div>
+
+<div id="profileEdit" style="display:none">
+<h3>Edit Profile ✏️</h3>
+
+<input id="photoFile" type="file"
+accept="image/jpeg,image/png,image/webp">
+
 <button onclick="uploadPhoto()">Upload Photo</button>
+
 <input id="username" placeholder="Your name">
 <input id="age" type="number" placeholder="Your age (18+)">
 <textarea id="bio" placeholder="About yourself"></textarea>
+
 <button onclick="saveProfile()">Save Profile</button>
+<button onclick="cancelEditProfile()">Cancel</button>
+</div>
+
 <h3>Blocked Users 🚫</h3>
 <div id="blockedUsers">No blocked users.</div>
-  <p>Account Settings</p>
-  <button id="adminButton"
+
+<p>Account Settings</p>
+
+<button id="adminButton"
 style="display:none"
 onclick="openAdminDashboard()">
 🛡️ Admin Dashboard
@@ -257,34 +287,26 @@ onclick="openAdminDashboard()">
 <div id="adminReports">Loading...</div>
 
 <h4>👥 All Users</h4>
-<div id="adminUsers">Loading...</div>  
+<div id="adminUsers">Loading...</div>
+
 <h4>💬 All User Chats</h4>
 <div id="adminAllChats">Loading...</div>
+
 <div id="adminUserProfile" style="
 display:none;
 padding:15px;
 margin:10px 0;
 border:1px solid #888;
 border-radius:12px;
-">
-</div>
-  
+"></div>
+
 <button onclick="closeAdminDashboard()">← Back to Profile</button>
 </div>
-  
-<button onclick="logout()">Logout 🚪</button>
-</div>
 
-<div id="discoverScreen" class="app-screen">
-<h3>Discover People ❤️</h3>
-<div id="people" class="swipe-container">
-<div id="swipeCard">Loading...</div>
-<div class="swipe-actions">
-<button onclick="dislikeUser()">❌ Dislike</button>
-<button onclick="likeUser()">❤️ Like</button>
+<button onclick="logout()">Logout 🚪</button>
+
 </div>
-</div>
-</div>
+  
   
 <div id="likesScreen" class="app-screen" style="display:none">
 <h3>People Who Liked You ❤️</h3>
@@ -626,39 +648,116 @@ setInterval(loadMatches,60000);
 }
   
 
+function openEditProfile(){
+document.getElementById("profileView").style.display="none";
+document.getElementById("profileEdit").style.display="block";
+}
+
+function cancelEditProfile(){
+document.getElementById("profileEdit").style.display="none";
+document.getElementById("profileView").style.display="block";
+}
+
   
-  
+
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
 const age=Number(document.getElementById("age").value);
 const bio=document.getElementById("bio").value;
+
 if(!username||age<18){
 appStatus("Name aur age 18+ zaroori hai.");
 return;
 }
+
 const {error}=await db.from("profiles").upsert({
-id:me.id,username,age,bio
+id:me.id,
+username,
+age,
+bio
 });
-appStatus(error?error.message:"Profile saved!");
-await loadPeople();
+
+if(error){
+appStatus(error.message);
+return;
 }
+
+document.getElementById("viewUsername").innerText=username;
+document.getElementById("viewAge").innerText=age+" years";
+document.getElementById("viewBio").innerText=bio;
+
+document.getElementById("profileEdit").style.display="none";
+document.getElementById("profileView").style.display="block";
+
+appStatus("Profile saved!");
+
+await loadPeople();
+  }
+  
 
 async function loadProfile(){
 const {data,error}=await db.from("profiles")
 .select("*").eq("id",me.id).maybeSingle();
-if(error){appStatus(error.message);return}
+
+if(error){
+appStatus(error.message);
+return;
+}
+
 if(data){
 document.getElementById("username").value=data.username||"";
 document.getElementById("age").value=data.age||"";
 document.getElementById("bio").value=data.bio||"";
+
+document.getElementById("viewUsername").innerText=data.username||"Your Name";
+document.getElementById("viewAge").innerText=(data.age||"")+" years";
+document.getElementById("viewBio").innerText=data.bio||"";
+
 if(data.photo_url){
 const img=document.getElementById("myPhoto");
 img.src=data.photo_url;
 img.classList.remove("hidden");
 }
 }
-}
 
+// Total received Likes
+const {count:likes,error:likesError}=await db
+.from("likes")
+.select("*",{count:"exact",head:true})
+.eq("to_user",me.id);
+
+if(likesError){
+appStatus(likesError.message);
+return;
+}
+document.getElementById("myLikes").innerText=likes||0;
+
+// Total Followers
+const {count:followers,error:followersError}=await db
+.from("follows")
+.select("*",{count:"exact",head:true})
+.eq("following_id",me.id);
+
+if(followersError){
+appStatus(followersError.message);
+return;
+}
+document.getElementById("myFollowers").innerText=followers||0;
+
+// Total Following
+const {count:following,error:followingError}=await db
+.from("follows")
+.select("*",{count:"exact",head:true})
+.eq("follower_id",me.id);
+
+if(followingError){
+appStatus(followingError.message);
+return;
+}
+document.getElementById("myFollowing").innerText=following||0;
+  }
+  
+  
 async function uploadPhoto(){
 const file=document.getElementById("photoFile").files[0];
 if(!file){appStatus("Pehle photo choose karein.");return}
