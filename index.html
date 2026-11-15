@@ -148,7 +148,7 @@ font-size:12px;
 <h1>JABZY ❤️</h1>
 <p style="text-align:center">Make New Friends • 18+</p>
 
-<div class="card hidden" id="login">
+<div class="card" id="login">
 <h3>Login / Sign Up</h3>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
@@ -538,8 +538,6 @@ return;
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.remove("hidden");
 
-await loadProfile();
-
 const adminButton=document.getElementById("adminButton");
 
 if(me && me.email==="jabirkhanmewati01@gmail.com"){
@@ -548,13 +546,21 @@ adminButton.style.display="block";
 adminButton.style.display="none";
 }
 
-await updateOnlineStatus();
+await Promise.all([
+loadProfile(),
+updateOnlineStatus(),
+loadBlockedUsers(),
+loadPeople(),
+loadMatches()
+]);
+
+if(!window.jabzyTimersStarted){
+window.jabzyTimersStarted=true;
 setInterval(updateOnlineStatus,60000);
 setInterval(checkTypingStatus,2000);
-await loadBlockedUsers();
-await loadPeople();
-await loadMatches();
 setInterval(loadMatches,60000);
+}
+
 }
   
 
@@ -1659,7 +1665,6 @@ await openAdminUserProfile(id);
   }
   
   
-
 db.auth.getSession().then(({data})=>{
 if(data.session){
 me=data.session.user;
@@ -1668,7 +1673,12 @@ startApp();
 document.getElementById("login").classList.remove("hidden");
 document.getElementById("app").classList.add("hidden");
 }
+}).catch(error=>{
+console.error("Session Error:",error);
+document.getElementById("login").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
 });
+
 
   
 async function logout(){
