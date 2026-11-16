@@ -2322,7 +2322,7 @@ status("Loged out successfully.");
 }
  
 function showTab(tab){
-alert("Clicked: "+tab+" | Screen found: "+!!document.getElementById(tab+"Screen"));
+
 
   const screens=[
     "discover","likes","matches",
@@ -2337,15 +2337,12 @@ alert("Clicked: "+tab+" | Screen found: "+!!document.getElementById(tab+"Screen"
       screen.style.display=name===tab?"block":"none";
     }
   });
-
-alert("Chats display: "+getComputedStyle(document.getElementById("chatsScreen")).display);
   
   const publicProfile=document.getElementById("publicProfileView");
   if(publicProfile) publicProfile.style.display="none";
 
   const nav=document.querySelector(".bottom-nav");
   if(nav) nav.style.display="flex";
-  alert("Nav: "+getComputedStyle(nav).display+" | Height: "+nav.offsetHeight);
 
   if(tab==="chats"){
     const chatList=document.getElementById("chatList");
