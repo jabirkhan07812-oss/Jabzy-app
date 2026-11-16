@@ -1240,49 +1240,73 @@ appStatus("❤️ Like bhej diya!");
   
 
 async function loadMatches(){
-const box=document.getElementById("matches");
-const {data:sent,error}=await db.from("likes")
-.select("to_user").eq("from_user",me.id);
+  const box=document.getElementById("matches");
 
-if(error){box.innerText=error.message;return}
+  const {data:sent,error}=await db.from("likes")
+    .select("to_user").eq("from_user",me.id);
 
-const ids=(sent||[]).map(x=>x.to_user);
-if(!ids.length){box.innerText="No matches yet.";return}
+  if(error){box.innerText=error.message;return}
 
-const {data:received,error:matchError}=await db.from("likes")
-.select("from_user").in("from_user",ids).eq("to_user",me.id);
+  const ids=(sent||[]).map(x=>x.to_user);
+  if(!ids.length){box.innerText="No matches yet.";return}
 
-if(matchError){box.innerText=matchError.message;return}
+  const {data:received,error:matchError}=await db.from("likes")
+    .select("from_user").in("from_user",ids).eq("to_user",me.id);
 
-let blocked;
-try{blocked=await getBlockedIds()}
-catch(e){box.innerText=e.message;return}
+  if(matchError){box.innerText=matchError.message;return}
 
-const matchIds=(received||[])
-.map(x=>x.from_user)
-.filter(id=>!blocked.has(id));
+  let blocked;
+  try{blocked=await getBlockedIds()}
+  catch(e){box.innerText=e.message;return}
 
-if(!matchIds.length){box.innerText="No matches yet.";return}
+  const matchIds=(received||[])
+    .map(x=>x.from_user)
+    .filter(id=>!blocked.has(id));
 
-const {data:profiles,error:profileError}=await db.from("profiles")
-.select("id,username,last_seen").in("id",matchIds);
+  if(!matchIds.length){box.innerText="No matches yet.";return}
 
-if(profileError){box.innerText=profileError.message;return}
+  const {data:profiles,error:profileError}=await db.from("profiles")
+    .select("id,username,last_seen").in("id",matchIds);
 
-box.innerHTML="";
-(profiles||[]).forEach(p=>{
-const btn=document.createElement("button");
-  btn.type="button";
-const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000);
-const minutes=Math.floor((Date.now()-new Date(p.last_seen).getTime())/60000);
-const status=isOnline?" 🟢 Online":p.last_seen?" ⚪ Last seen "+minutes+" min ago":" ⚪ Offline";
-btn.textContent="💕 "+(p.username||"User")+" - Chat"+status;
-btn.onclick=()=>chooseUser(p.id,p.username);
-box.appendChild(btn);
-});
-}
+  if(profileError){box.innerText=profileError.message;return}
 
+  box.innerHTML="";
 
+  const header=document.createElement("div");
+  header.style.cssText="display:flex;justify-content:space-between;align-items:center;background:#292442;padding:8px 12px;border-radius:12px;margin:8px 0 14px;";
+  
+  const heading=document.createElement("strong");
+  heading.textContent="Your Connections";
+
+  const count=document.createElement("span");
+  count.textContent=(profiles||[]).length+" Matches ❤️";
+  count.style.cssText="font-size:12px;color:#e5b5ff";
+
+  header.append(heading,count);
+  box.appendChild(header);
+
+  (profiles||[]).forEach(p=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.style.cssText="width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:14px;margin:8px 0;border-radius:16px;background:#29283d;color:white;border:1px solid #48445c;";
+
+    const isOnline=p.last_seen && (Date.now()-new Date(p.last_seen).getTime()<120000);
+    const minutes=Math.floor((Date.now()-new Date(p.last_seen).getTime())/60000);
+    const status=isOnline?"🟢 Online":p.last_seen?"⚪ Last seen "+minutes+" min ago":"⚪ Offline";
+
+    const info=document.createElement("span");
+    info.textContent="💕 "+(p.username||"User")+"  •  "+status;
+
+    const chat=document.createElement("span");
+    chat.textContent="Chat →";
+    chat.style.color="#e5b5ff";
+
+    btn.append(info,chat);
+    btn.onclick=()=>chooseUser(p.id,p.username);
+    box.appendChild(btn);
+  });
+    }
+    
 
 async function loadLikesReceived(){
 const box=document.getElementById("likesReceived");
