@@ -566,7 +566,14 @@ async function openNotifications(){
     };
 
     item.textContent=(names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification");
-    box.appendChild(item);
+
+item.style.cursor="pointer";
+
+item.onclick=()=>{
+  openPublicProfile(n.actor_id);
+};
+
+box.appendChild(item);
   });
 
   const unread=notifications.filter(n=>!n.is_read).map(n=>n.id);
