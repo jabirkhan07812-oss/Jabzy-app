@@ -2342,6 +2342,7 @@ alert("Chats display: "+getComputedStyle(document.getElementById("chatsScreen"))
 
   const nav=document.querySelector(".bottom-nav");
   if(nav) nav.style.display="flex";
+  alert("Nav: "+getComputedStyle(nav).display+" | Height: "+nav.offsetHeight);
 
   if(tab==="chats"){
     const chatList=document.getElementById("chatList");
