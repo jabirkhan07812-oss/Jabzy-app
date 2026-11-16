@@ -328,6 +328,25 @@ border-radius:12px;
 
 <button onclick="logout()">Logout 🚪</button>
 
+<div id="publicProfileView" style="display:none;padding:15px">
+  <button type="button" onclick="showTab('discover')">← Back</button>
+
+  <img id="publicPhoto" class="photo hidden" alt="Profile photo">
+
+  <h2 id="publicUsername">User</h2>
+  <p id="publicAge"></p>
+  <p id="publicBio"></p>
+
+  <div class="profile-stats">
+    <div>❤️ Likes <strong id="publicLikes">0</strong></div>
+    <div>👥 Followers <strong id="publicFollowers">0</strong></div>
+    <div>➕ Following <strong id="publicFollowing">0</strong></div>
+  </div>
+
+  <button id="publicFollowBtn" type="button">➕ Follow</button>
+  <button id="publicLikeBtn" type="button">❤️ Like</button>
+</div>
+  
 </div>
   
   
