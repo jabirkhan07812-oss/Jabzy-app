@@ -1211,14 +1211,46 @@ if(distance< -80)dislikeUser();
 };
 }
 
-async function likeUser(){
-const p=window.jabzyPeople[window.jabzyIndex];
-if(!p)return;
 
-await sendLike(p.id,p.username);
-window.jabzyIndex++;
-showSwipeCard();
-}
+async function likeUser(){
+  const p=window.jabzyPeople[window.jabzyIndex];
+  if(!p)return;
+
+  const {data:existing,error:checkError}=await db
+    .from("friend_requests")
+    .select("id,status,sender_id,receiver_id")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`);
+
+  if(checkError){
+    appStatus(checkError.message);
+    return;
+  }
+
+  if((existing||[]).some(r=>r.status==="accepted")){
+    appStatus("Aap pehle se Friends hain!");
+    return;
+  }
+
+  if((existing||[]).some(r=>r.status==="pending")){
+    appStatus("Friend Request pehle se pending hai.");
+    return;
+  }
+
+  const {error}=await db.from("friend_requests").insert({
+    sender_id:me.id,
+    receiver_id:p.id
+  });
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  appStatus("👥 Friend Request bhej di!");
+  window.jabzyIndex++;
+  showSwipeCard();
+  }
+  
 
 function dislikeUser(){
 if(!window.jabzyPeople[window.jabzyIndex])return;
