@@ -1822,15 +1822,27 @@ const own=m.sender_id===me.id;
 
 const row=document.createElement("div");
 row.style.position="relative";
-row.style.margin="12px 0";
-  
+row.style.display="flex";
+row.style.flexDirection="column";
+row.style.width="fit-content";
+row.style.maxWidth="75%";
+row.style.boxSizing="border-box";
+row.style.padding="9px 12px";
+row.style.background=own?"#075e54":"#29283d";
+row.style.borderRadius=own?"16px 4px 16px 16px":"4px 16px 16px 16px";
+row.style.margin=own?"8px 0 8px auto":"8px auto 8px 0";
+row.style.color="white";
+
 row.style.userSelect="none";
 row.style.webkitUserSelect="none";
 row.style.webkitTouchCallout="none";
 row.style.touchAction="pan-y";
 
 const p=document.createElement("p");
-p.textContent=own?"You: ":"Them: ";
+p.style.margin="0";
+p.style.whiteSpace="pre-wrap";
+p.style.overflowWrap="anywhere";
+p.textContent="";
 
 if(m.message.startsWith("PHOTO:")){
 p.textContent+="📷 Photo";
