@@ -59,10 +59,24 @@ padding:16px;
 padding-bottom:30px;
 }
 
-h1{
-color:#ff4d9d;
-text-align:center;
-font-size:32px;
+#appBrandHeader{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  margin:0 0 10px;
+}
+
+#appBrandHeader h1{
+  color:#ff4d9d;
+  font-size:23px;
+  margin:0;
+}
+
+#appBrandHeader span{
+  font-size:11px;
+  color:#c9b6e8;
+  white-space:nowrap;
 }
 
 h3{
@@ -189,8 +203,10 @@ font-size:12px;
 </head>
 <body>
 
-<h1>JABZY ❤️</h1>
-<p style="text-align:center">Make New Friends • 18+</p>
+<div id="appBrandHeader">
+  <h1>JABZY ❤️</h1>
+  <span>Make New Friends • 18+</span>
+</div>
 
 <div class="card hidden" id="login">
 <h3>Login / Sign Up</h3>
@@ -384,9 +400,9 @@ box-sizing:border-box;
   
 <div id="matchesScreen" class="app-screen" style="display:none">
 
-<div style="display:flex;justify-content:space-between;align-items:center">
-  <h3>Your Matches 💕</h3>
-  <button type="button" onclick="openNotifications()" class="notification-bell">
+<div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;padding:0 2px;">
+  <h3 style="margin:0;font-size:17px;">Your Matches 💕</h3>
+  <button type="button" onclick="openNotifications()" class="notification-bell" style="width:auto;padding:6px 10px;margin:0;font-size:14px;">
     🔔 <span id="notificationCountMatches">0</span>
   </button>
 </div>
