@@ -508,38 +508,6 @@ document.getElementById("resetPassword").classList.remove("hidden");
 });
 
 
-function showTab(tab){
-const screens=["discover","likes","matches","chats","profile","notifications"];
-
-screens.forEach(name=>{
-const screen=document.getElementById(name+"Screen");
-
-if(screen){
-screen.style.display=name===tab?"block":"none";
-}
-});
-
-const nav=document.querySelector(".bottom-nav");
-if(nav){
-nav.style.display="flex";
-}
-
-if(tab==="chats"){
-const chatList=document.getElementById("chatList");
-const chatWindow=document.getElementById("chatWindow");
-
-if(chatList) chatList.style.display="block";
-if(chatWindow) chatWindow.style.display="none";
-
-loadChatList();
-}
-
-if(tab==="profile"){
-loadProfile();
-}
-}
-
-
 async function openNotifications(){
   showTab("notifications");
 
