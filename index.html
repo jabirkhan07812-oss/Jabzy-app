@@ -2294,7 +2294,7 @@ await loadAdminUsers();
 await openAdminUserProfile(id);
   }
 
-document.getElementById("login").classList.add("hidden");
+document.getElementById("login").classList.remove("hidden");
 document.getElementById("app").classList.add("hidden");
   
 db.auth.getSession().then(({data})=>{
