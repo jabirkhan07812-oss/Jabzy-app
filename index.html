@@ -1608,6 +1608,17 @@ loadChatList();
 
 
 async function chooseUser(id,name){
+if(!me || !id || id==="Null" || id==="null"){
+  appStatus("Chat user ID invalid hai. Dobara try karein.");
+  return;
+}
+
+if(typeof id!=="string" ||
+! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){
+  appStatus("Invalid user ID.");
+  return;
+  }
+  
 let blocked;
 
 try{
@@ -1657,8 +1668,6 @@ photo.classList.remove("hidden");
 
 await loadMessages();
 }
-  
-  
   
 async function checkTypingStatus(){
 if(!me||!selected)return;
