@@ -384,14 +384,12 @@ box-sizing:border-box;
   </div>
 
   <div class="profile-stats">
-    <div>❤️ Likes <strong id="publicLikes">0</strong></div>
-    <div>👥 Followers <strong id="publicFollowers">0</strong></div>
-    <div>➕ Following <strong id="publicFollowing">0</strong></div>
+  <div>👥 Followers <strong id="publicFollowers">0</strong></div>
+  <div>➕ Following <strong id="publicFollowing">0</strong></div>
   </div>
 
   <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
   <button id="publicFollowBtn" type="button" style="flex:1">➕ Follow</button>
-  <button id="publicLikeBtn" type="button" style="flex:1">❤️ Like</button>
   <button id="publicBlockBtn" type="button" style="flex:1">🚫 Block</button>
   <button id="publicReportBtn" type="button" style="flex:1">🚩 Report</button>
 </div>
@@ -953,18 +951,6 @@ img.classList.remove("hidden");
 }
 }
 
-// Total received Likes
-const {count:likes,error:likesError}=await db
-.from("likes")
-.select("*",{count:"exact",head:true})
-.eq("to_user",me.id);
-
-if(likesError){
-appStatus(likesError.message);
-return;
-}
-document.getElementById("myLikes").innerText=likes||0;
-
 // Total Followers
 const {count:followers,error:followersError}=await db
 .from("follows")
@@ -1023,19 +1009,16 @@ async function openPublicProfile(userId){
   document.getElementById("publicAge").innerText=(p.age||"")+" years";
   document.getElementById("publicBio").innerText=p.bio||"";
 
-  const [likes,followers,following]=await Promise.all([
-    db.from("likes").select("*",{count:"exact",head:true}).eq("to_user",userId),
-    db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
-    db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
-  ]);
-
-  document.getElementById("publicLikes").innerText=likes.count||0;
+  const [followers,following]=await Promise.all([
+  db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
+  db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
+]);
+  
   document.getElementById("publicFollowers").innerText=followers.count||0;
   document.getElementById("publicFollowing").innerText=following.count||0;
 
   const followBtn=document.getElementById("publicFollowBtn");
-  const likeBtn=document.getElementById("publicLikeBtn");
-
+  
   const blockBtn=document.getElementById("publicBlockBtn");
 const reportBtn=document.getElementById("publicReportBtn");
 
@@ -1048,17 +1031,9 @@ reportBtn.onclick=()=>reportUser(userId,p.username||"User");
     .eq("following_id",userId)
     .maybeSingle();
 
-  const {data:l}=await db.from("likes")
-    .select("id")
-    .eq("from_user",me.id)
-    .eq("to_user",userId)
-    .maybeSingle();
-
   followBtn.textContent=f?"✓ Following":"➕ Follow";
-  likeBtn.textContent=l?"❤️ Liked":"❤️ Like";
 
   followBtn.onclick=()=>toggleFollow(userId,followBtn);
-  likeBtn.onclick=()=>sendLike(userId,p.username,likeBtn);
   }
   
   
