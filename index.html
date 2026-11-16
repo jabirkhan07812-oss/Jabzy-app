@@ -192,7 +192,7 @@ font-size:12px;
 <h1>JABZY ❤️</h1>
 <p style="text-align:center">Make New Friends • 18+</p>
 
-<div class="card" id="login">
+<div class="card hidden" id="login">
 <h3>Login / Sign Up</h3>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
@@ -753,8 +753,7 @@ const reason=banned.reason || "Reason not provided";
 await db.auth.signOut();
 me=null;
 
-document.getElementById("login").classList.remove("hidden");
-document.getElementById("app").classList.add("hidden");
+
 
 document.getElementById("status").innerText=
 "Your account has been banned. Reason: "+reason;
@@ -763,7 +762,7 @@ return;
 }
 
 document.getElementById("login").classList.add("hidden");
-document.getElementById("app").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
 
 const adminButton=document.getElementById("adminButton");
 
@@ -781,8 +780,10 @@ loadPeople(),
 loadMatches()
 ]);
 await loadNotificationCount();
+  
 const lastTab=localStorage.getItem("jabzyLastTab") || "discover";
 showTab(lastTab);
+document.getElementById("app").classList.remove("hidden");
   
 if(!window.jabzyTimersStarted){
 window.jabzyTimersStarted=true;
@@ -2292,7 +2293,9 @@ alert("User Unbanned!");
 await loadAdminUsers();
 await openAdminUserProfile(id);
   }
-  
+
+document.getElementById("login").classList.add("hidden");
+document.getElementById("app").classList.add("hidden");
   
 db.auth.getSession().then(({data})=>{
 if(data.session){
