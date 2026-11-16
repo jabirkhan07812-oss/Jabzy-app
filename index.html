@@ -1142,74 +1142,59 @@ showSwipeCard();
 
 
 async function showSwipeCard(){
-const card=document.getElementById("swipeCard");
-const people=window.jabzyPeople||[];
-const p=people[window.jabzyIndex];
+  const card=document.getElementById("swipeCard");
+  const people=window.jabzyPeople||[];
+  const p=people[window.jabzyIndex];
 
-if(!p){
-card.innerHTML="Abhi koi aur profile nahi hai ❤️";
-return;
-}
+  if(!p){
+    card.innerHTML="Abhi koi aur profile nahi hai ❤️";
+    return;
+  }
 
-card.innerHTML="Loading...";
+  card.innerHTML="Loading...";
 
-const [followResult,likeResult]=await Promise.all([
-db.from("follows")
-.select("id")
-.eq("follower_id",me.id)
-.eq("following_id",p.id)
-.maybeSingle(),
+  const {data:requests,error}=await db
+    .from("friend_requests")
+    .select("id,status,sender_id,receiver_id")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`);
 
-db.from("likes")
-.select("id")
-.eq("from_user",me.id)
-.eq("to_user",p.id)
-.maybeSingle()
-]);
+  if(error){
+    card.innerText=error.message;
+    return;
+  }
 
-if(followResult.error || likeResult.error){
-card.innerText=followResult.error?.message||likeResult.error?.message;
-return;
-}
+  card.innerHTML="";
 
-card.innerHTML="";
+  if(p.photo_url){
+    const img=document.createElement("img");
+    img.src=p.photo_url;
+    img.style.cssText="width:100%;height:280px;object-fit:cover;border-radius:15px;";
+    card.appendChild(img);
+  }
 
-if(p.photo_url){
-const img=document.createElement("img");
-img.src=p.photo_url;
-img.style.cssText="width:100%;height:280px;object-fit:cover;border-radius:15px;";
-card.appendChild(img);
-}
+  const name=document.createElement("h2");
+  name.textContent=p.username||"User";
 
-const name=document.createElement("h2");
-name.textContent=p.username||"User";
+  const info=document.createElement("p");
+  info.textContent=(p.age||"")+" years • "+(p.bio||"");
 
-const info=document.createElement("p");
-info.textContent=(p.age||"")+" years • "+(p.bio||"");
-card.append(name,info);
+  card.append(name,info);
 
-const followBtn=document.createElement("button");
-followBtn.type="button";
-followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
-followBtn.onclick=()=>toggleFollow(p.id,followBtn);
-card.appendChild(followBtn);
+  const request=(requests||[]).find(r=>
+    r.status==="accepted" || r.status==="pending"
+  );
 
-const likeBtn=document.createElement("button");
-likeBtn.type="button";
-likeBtn.textContent=likeResult.data?"❤️ Liked":"❤️ Like";
-likeBtn.onclick=()=>likeUser();
-card.appendChild(likeBtn);
-
-card.ontouchstart=function(e){
-window.swipeStartX=e.touches[0].clientX;
-};
-
-card.ontouchend=function(e){
-const distance=e.changedTouches[0].clientX-window.swipeStartX;
-if(distance>80)likeUser();
-if(distance< -80)dislikeUser();
-};
-}
+  if(request){
+    const status=document.createElement("p");
+    status.textContent=request.status==="accepted"
+      ? "✓ Already Friends"
+      : request.sender_id===me.id
+        ? "⏳ Friend Request Sent"
+        : "👥 Sent you a Friend Request";
+    card.appendChild(status);
+  }
+      }
+  
 
 
 async function likeUser(){
