@@ -1313,6 +1313,11 @@ async function loadMatches(){
 
   const avatar=document.createElement("div");
   avatar.style.cssText="width:58px;height:58px;min-width:58px;border-radius:50%;overflow:hidden;background:#68518c;display:flex;align-items:center;justify-content:center;font-size:27px;";
+avatar.style.cursor="pointer";
+avatar.onclick=(e)=>{
+  e.stopPropagation();
+  openPublicProfile(p.id);
+};
 
   if(p.photo_url){
     const img=document.createElement("img");
