@@ -1153,13 +1153,25 @@ async function showSwipeCard(){
 
   card.innerHTML="Loading...";
 
-  const {data:requests,error}=await db
-    .from("friend_requests")
-    .select("id,status,sender_id,receiver_id")
-    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`);
+  const [followResult,requestResult]=await Promise.all([
+    db.from("follows")
+      .select("id")
+      .eq("follower_id",me.id)
+      .eq("following_id",p.id)
+      .maybeSingle(),
 
-  if(error){
-    card.innerText=error.message;
+    db.from("friend_requests")
+      .select("id,status,sender_id,receiver_id")
+      .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`)
+  ]);
+
+  if(followResult.error){
+    card.innerText=followResult.error.message;
+    return;
+  }
+
+  if(requestResult.error){
+    card.innerText=requestResult.error.message;
     return;
   }
 
@@ -1180,7 +1192,13 @@ async function showSwipeCard(){
 
   card.append(name,info);
 
-  const request=(requests||[]).find(r=>
+  const followBtn=document.createElement("button");
+  followBtn.type="button";
+  followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
+  followBtn.onclick=()=>toggleFollow(p.id,followBtn);
+  card.appendChild(followBtn);
+
+  const request=(requestResult.data||[]).find(r=>
     r.status==="accepted" || r.status==="pending"
   );
 
@@ -1193,10 +1211,9 @@ async function showSwipeCard(){
         : "👥 Sent you a Friend Request";
     card.appendChild(status);
   }
-      }
+    }
   
-
-
+  
 async function likeUser(){
   const p=window.jabzyPeople[window.jabzyIndex];
   if(!p)return;
