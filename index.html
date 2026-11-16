@@ -2349,7 +2349,43 @@ document.getElementById("privacyConsent").checked=false;
 
 status("Logged out successfully.");
 }
-  
+ 
+function showTab(tab){
+
+  const screens=[
+    "discover","likes","matches",
+    "chats","profile","notifications"
+  ];
+
+  screens.forEach(name=>{
+    const screen=document.getElementById(name+"Screen");
+    if(screen){
+      screen.style.display=name===tab?"block":"none";
+    }
+  });
+
+  const publicProfile=document.getElementById("publicProfileView");
+  if(publicProfile) publicProfile.style.display="none";
+
+  const nav=document.querySelector(".bottom-nav");
+  if(nav) nav.style.display="flex";
+
+  if(tab==="chats"){
+    const chatList=document.getElementById("chatList");
+    const chatWindow=document.getElementById("chatWindow");
+    if(chatList) chatList.style.display="block";
+    if(chatWindow) chatWindow.style.display="none";
+    loadChatList();
+  }
+
+  if(tab==="matches") loadMatches();
+
+  if(tab==="profile"){
+    loadProfile();
+    document.getElementById("profileView").style.display="block";
+    document.getElementById("profileEdit").style.display="none";
+  }
+}  
   
 </script>
 </body>
