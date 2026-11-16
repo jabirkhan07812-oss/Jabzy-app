@@ -2315,7 +2315,7 @@ document.getElementById("email").value="";
 document.getElementById("password").value="";
 document.getElementById("privacyConsent").checked=false;
 
-status("Logged out successfully.");
+status("Loged out successfully.");
 }
  
 function showTab(tab){
@@ -2328,7 +2328,9 @@ alert("Clicked: " + tab);
 
   screens.forEach(name=>{
     const screen=document.getElementById(name+"Screen");
-    if(screen){
+     console.log(name, screen);
+    
+    if(screen) {
       screen.style.display=name===tab?"block":"none";
     }
   });
