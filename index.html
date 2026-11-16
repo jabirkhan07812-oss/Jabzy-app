@@ -2335,6 +2335,8 @@ alert("Clicked: "+tab+" | Screen found: "+!!document.getElementById(tab+"Screen"
     }
   });
 
+alert("Chats display: "+getComputedStyle(document.getElementById("chatsScreen")).display);
+  
   const publicProfile=document.getElementById("publicProfileView");
   if(publicProfile) publicProfile.style.display="none";
 
