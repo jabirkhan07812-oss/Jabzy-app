@@ -1710,6 +1710,8 @@ appStatus("Report submit ho gayi. Shukriya.");
 function backToChatList(){
 document.getElementById("chatWindow").style.display="none";
 document.getElementById("chatList").style.display="block";
+const nav=document.querySelector(".bottom-nav");
+if(nav) nav.style.display="flex";
 selected=null;
 loadChatList();
 }
@@ -1748,6 +1750,8 @@ await startChatRealtime();
 showTab("chats");
 document.getElementById("chatList").style.display="none";
 document.getElementById("chatWindow").style.display="block";
+const nav=document.querySelector(".bottom-nav");
+if(nav) nav.style.display="none";
 document.getElementById("chatTitle").innerText="Chat with "+name;
 
 const photo=document.getElementById("chatProfilePhoto");
