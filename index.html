@@ -922,6 +922,71 @@ return;
 }
 document.getElementById("myFollowing").innerText=following||0;
   }
+
+  
+async function openPublicProfile(userId){
+
+  const {data:p,error}=await db
+    .from("profiles")
+    .select("*")
+    .eq("id",userId)
+    .maybeSingle();
+
+  if(error || !p){
+    appStatus(error?.message || "Profile nahi mili");
+    return;
+  }
+
+  showTab("profile");
+
+  document.getElementById("profileView").style.display="none";
+  document.getElementById("profileEdit").style.display="none";
+  document.getElementById("publicProfileView").style.display="block";
+
+  const photo=document.getElementById("publicPhoto");
+
+  if(p.photo_url){
+    photo.src=p.photo_url;
+    photo.classList.remove("hidden");
+  }else{
+    photo.classList.add("hidden");
+  }
+
+  document.getElementById("publicUsername").innerText=p.username||"User";
+  document.getElementById("publicAge").innerText=(p.age||"")+" years";
+  document.getElementById("publicBio").innerText=p.bio||"";
+
+  const [likes,followers,following]=await Promise.all([
+    db.from("likes").select("*",{count:"exact",head:true}).eq("to_user",userId),
+    db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
+    db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
+  ]);
+
+  document.getElementById("publicLikes").innerText=likes.count||0;
+  document.getElementById("publicFollowers").innerText=followers.count||0;
+  document.getElementById("publicFollowing").innerText=following.count||0;
+
+  const followBtn=document.getElementById("publicFollowBtn");
+  const likeBtn=document.getElementById("publicLikeBtn");
+
+  const {data:f}=await db.from("follows")
+    .select("id")
+    .eq("follower_id",me.id)
+    .eq("following_id",userId)
+    .maybeSingle();
+
+  const {data:l}=await db.from("likes")
+    .select("id")
+    .eq("from_user",me.id)
+    .eq("to_user",userId)
+    .maybeSingle();
+
+  followBtn.textContent=f?"✓ Following":"➕ Follow";
+  likeBtn.textContent=l?"❤️ Liked":"❤️ Like";
+
+  followBtn.onclick=()=>toggleFollow(userId,followBtn);
+  likeBtn.onclick=()=>sendLike(userId,p.username,likeBtn);
+  }
   
   
 async function uploadPhoto(){
