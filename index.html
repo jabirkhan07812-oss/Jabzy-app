@@ -367,12 +367,14 @@ box-sizing:border-box;
     <div>➕ Following <strong id="publicFollowing">0</strong></div>
   </div>
 
-  <div style="display:flex;gap:10px;margin-top:20px">
-    <button id="publicFollowBtn" type="button" style="flex:1">➕ Follow</button>
-    <button id="publicLikeBtn" type="button" style="flex:1">❤️ Like</button>
-  </div>
+  <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+  <button id="publicFollowBtn" type="button" style="flex:1">➕ Follow</button>
+  <button id="publicLikeBtn" type="button" style="flex:1">❤️ Like</button>
+  <button id="publicBlockBtn" type="button" style="flex:1">🚫 Block</button>
+  <button id="publicReportBtn" type="button" style="flex:1">🚩 Report</button>
+</div>
 
-    </div>
+</div>
                                      
   
 <div id="likesScreen" class="app-screen" style="display:none">
@@ -972,6 +974,12 @@ async function openPublicProfile(userId){
   const followBtn=document.getElementById("publicFollowBtn");
   const likeBtn=document.getElementById("publicLikeBtn");
 
+  const blockBtn=document.getElementById("publicBlockBtn");
+const reportBtn=document.getElementById("publicReportBtn");
+
+blockBtn.onclick=()=>blockUser(userId,p.username||"User");
+reportBtn.onclick=()=>reportUser(userId,p.username||"User");
+
   const {data:f}=await db.from("follows")
     .select("id")
     .eq("follower_id",me.id)
@@ -1472,8 +1480,37 @@ img.style.width="52px";
 img.style.height="52px";
 img.style.objectFit="cover";
 img.style.borderRadius="50%";
+img.style.cursor="pointer";
+
+img.onclick=(event)=>{
+event.stopPropagation();
+openPublicProfile(p.id);
+};
+
 btn.appendChild(img);
-}
+
+}else{
+  
+const avatar=document.createElement("div");
+avatar.textContent="👤";
+avatar.style.width="52px";
+avatar.style.height="52px";
+avatar.style.minWidth="52px";
+avatar.style.borderRadius="50%";
+avatar.style.background="#dfe5e7";
+avatar.style.display="flex";
+avatar.style.alignItems="center";
+avatar.style.justifyContent="center";
+avatar.style.fontSize="28px";
+avatar.style.cursor="pointer";
+
+avatar.onclick=(event)=>{
+event.stopPropagation();
+openPublicProfile(p.id);
+};
+
+btn.appendChild(avatar);
+  }
 
 const info=document.createElement("div");
 info.style.flex="1";
