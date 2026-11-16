@@ -2319,7 +2319,7 @@ status("Loged out successfully.");
 }
  
 function showTab(tab){
-alert("Clicked: " + tab);
+alert("Clicked: "+tab+" | Screen found: "+!!document.getElementById(tab+"Screen"));
 
   const screens=[
     "discover","likes","matches",
