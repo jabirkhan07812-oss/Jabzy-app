@@ -1370,14 +1370,42 @@ async function openPublicProfile(userId){
     await openPublicProfile(userId);
   };
 
-  messageBtn.onclick=()=>{
-    if(accepted){
-      chooseUser(userId,p.username||"User");
-    }else{
-      appStatus("Message Request feature abhi connect karna baaki hai.");
-    }
-  };
+  messageBtn.onclick=async()=>{
+  if(accepted){
+    chooseUser(userId,p.username||"User");
+    return;
   }
+
+  const firstMessage=prompt("Pehla message likhein:");
+  if(!firstMessage||!firstMessage.trim())return;
+
+  const {data:old,error:checkError}=await db
+    .from("message_requests")
+    .select("id,sender_id,status")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${me.id})`);
+
+  if(checkError){appStatus(checkError.message);return}
+
+  const pending=(old||[]).find(r=>r.status==="pending");
+
+  if(pending){
+    appStatus(pending.sender_id===me.id?
+      "Request pehle hi bhej di hai.":
+      "Is user ki request aapke Chats mein hai.");
+    return;
+  }
+
+  const {error}=await db.from("message_requests").insert({
+    sender_id:me.id,
+    receiver_id:userId,
+    message:firstMessage.trim(),
+    status:"pending"
+  });
+
+  if(error){appStatus(error.message);return}
+
+  appStatus("Message Request sent ❤️");
+};
     
 async function uploadPhoto(){
 const file=document.getElementById("photoFile").files[0];
