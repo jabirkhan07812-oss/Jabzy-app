@@ -249,40 +249,76 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
 <div class="card hidden" id="app">
 
   
-<div id="homeScreen" class="app-screen" style="display:block">
 
-  <h2>💗 JABZY</h2>
+<div id="homeScreen" class="app-screen" style="display:block;padding-bottom:15px">
 
-  <div class="card">
-    <h3>What's on your mind? 💕</h3>
-    <textarea id="homePostText" placeholder="Share something with everyone..."></textarea>
-    <button type="button" onclick="appStatus('Create Post feature next step mein connect hoga')">📷 Create Post</button>
+  <!-- HEADER -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <div>
+      <h2 style="margin:0;font-size:25px;background:linear-gradient(90deg,#ff4fa3,#9b70ff);-webkit-background-clip:text;color:transparent">💗 JABZY</h2>
+      <p style="margin:3px 0 0;font-size:12px;opacity:.7">Your world. Your people. ❤️</p>
+    </div>
+    <button type="button" onclick="openNotifications()" class="notification-bell">
+      🔔 <span id="notificationCountHome">0</span>
+    </button>
   </div>
 
-  <div class="card">
-    <h3>✨ Stories</h3>
-    <div id="homeStories">Stories coming soon ❤️</div>
+  <!-- STORIES -->
+  <div class="card" style="padding:15px;margin-bottom:15px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0">✨ Stories</h3>
+      <button type="button" onclick="appStatus('All Stories coming soon ❤️')" style="background:none;color:#ff75bd">See All</button>
+    </div>
+    <div style="display:flex;gap:15px;overflow-x:auto;padding:15px 2px 5px">
+      <div style="min-width:65px;text-align:center">
+        <div style="width:58px;height:58px;border-radius:50%;border:2px dashed #ff55ad;display:grid;place-items:center;font-size:27px">＋</div>
+        <small>Add Story</small>
+      </div>
+      <div id="homeStories" style="display:flex;align-items:center;font-size:13px;opacity:.7">Stories coming soon ❤️</div>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>🔍 Find People on JABZY</h3>
-    <p>Connect with new people</p>
-    <button type="button" onclick="showTab('discover')">Discover People →</button>
+  <!-- CREATE POST -->
+  <div class="card" style="padding:16px;margin-bottom:15px">
+    <h3 style="margin:0 0 12px">💬 Create a Post</h3>
+    <textarea id="homePostText" placeholder="What's on your mind? Share with everyone..." style="width:100%;min-height:85px;box-sizing:border-box;border-radius:13px;padding:12px"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+      <span style="font-size:13px">📷 Photo</span>
+      <button type="button" onclick="appStatus('Create Post feature next step mein connect hoga ❤️')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:20px;padding:9px 18px">＋ Create Post</button>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>📰 Home Feed</h3>
-    <div id="homeFeed">Posts will appear here ❤️</div>
+  <!-- FIND PEOPLE -->
+  <div class="card" style="padding:16px;margin-bottom:15px;background:linear-gradient(120deg,#292344,#49305e)">
+    <h3 style="margin:0 0 7px">🔍 Find People on JABZY</h3>
+    <p style="font-size:13px;margin:0 0 12px;opacity:.85">Discover new people and make friends ❤️</p>
+    <button type="button" onclick="showTab('discover')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:20px;padding:10px 18px">Discover People →</button>
   </div>
 
-  <div class="card">
-    <h3>👥 Groups</h3>
-    <p>Find your community and connect.</p>
-    <button type="button" onclick="appStatus('Groups feature next step mein connect hoga')">Explore Groups</button>
-    <button type="button" onclick="appStatus('Create Group feature next step mein connect hoga')">＋ Create Group</button>
+  <!-- HOME FEED -->
+  <div style="margin-bottom:15px">
+    <h3 style="margin:0 0 12px">📰 Your Home Feed</h3>
+    <div id="homeFeed" class="card" style="padding:16px">
+      <p style="text-align:center;opacity:.7">No posts yet ❤️</p>
+      <p style="text-align:center;font-size:13px">Be the first to share something with your friends!</p>
+    </div>
+  </div>
+
+  <!-- GROUPS -->
+  <div class="card" style="padding:16px;margin-bottom:15px;background:linear-gradient(120deg,#252c50,#40305f)">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0">👥 My Groups</h3>
+      <span style="font-size:12px;opacity:.7">Community</span>
+    </div>
+    <p style="font-size:13px;opacity:.8">Find your people. Chat, share and enjoy together!</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button type="button" onclick="appStatus('Explore Groups feature coming soon ❤️')">Explore Groups</button>
+      <button type="button" onclick="appStatus('Create Group feature coming soon ❤️')">＋ Create Group</button>
+    </div>
   </div>
 
 </div>
+  
   
 
 <div id="discoverScreen" class="app-screen" style="display:block">
@@ -307,7 +343,6 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
   <div id="people" style="display:none"></div>
 
 </div>
-  
   
 <div id="profileScreen" class="app-screen">
 
