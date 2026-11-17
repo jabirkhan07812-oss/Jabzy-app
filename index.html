@@ -709,11 +709,12 @@ report_warned:"⚠️ Aapki report par action liya gaya hai. User ko warning di 
 
     item.textContent=(names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification");
 
-item.style.cursor="pointer";
-
-item.onclick=()=>{
-  openPublicProfile(n.actor_id);
-};
+if(["like","match","follow","message"].includes(n.type)){
+  item.style.cursor="pointer";
+  item.onclick=()=>{
+    openPublicProfile(n.actor_id);
+  };
+  }
 
 box.appendChild(item);
   });
