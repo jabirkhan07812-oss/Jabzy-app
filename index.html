@@ -824,6 +824,22 @@ status("Name aur Date of Birth zaroori hai.");
 return;
 }
 
+const birthDate=new Date(dob+"T00:00:00");
+const today=new Date();
+
+let age=today.getFullYear()-birthDate.getFullYear();
+
+const month=today.getMonth()-birthDate.getMonth();
+
+if(month<0 || (month===0 && today.getDate()<birthDate.getDate())){
+age--;
+}
+
+if(birthDate>today || age<18){
+status("JABZY par account banane ke liye 18+ hona zaroori hai.");
+return;
+}
+  
 if(password.length < 6){
 status("Password kam se kam 6 characters ka hona chahiye.");
 return;
