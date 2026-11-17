@@ -432,6 +432,37 @@ box-sizing:border-box;
 <h3>People Who Liked You ❤️</h3>
 <div id="likesReceived">Loading likes...</div>
 </div>
+
+  <div id="friendsScreen" class="app-screen" style="display:none">
+
+  <h2>👥 My Friends</h2>
+
+  <div class="card">
+    <h3>✨ My Circle</h3>
+    <p>Your people, your community ❤️</p>
+    <div id="myFriendsCount">0 Friends</div>
+    <div id="myFriendsList">Loading your friends...</div>
+  </div>
+
+  <div class="card">
+    <h3>👥 Friend Requests</h3>
+    <button type="button" onclick="openFriendRequests()">
+      View Friend Requests
+    </button>
+    <div id="friendRequestsPanel" style="display:none">
+      <div id="friendRequestsList">Loading...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔍 Find New Friends</h3>
+    <p>Discover new people on JABZY ❤️</p>
+    <button type="button" onclick="showTab('discover')">
+      Add Friends
+    </button>
+  </div>
+
+  </div>
   
 <div id="matchesScreen" class="app-screen" style="display:none">
 
