@@ -2770,6 +2770,10 @@ function showTab(tab){
   }
 
   if(tab==="matches") loadMatches();
+  if(tab==="friends"){
+  loadMyFriends();
+  loadFriendRequests();
+  }
 
   if(tab==="profile"){
     loadProfile();
