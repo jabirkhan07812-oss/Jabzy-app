@@ -894,7 +894,7 @@ loadMatches()
 ]);
 await loadNotificationCount();
   
-const lastTab=localStorage.getItem("jabzyLastTab") || "discover";
+const lastTab=localStorage.getItem("jabzyLastTab") || "home";
 showTab(lastTab);
 document.getElementById("app").classList.remove("hidden");
   
@@ -2724,10 +2724,10 @@ status("Loged out successfully.");
 }
  
 function showTab(tab){
-localStorage.setItem("jabzyLastTab",tab);
+  localStorage.setItem("jabzyLastTab",tab);
 
   const screens=[
-    "discover","likes","matches",
+    "home","discover","likes","matches",
     "chats","profile","notifications"
   ];
 
