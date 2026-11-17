@@ -988,6 +988,104 @@ return;
 document.getElementById("myFollowing").innerText=following||0;
   }
 
+  async function openFriendRequests(){
+  const panel=document.getElementById("friendRequestsPanel");
+
+  if(panel.style.display==="none"){
+    panel.style.display="block";
+    await loadFriendRequests();
+  }else{
+    panel.style.display="none";
+  }
+}
+
+async function loadFriendRequests(){
+  const box=document.getElementById("friendRequestsList");
+  box.innerText="Loading...";
+
+  const {data:requests,error}=await db
+    .from("friend_requests")
+    .select("id,sender_id,created_at")
+    .eq("receiver_id",me.id)
+    .eq("status","pending")
+    .order("created_at",{ascending:false});
+
+  if(error){
+    box.innerText=error.message;
+    return;
+  }
+
+  box.innerHTML="";
+
+  if(!requests || requests.length===0){
+    box.innerText="No new friend requests ❤️";
+    return;
+  }
+
+  const ids=requests.map(r=>r.sender_id);
+
+  const {data:profiles,error:profileError}=await db
+    .from("profiles")
+    .select("id,username,photo_url")
+    .in("id",ids);
+
+  if(profileError){
+    box.innerText=profileError.message;
+    return;
+  }
+
+  requests.forEach(request=>{
+    const person=(profiles||[]).find(p=>p.id===request.sender_id);
+    if(!person)return;
+
+    const row=document.createElement("div");
+    row.style.cssText="padding:12px;margin:10px 0;background:#ffffff12;border-radius:12px;";
+
+    const name=document.createElement("h3");
+    name.innerText=person.username||"JABZY User";
+
+    const accept=document.createElement("button");
+    accept.innerText="✓ Accept";
+    accept.onclick=()=>respondFriendRequest(request.id,"accepted");
+
+    const reject=document.createElement("button");
+    reject.innerText="✕ Reject";
+    reject.onclick=()=>respondFriendRequest(request.id,"rejected");
+
+    row.append(name,accept,reject);
+    box.appendChild(row);
+  });
+}
+
+async function respondFriendRequest(requestId,status){
+  const {data,error}=await db
+    .from("friend_requests")
+    .update({status:status})
+    .eq("id",requestId)
+    .eq("receiver_id",me.id)
+    .eq("status","pending")
+    .select("id")
+    .maybeSingle();
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  if(!data){
+    appStatus("Request update nahi hui. Dobara try karo.");
+    return;
+  }
+
+  appStatus(status==="accepted"
+    ? "❤️ Friend request accepted!"
+    : "Friend request rejected."
+  );
+
+  await loadFriendRequests();
+  await loadMyFriends();
+  }
+
   async function loadMyFriends(){
 
   const box=document.getElementById("myFriendsList");
