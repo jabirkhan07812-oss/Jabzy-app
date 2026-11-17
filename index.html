@@ -701,7 +701,10 @@ async function openNotifications(){
       like:"❤️ liked you",
       match:"💕 It's a Match!",
       follow:"➕ started following you",
-      message:"💬 sent you a message"
+      message:"💬 sent you a message",
+      report_received:"🚩 Aapki report mil gayi hai. Admin review karega.",
+report_banned:"🚫 Aapki report par action liya gaya hai. Account ban kar diya gaya hai.",
+report_warned:"⚠️ Aapki report par action liya gaya hai. User ko warning di gayi hai."
     };
 
     item.textContent=(names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification");
