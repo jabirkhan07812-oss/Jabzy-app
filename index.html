@@ -248,30 +248,30 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
 
 <div class="card hidden" id="app">
 
-  
 
-<div id="homeScreen" class="app-screen" style="display:block;padding-bottom:15px">
+<div id="homeScreen" class="app-screen" style="display:block;padding:15px 12px 20px">
 
   <!-- HEADER -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
     <div>
-      <h2 style="margin:0;font-size:25px;background:linear-gradient(90deg,#ff4fa3,#9b70ff);-webkit-background-clip:text;color:transparent">💗 JABZY</h2>
+      <h2 style="margin:0;font-size:28px;font-weight:900;background:linear-gradient(90deg,#ff4fa3,#a77aff);-webkit-background-clip:text;color:transparent">💗 JABZY</h2>
       <p style="margin:3px 0 0;font-size:12px;opacity:.7">Your world. Your people. ❤️</p>
     </div>
-    <button type="button" onclick="openNotifications()" class="notification-bell">
-      🔔 <span id="notificationCountHome">0</span>
-    </button>
+    <div style="display:flex;gap:9px">
+      <button type="button" onclick="openNotifications()" class="notification-bell">🔔 <span id="notificationCountHome">0</span></button>
+      <button type="button" onclick="showTab('profile')" style="border-radius:50%;width:40px;height:40px">⚙️</button>
+    </div>
   </div>
 
   <!-- STORIES -->
-  <div class="card" style="padding:15px;margin-bottom:15px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+  <div class="card" style="padding:15px;margin-bottom:16px;border:1px solid #754b91">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h3 style="margin:0">✨ Stories</h3>
-      <button type="button" onclick="appStatus('All Stories coming soon ❤️')" style="background:none;color:#ff75bd">See All</button>
+      <button type="button" onclick="appStatus('All Stories coming soon ❤️')" style="background:none;color:#ff75bd">See All →</button>
     </div>
-    <div style="display:flex;gap:15px;overflow-x:auto;padding:15px 2px 5px">
+    <div style="display:flex;gap:14px;overflow-x:auto;padding:4px 0">
       <div style="min-width:65px;text-align:center">
-        <div style="width:58px;height:58px;border-radius:50%;border:2px dashed #ff55ad;display:grid;place-items:center;font-size:27px">＋</div>
+        <div style="width:58px;height:58px;border-radius:50%;border:2px dashed #ff55ad;display:grid;place-items:center;font-size:27px;margin:auto">＋</div>
         <small>Add Story</small>
       </div>
       <div id="homeStories" style="display:flex;align-items:center;font-size:13px;opacity:.7">Stories coming soon ❤️</div>
@@ -279,46 +279,60 @@ I agree to the JABZY Privacy Notice. I understand that authorized admins may rev
   </div>
 
   <!-- CREATE POST -->
-  <div class="card" style="padding:16px;margin-bottom:15px">
-    <h3 style="margin:0 0 12px">💬 Create a Post</h3>
-    <textarea id="homePostText" placeholder="What's on your mind? Share with everyone..." style="width:100%;min-height:85px;box-sizing:border-box;border-radius:13px;padding:12px"></textarea>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-      <span style="font-size:13px">📷 Photo</span>
-      <button type="button" onclick="appStatus('Create Post feature next step mein connect hoga ❤️')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:20px;padding:9px 18px">＋ Create Post</button>
+  <div class="card" style="padding:16px;margin-bottom:16px;border:1px solid #754b91">
+    <h3 style="margin:0 0 13px">💬 What's on your mind? 💕</h3>
+    <textarea id="homePostText" placeholder="Share something with everyone..." style="width:100%;min-height:90px;box-sizing:border-box;border-radius:14px;padding:13px;background:#17152b;color:white;border:1px solid #51416d"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <span style="font-size:14px">📷 Photo</span>
+      <button type="button" onclick="appStatus('Create Post feature next step mein connect hoga ❤️')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:22px;padding:10px 20px">＋ Create Post</button>
     </div>
   </div>
 
   <!-- FIND PEOPLE -->
-  <div class="card" style="padding:16px;margin-bottom:15px;background:linear-gradient(120deg,#292344,#49305e)">
-    <h3 style="margin:0 0 7px">🔍 Find People on JABZY</h3>
-    <p style="font-size:13px;margin:0 0 12px;opacity:.85">Discover new people and make friends ❤️</p>
-    <button type="button" onclick="showTab('discover')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:20px;padding:10px 18px">Discover People →</button>
+  <div class="card" style="padding:17px;margin-bottom:16px;background:linear-gradient(120deg,#292344,#49305e);border:1px solid #8756b3">
+    <h3 style="margin:0 0 8px">🔍 Find People</h3>
+    <p style="font-size:13px;margin:0 0 14px">Meet new people and make friends on JABZY ❤️</p>
+    <button type="button" onclick="showTab('discover')" style="background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:22px;padding:10px 18px">Discover People →</button>
+  </div>
+
+  <!-- MY GROUPS -->
+  <div class="card" style="padding:16px;margin-bottom:16px;border:1px solid #754b91">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">👥 My Groups</h3>
+      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="background:none;color:#ff75bd">See All →</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:11px;background:#211d39;border-radius:13px;margin-bottom:10px">
+      <div style="font-size:27px">🎮</div>
+      <div style="flex:1">
+        <strong>Gaming Zone</strong>
+        <div style="font-size:12px;opacity:.7">Gaming Community</div>
+      </div>
+      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="border-radius:18px">Join</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:11px;background:#211d39;border-radius:13px">
+      <div style="font-size:27px">❤️</div>
+      <div style="flex:1">
+        <strong>Friends Forever</strong>
+        <div style="font-size:12px;opacity:.7">Friends Community</div>
+      </div>
+      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="border-radius:18px">Join</button>
+    </div>
+
+    <button type="button" onclick="appStatus('Create Group feature coming soon ❤️')" style="width:100%;margin-top:13px;background:linear-gradient(90deg,#ff4fa3,#925cff);border-radius:22px;padding:10px">＋ Create Group</button>
   </div>
 
   <!-- HOME FEED -->
-  <div style="margin-bottom:15px">
+  <div style="margin-bottom:16px">
     <h3 style="margin:0 0 12px">📰 Your Home Feed</h3>
-    <div id="homeFeed" class="card" style="padding:16px">
+    <div id="homeFeed" class="card" style="padding:18px;border:1px solid #754b91">
       <p style="text-align:center;opacity:.7">No posts yet ❤️</p>
       <p style="text-align:center;font-size:13px">Be the first to share something with your friends!</p>
     </div>
   </div>
 
-  <!-- GROUPS -->
-  <div class="card" style="padding:16px;margin-bottom:15px;background:linear-gradient(120deg,#252c50,#40305f)">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 style="margin:0">👥 My Groups</h3>
-      <span style="font-size:12px;opacity:.7">Community</span>
-    </div>
-    <p style="font-size:13px;opacity:.8">Find your people. Chat, share and enjoy together!</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button type="button" onclick="appStatus('Explore Groups feature coming soon ❤️')">Explore Groups</button>
-      <button type="button" onclick="appStatus('Create Group feature coming soon ❤️')">＋ Create Group</button>
-    </div>
-  </div>
-
 </div>
-  
   
 
 <div id="discoverScreen" class="app-screen" style="display:block">
