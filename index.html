@@ -2023,6 +2023,69 @@ btn.onclick=()=>chooseUser(p.id,p.username||"User");
 box.appendChild(btn);
 });
 }
+
+async function loadMessageRequests(){
+const box=document.getElementById("messageRequestsList");
+if(!me||!box)return;
+
+const {data:requests,error}=await db.from("message_requests")
+.select("id,sender_id,message,created_at")
+.eq("receiver_id",me.id)
+.eq("status","pending")
+.order("created_at",{ascending:false});
+
+if(error){box.innerText=error.message;return}
+box.innerHTML="";
+
+if(!requests||!requests.length){
+box.innerText="No message requests ❤️";
+return;
+}
+
+for(const r of requests){
+const {data:p}=await db.from("profiles")
+.select("username").eq("id",r.sender_id).maybeSingle();
+
+const item=document.createElement("div");
+item.style.padding="12px";
+item.style.margin="8px 0";
+item.style.background="#292940";
+item.style.borderRadius="12px";
+
+const name=document.createElement("b");
+name.textContent=p?.username||"User";
+
+const msg=document.createElement("p");
+msg.textContent=r.message;
+
+const accept=document.createElement("button");
+accept.textContent="Accept ❤️";
+accept.onclick=()=>respondMessageRequest(r.id,"accepted",r.sender_id,p?.username||"User");
+
+const reject=document.createElement("button");
+reject.textContent="Reject";
+reject.onclick=()=>respondMessageRequest(r.id,"rejected");
+
+item.append(name,msg,accept,reject);
+box.appendChild(item);
+}
+}
+
+async function respondMessageRequest(id,status,userId,name){
+const {error}=await db.from("message_requests")
+.update({status})
+.eq("id",id)
+.eq("receiver_id",me.id);
+
+if(error){appStatus(error.message);return}
+
+await loadMessageRequests();
+appStatus(status==="accepted"?"Request accepted ❤️":"Request rejected");
+
+if(status==="accepted"){
+await chooseUser(userId,name);
+}
+   }
   
 async function loadBlockedUsers(){
 const box=document.getElementById("blockedUsers");
