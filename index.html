@@ -1257,13 +1257,11 @@ async function respondFriendRequest(requestId,status){
   });
   }
   
+
 async function openPublicProfile(userId){
 
-  const {data:p,error}=await db
-    .from("profiles")
-    .select("*")
-    .eq("id",userId)
-    .maybeSingle();
+  const {data:p,error}=await db.from("profiles")
+    .select("*").eq("id",userId).maybeSingle();
 
   if(error || !p){
     appStatus(error?.message || "Profile nahi mili");
@@ -1271,7 +1269,6 @@ async function openPublicProfile(userId){
   }
 
   showTab("profile");
-
   document.getElementById("profileView").style.display="none";
   document.getElementById("profileEdit").style.display="none";
   document.getElementById("publicProfileView").style.display="block";
@@ -1290,20 +1287,22 @@ async function openPublicProfile(userId){
   document.getElementById("publicBio").innerText=p.bio||"";
 
   const [followers,following]=await Promise.all([
-  db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
-  db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
-]);
-  
+    db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
+    db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
+  ]);
+
   document.getElementById("publicFollowers").innerText=followers.count||0;
   document.getElementById("publicFollowing").innerText=following.count||0;
 
   const followBtn=document.getElementById("publicFollowBtn");
-  
-  const blockBtn=document.getElementById("publicBlockBtn");
-const reportBtn=document.getElementById("publicReportBtn");
+  const friendBtn=document.getElementById("publicFriendBtn");
+  const messageBtn=document.getElementById("publicMessageBtn");
 
-blockBtn.onclick=()=>blockUser(userId,p.username||"User");
-reportBtn.onclick=()=>reportUser(userId,p.username||"User");
+  document.getElementById("publicBlockBtn").onclick=
+    ()=>blockUser(userId,p.username||"User");
+
+  document.getElementById("publicReportBtn").onclick=
+    ()=>reportUser(userId,p.username||"User");
 
   const {data:f}=await db.from("follows")
     .select("id")
@@ -1312,11 +1311,69 @@ reportBtn.onclick=()=>reportUser(userId,p.username||"User");
     .maybeSingle();
 
   followBtn.textContent=f?"✓ Following":"➕ Follow";
-
   followBtn.onclick=()=>toggleFollow(userId,followBtn);
+
+  const {data:requests,error:requestError}=await db
+    .from("friend_requests")
+    .select("id,status,sender_id,receiver_id")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${me.id})`);
+
+  if(requestError){
+    appStatus(requestError.message);
+    return;
   }
-  
-  
+
+  const accepted=(requests||[]).find(r=>r.status==="accepted");
+  const incoming=(requests||[]).find(r=>r.status==="pending" && r.receiver_id===me.id);
+  const outgoing=(requests||[]).find(r=>r.status==="pending" && r.sender_id===me.id);
+
+  if(accepted) friendBtn.textContent="Unfriend";
+  else if(incoming) friendBtn.textContent="✓ Accept Request";
+  else if(outgoing) friendBtn.textContent="Request Sent";
+  else friendBtn.textContent="👥 Add Friend";
+
+  friendBtn.disabled=!!outgoing;
+
+  friendBtn.onclick=async()=>{
+    if(accepted){
+      const {error}=await db.from("friend_requests")
+        .delete().eq("id",accepted.id).eq("status","accepted");
+
+      if(error){appStatus(error.message);return;}
+      appStatus("Friend removed.");
+    }
+    else if(incoming){
+      const {error}=await db.from("friend_requests")
+        .update({status:"accepted"})
+        .eq("id",incoming.id)
+        .eq("receiver_id",me.id)
+        .eq("status","pending");
+
+      if(error){appStatus(error.message);return;}
+      appStatus("Friend request accepted ❤️");
+    }
+    else if(!outgoing){
+      const {error}=await db.from("friend_requests").insert({
+        sender_id:me.id,
+        receiver_id:userId
+      });
+
+      if(error){appStatus(error.message);return;}
+      appStatus("Friend Request sent!");
+    }
+
+    await openPublicProfile(userId);
+  };
+
+  messageBtn.onclick=()=>{
+    if(accepted){
+      chooseUser(userId,p.username||"User");
+    }else{
+      appStatus("Message Request feature abhi connect karna baaki hai.");
+    }
+  };
+  }
+    
 async function uploadPhoto(){
 const file=document.getElementById("photoFile").files[0];
 if(!file){appStatus("Pehle photo choose karein.");return}
