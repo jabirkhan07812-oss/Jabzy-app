@@ -707,7 +707,7 @@ report_banned:"🚫 Aapki report par action liya gaya hai. Account ban kar diya 
 report_warned:"⚠️ Aapki report par action liya gaya hai. User ko warning di gayi hai."
     };
 
-    item.textContent=(names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification");
+    item.textContent=n.message || ((names[n.actor_id]||"Someone")+" "+(messages[n.type]||"sent a notification"));
 
 if(["like","match","follow","message"].includes(n.type)){
   item.style.cursor="pointer";
