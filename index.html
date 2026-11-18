@@ -539,9 +539,9 @@ box-sizing:border-box;
     <img id="chatProfilePhoto" class="photo hidden" alt="Profile photo" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
 
     <div style="flex:1;min-width:0;">
-      <div id="chatTitle" style="font-weight:bold;font-size:15px;">Chat</div>
-      <div id="chatProfileInfo" style="font-size:11px;color:#c9b6d8;">JABZY Chat</div>
-      <div id="typingStatus" style="font-size:11px;color:#ff75c4;"></div>
+  <div id="chatTitle" style="font-weight:bold;font-size:15px;overflow-wrap:anywhere;">Chat</div>
+  <div id="chatProfileInfo" style="font-size:11px;color:#c9b6d8;"></div>
+  <div id="typingStatus" style="font-size:11px;color:#ff75c4;"></div>
     </div>
 
     <button onclick="chatComingSoon('Voice Call')" style="background:transparent;color:white;border:0;font-size:20px;padding:5px;">📞</button>
@@ -2331,7 +2331,7 @@ document.getElementById("chatList").style.display="none";
 document.getElementById("chatWindow").style.display="block";
 const nav=document.querySelector(".bottom-nav");
 if(nav) nav.style.display="none";
-document.getElementById("chatTitle").innerText="Chat with "+name;
+document.getElementById("chatTitle").innerText=name;
 
 const photo=document.getElementById("chatProfilePhoto");
 const info=document.getElementById("chatProfileInfo");
@@ -2348,9 +2348,8 @@ const {data:profile,error:profileError}=await db
 if(profileError){
 appStatus(profileError.message);
 }else if(profile){
-info.textContent=(profile.username||name)+
-" • "+(profile.age||"")+" years • "+
-(profile.bio||"");
+document.getElementById("chatTitle").innerText=profile.username||name;
+info.textContent=profile.age ? profile.age+" years" : "";
 
 if(profile.photo_url){
 photo.src=profile.photo_url;
