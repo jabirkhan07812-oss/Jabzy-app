@@ -600,66 +600,7 @@ box-sizing:border-box;
       </style>
   
 
-<div id="chatWindow" style="display:none">
-<button onclick="backToChatList()">← Back to Chats</button>
 
-<h3 id="chatTitle">Chat</h3>
-<img id="chatProfilePhoto" class="photo hidden" alt="Profile photo">
-<p id="chatProfileInfo"></p>
-<div id="messages"></div>
-<p id="typingStatus"></p>
-  
-<div id="chatComposer" style="
-display:flex;
-align-items:center;
-gap:8px;
-position:sticky;
-bottom:0;
-background:white;
-border:2px solid #ddd;
-border-radius:35px;
-padding:8px 12px;
-margin:12px 0;
-">
-
-<input id="chatPhotoFile" type="file"
-accept="image/jpeg,image/png,image/webp"
-onchange="appStatus(this.files.length ? 'Photo selected: '+this.files[0].name : 'No photo selected')"
-style="display:none">
-
-<label for="chatPhotoFile" style="
-font-size:25px;
-cursor:pointer;
-">📷</label>
-
-<input id="message"
-placeholder="Write a message"
-oninput="updateTypingStatus()"
-style="
-flex:1;
-min-width:0;
-border:none;
-outline:none;
-background:transparent;
-color:#222;
-margin:0;
-">
-
-<button type="button"
-onclick="sendMessage()"
-style="
-width:42px;
-height:42px;
-padding:0;
-margin:0;
-border-radius:50%;
-">➤</button>
-
-</div>
-
-<p id="appStatus"></p>
-
-</div>
 </div>
 
   
