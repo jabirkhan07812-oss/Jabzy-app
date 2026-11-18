@@ -2373,7 +2373,202 @@ document.getElementById("typingStatus").innerText=
 typing?"✍️ Typing...":"";
 }
   
+async function toggleChatReaction(messageId,emoji){
+  try{
+    const {data:existing,error:findError}=await db
+      .from("chat_message_reactions")
+      .select("emoji")
+      .eq("message_id",messageId)
+      .eq("user_id",me.id)
+      .maybeSingle();
 
+    if(findError){
+      appStatus(findError.message);
+      return;
+    }
+
+    if(existing && existing.emoji===emoji){
+      const {error}=await db
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id",messageId)
+        .eq("user_id",me.id);
+
+      if(error) throw error;
+    }else{
+      const {error}=await db
+        .from("chat_message_reactions")
+        .upsert({
+          message_id:messageId,
+          user_id:me.id,
+          emoji
+        },{
+          onConflict:"message_id,user_id"
+        });
+
+      if(error) throw error;
+    }
+
+    await loadMessages();
+
+  }catch(e){
+    appStatus("Reaction error: "+e.message);
+  }
+}
+
+  
+async function forwardChatMessage(message){
+
+  let blocked;
+  try{
+    blocked=await getBlockedIds();
+  }catch(e){
+    appStatus(e.message);
+    return;
+  }
+
+  const {data:sent,error}=await db.from("likes")
+    .select("to_user")
+    .eq("from_user",me.id);
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  const ids=(sent||[]).map(x=>x.to_user);
+
+  if(!ids.length){
+    appStatus("Abhi koi connection nahi hai.");
+    return;
+  }
+
+  const {data:received,error:matchError}=await db.from("likes")
+    .select("from_user")
+    .in("from_user",ids)
+    .eq("to_user",me.id);
+
+  if(matchError){
+    appStatus(matchError.message);
+    return;
+  }
+
+  const matchIds=(received||[])
+    .map(x=>x.from_user)
+    .filter(id=>!blocked.has(id));
+
+  if(!matchIds.length){
+    appStatus("Koi available connection nahi hai.");
+    return;
+  }
+
+  const {data:profiles,error:profileError}=await db.from("profiles")
+    .select("id,username")
+    .in("id",matchIds);
+
+  if(profileError){
+    appStatus(profileError.message);
+    return;
+  }
+
+  const modal=document.createElement("div");
+  modal.style.cssText="position:fixed;inset:0;background:#000b;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+
+  const panel=document.createElement("div");
+  panel.style.cssText="background:#29213a;border:1px solid #69427f;border-radius:16px;padding:18px;width:100%;max-width:360px;color:white;";
+
+  const heading=document.createElement("h3");
+  heading.textContent="Forward message";
+  panel.appendChild(heading);
+
+  const select=document.createElement("select");
+  select.style.cssText="width:100%;padding:12px;background:#171124;color:white;border:1px solid #69427f;border-radius:9px;margin:10px 0;";
+
+  const placeholder=document.createElement("option");
+  placeholder.value="";
+  placeholder.textContent="Select connection";
+  select.appendChild(placeholder);
+
+  (profiles||[]).forEach(p=>{
+    const option=document.createElement("option");
+    option.value=p.id;
+    option.textContent=p.username||"User";
+    select.appendChild(option);
+  });
+
+  panel.appendChild(select);
+
+  const send=document.createElement("button");
+  send.textContent="Forward";
+  send.style.cssText="padding:10px 18px;background:#a64bd4;color:white;border:0;border-radius:9px;margin-right:8px;";
+
+  const cancel=document.createElement("button");
+  cancel.textContent="Cancel";
+  cancel.style.cssText="padding:10px 18px;background:#493257;color:white;border:0;border-radius:9px;";
+
+  send.onclick=async()=>{
+    const recipient=select.value;
+
+    if(!recipient){
+      appStatus("Connection select karein.");
+      return;
+    }
+
+    send.disabled=true;
+    send.textContent="Sending...";
+
+    try{
+      let forwardedMessage=message;
+
+      if(message.startsWith("PHOTO:")){
+        const sourcePath=message.slice(6);
+
+        const {data:photo,error:downloadError}=await db.storage
+          .from("chat-photos")
+          .download(sourcePath);
+
+        if(downloadError) throw downloadError;
+
+        const ext=sourcePath.split(".").pop();
+        const newPath=me.id+"/"+recipient+"/"+Date.now()+"."+ext;
+
+        const {error:uploadError}=await db.storage
+          .from("chat-photos")
+          .upload(newPath,photo,{
+            contentType:photo.type||"image/"+ext
+          });
+
+        if(uploadError) throw uploadError;
+
+        forwardedMessage="PHOTO:"+newPath;
+      }
+
+      const {error:insertError}=await db.from("messages").insert({
+        sender_id:me.id,
+        receiver_id:recipient,
+        message:forwardedMessage,
+        reply_to:null
+      });
+
+      if(insertError) throw insertError;
+
+      modal.remove();
+      appStatus("Message forward ho gaya! ✅");
+
+    }catch(e){
+      send.disabled=false;
+      send.textContent="Forward";
+      appStatus("Forward error: "+e.message);
+    }
+  };
+
+  cancel.onclick=()=>modal.remove();
+
+  panel.append(send,cancel);
+  modal.appendChild(panel);
+  document.body.appendChild(modal);
+  }
+                  
 
 async function loadMessages(){
 if(!selected)return;
@@ -2398,6 +2593,23 @@ if(error){box.innerText=error.message;return}
 const messageMap=new Map(
   (data||[]).map(x=>[String(x.id),x])
 );
+
+const messageIds=(data||[]).map(x=>x.id);
+let allReactions=[];
+
+if(messageIds.length){
+  const {data:reactionData,error:reactionError}=await db
+    .from("chat_message_reactions")
+    .select("*")
+    .in("message_id",messageIds);
+
+  if(reactionError){
+    appStatus(reactionError.message);
+    return;
+  }
+
+  allReactions=reactionData||[];
+                                                    }
 
 for(const m of (data||[])){
 const own=m.sender_id===me.id;
@@ -2474,58 +2686,271 @@ p.textContent+=m.message;
 row.appendChild(p);
 }
 
+  const messageReactions=allReactions.filter(
+  r=>String(r.message_id)===String(m.id)
+);
+
+if(messageReactions.length){
+  const reactionBar=document.createElement("div");
+  reactionBar.style.display="flex";
+  reactionBar.style.gap="5px";
+  reactionBar.style.marginTop="6px";
+  reactionBar.style.flexWrap="wrap";
+
+  const grouped={};
+
+  messageReactions.forEach(r=>{
+    if(!grouped[r.emoji]){
+      grouped[r.emoji]={
+        count:0,
+        mine:false
+      };
+    }
+
+    grouped[r.emoji].count++;
+
+    if(r.user_id===me.id){
+      grouped[r.emoji].mine=true;
+    }
+  });
+
+  Object.entries(grouped).forEach(([emoji,item])=>{
+    const pill=document.createElement("span");
+    pill.textContent=emoji+" "+item.count;
+    pill.style.background=item.mine?"#ff75c455":"#ffffff22";
+    pill.style.borderRadius="12px";
+    pill.style.padding="3px 7px";
+    pill.style.fontSize="13px";
+    reactionBar.appendChild(pill);
+  });
+
+  row.appendChild(reactionBar);
+  }
+
+const actionMenu=document.createElement("div");
+actionMenu.style.display="none";
+actionMenu.style.position="absolute";
+actionMenu.style.left="0";
+actionMenu.style.top="100%";
+actionMenu.style.zIndex="50";
+actionMenu.style.background="#30213e";
+actionMenu.style.border="1px solid #69427f";
+actionMenu.style.borderRadius="12px";
+actionMenu.style.padding="8px";
+actionMenu.style.minWidth="190px";
+actionMenu.style.boxShadow="0 5px 20px #0008";
+
+const emojiBar=document.createElement("div");
+emojiBar.style.display="flex";
+emojiBar.style.justifyContent="space-around";
+emojiBar.style.gap="5px";
+emojiBar.style.marginBottom="7px";
+
+["❤️","😂","😮","😢","👍","🔥"].forEach(emoji=>{
+  const b=document.createElement("button");
+  b.type="button";
+  b.textContent=emoji;
+  b.style.background="transparent";
+  b.style.border="none";
+  b.style.fontSize="20px";
+  b.style.padding="4px";
+
+  b.onclick=()=>{
+    toggleChatReaction(m.id,emoji);
+    actionMenu.style.display="none";
+  };
+
+  emojiBar.appendChild(b);
+});
+
+actionMenu.appendChild(emojiBar);
+
+function addChatAction(label,callback){
+  const b=document.createElement("button");
+  b.type="button";
+  b.textContent=label;
+  b.style.display="block";
+  b.style.width="100%";
+  b.style.padding="9px";
+  b.style.textAlign="left";
+  b.style.color="white";
+  b.style.background="transparent";
+  b.style.border="none";
+  b.style.borderTop="1px solid #493257";
+  b.onclick=callback;
+  actionMenu.appendChild(b);
+}
+
+addChatAction("↩️ Reply",()=>{
+  startChatReply(m.id,m.message);
+  actionMenu.style.display="none";
+});
+
+addChatAction("📋 Copy",async()=>{
+  const textToCopy=m.message.startsWith("PHOTO:")
+    ? "Photo"
+    : m.message;
+
+  try{
+    await navigator.clipboard.writeText(textToCopy);
+    appStatus("Copied");
+  }catch(e){
+    appStatus("Copy nahi ho paya");
+  }
+
+  actionMenu.style.display="none";
+});
+
+  addChatAction("⭐ Star Message",()=>{
+  toggleChatStar(m.id);
+  actionMenu.style.display="none";
+});
+
+addChatAction("📌 Pin Message",()=>{
+  toggleChatPin(m.id);
+  actionMenu.style.display="none";
+});
+  
+  addChatAction("↗️ Forward",()=>{
+  actionMenu.style.display="none";
+  forwardChatMessage(m.message);
+});
+
 if(own){
-const btn=document.createElement("button");
-btn.type="button";
-btn.textContent="Unsend";
-btn.style.display="none";
+  addChatAction("↩ Unsend",()=>{
+    actionMenu.style.display="none";
+    unsendMessage(m.id,m.message);
+  });
+}
 
-btn.onclick=()=>unsendMessage(m.id,m.message);
-
-row.appendChild(btn);
+row.appendChild(actionMenu);
 
 let timer;
 
 row.addEventListener("touchstart",()=>{
-timer=setTimeout(()=>{
-btn.style.display="inline-block";
-},600);
+  timer=setTimeout(()=>{
+    actionMenu.style.display="block";
+  },600);
 });
 
 row.addEventListener("touchend",()=>{
-clearTimeout(timer);
+  clearTimeout(timer);
 });
 
 row.addEventListener("touchmove",()=>{
-clearTimeout(timer);
+  clearTimeout(timer);
 });
 
-row.addEventListener("contextmenu",(e)=>{
-e.preventDefault();
-btn.style.display="inline-block";
+row.addEventListener("contextmenu",e=>{
+  e.preventDefault();
+  actionMenu.style.display="block";
 });
-}
 
 box.appendChild(row);
-}
+      }
+
+async function toggleChatStar(messageId){
+  const {data:existing,error:findError}=await db
+    .from("chat_message_stars")
+    .select("id")
+    .eq("message_id",messageId)
+    .eq("user_id",me.id)
+    .maybeSingle();
+
+  if(findError){
+    appStatus(findError.message);
+    return;
   }
-                
 
+  if(existing){
+    const {error}=await db
+      .from("chat_message_stars")
+      .delete()
+      .eq("message_id",messageId)
+      .eq("user_id",me.id);
+
+    if(error){
+      appStatus(error.message);
+      return;
+    }
+
+    appStatus("Star removed");
+  }else{
+    const {error}=await db
+      .from("chat_message_stars")
+      .insert({
+        message_id:messageId,
+        user_id:me.id
+      });
+
+    if(error){
+      appStatus(error.message);
+      return;
+    }
+
+    appStatus("Message starred ⭐");
+  }
+}
+
+async function toggleChatPin(messageId){
+  const {data:existing,error:findError}=await db
+    .from("chat_message_pins")
+    .select("message_id")
+    .eq("message_id",messageId)
+    .maybeSingle();
+
+  if(findError){
+    appStatus(findError.message);
+    return;
+  }
+
+  if(existing){
+    const {error}=await db
+      .from("chat_message_pins")
+      .delete()
+      .eq("message_id",messageId);
+
+    if(error){
+      appStatus(error.message);
+      return;
+    }
+
+    appStatus("Pin removed");
+  }else{
+    const {error}=await db
+      .from("chat_message_pins")
+      .insert({
+        message_id:messageId,
+        pinned_by:me.id
+      });
+
+    if(error){
+      appStatus(error.message);
+      return;
+    }
+
+    appStatus("Message pinned 📌");
+  }
+
+  await loadMessages();
+  }
+  
 async function unsendMessage(id,message){
-if(!confirm("Is message ko sabke liye Unsend karein?"))return;
 
-if(message.startsWith("PHOTO:")){
-const path=message.slice(6);
-const {error:photoError}=await db.storage
-.from("chat-photos")
-.remove([path]);
+  if(!confirm("Is message ko sabke liye Unsend karein?"))return;
 
-if(photoError){
-appStatus(photoError.message);
-return;
-}
-}
+  if(message.startsWith("PHOTO:")){
+    const path=message.slice(6);
 
+    const {error:photoError}=await db.storage
+      .from("chat-photos")
+      .remove([path]);
+
+    if(photoError){
+      appStatus(photoError.message);
+      return;
+    }
+  }
 const {error}=await db.from("messages")
 .delete()
 .eq("id",id)
