@@ -2734,9 +2734,7 @@ if(messageReactions.length){
 
 const actionMenu=document.createElement("div");
 actionMenu.style.display="none";
-actionMenu.style.position="absolute";
-actionMenu.style.left="0";
-actionMenu.style.top="100%";
+
 actionMenu.style.zIndex="50";
 actionMenu.style.background="#30213e";
 actionMenu.style.border="1px solid #69427f";
@@ -2744,7 +2742,12 @@ actionMenu.style.borderRadius="12px";
 actionMenu.style.padding="8px";
 actionMenu.style.minWidth="190px";
 actionMenu.style.boxShadow="0 5px 20px #0008";
-
+actionMenu.style.position="fixed";
+actionMenu.style.left="8px";
+actionMenu.style.top="8px";
+actionMenu.style.maxWidth="calc(100vw - 16px)";
+actionMenu.style.maxHeight="calc(100vh - 16px)";
+actionMenu.style.overflowY="auto";
 const emojiBar=document.createElement("div");
 emojiBar.style.display="flex";
 emojiBar.style.justifyContent="space-around";
@@ -2828,13 +2831,36 @@ if(own){
   });
 }
 
-row.appendChild(actionMenu);
+document.body.appendChild(actionMenu);
+
+function showChatActionMenu(){
+  actionMenu.style.display="block";
+
+  const rect=row.getBoundingClientRect();
+  const menu=actionMenu.getBoundingClientRect();
+  const margin=8;
+
+  let left=rect.left+(rect.width-menu.width)/2;
+  left=Math.max(margin,Math.min(left,window.innerWidth-menu.width-margin));
+
+  let top=rect.top-menu.height-8;
+
+  if(top<margin){
+    top=rect.bottom+8;
+  }
+
+  top=Math.min(top,window.innerHeight-menu.height-margin);
+  top=Math.max(margin,top);
+
+  actionMenu.style.left=left+"px";
+  actionMenu.style.top=top+"px";
+  }
 
 let timer;
 
 row.addEventListener("touchstart",()=>{
   timer=setTimeout(()=>{
-    actionMenu.style.display="block";
+    showChatActionMenu();
   },600);
 });
 
@@ -2848,7 +2874,7 @@ row.addEventListener("touchmove",()=>{
 
 row.addEventListener("contextmenu",e=>{
   e.preventDefault();
-  actionMenu.style.display="block";
+  showChatActionMenu();
 });
 
 box.appendChild(row);
