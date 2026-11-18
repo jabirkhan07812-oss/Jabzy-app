@@ -2697,6 +2697,34 @@ if(r.status!=="resolved"){
   };
 
   card.appendChild(warnBtn);
+
+    const banBtn=document.createElement("button");
+  banBtn.textContent="🚫 Ban User";
+
+  banBtn.onclick=async()=>{
+
+    const banReason=prompt("Ban reason:");
+    if(!banReason || !banReason.trim())return;
+
+    banBtn.disabled=true;
+
+    const {error}=await db.rpc("admin_ban_report",{
+      p_report_id:r.id,
+      p_reason:banReason.trim()
+    });
+
+    if(error){
+      alert(error.message);
+      banBtn.disabled=false;
+      return;
+    }
+
+    alert("User Banned!");
+    await loadAdminReports();
+  };
+
+  card.appendChild(banBtn);
+  
   }
 
 card.append(
