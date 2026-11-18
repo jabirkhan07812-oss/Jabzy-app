@@ -2395,6 +2395,10 @@ const box=document.getElementById("messages");
 box.innerHTML="";
 if(error){box.innerText=error.message;return}
 
+const messageMap=new Map(
+  (data||[]).map(x=>[String(x.id),x])
+);
+
 for(const m of (data||[])){
 const own=m.sender_id===me.id;
 
@@ -2415,6 +2419,27 @@ row.style.userSelect="none";
 row.style.webkitUserSelect="none";
 row.style.webkitTouchCallout="none";
 row.style.touchAction="pan-y";
+
+if(m.reply_to){
+  const original=messageMap.get(String(m.reply_to));
+
+  if(original){
+    const quote=document.createElement("div");
+    quote.style.background="#00000030";
+    quote.style.borderLeft="3px solid #ff75c4";
+    quote.style.padding="6px 8px";
+    quote.style.marginBottom="7px";
+    quote.style.borderRadius="5px";
+    quote.style.fontSize="12px";
+    quote.style.overflowWrap="anywhere";
+
+    quote.textContent=original.message.startsWith("PHOTO:")
+      ? "📷 Photo"
+      : original.message;
+
+    row.appendChild(quote);
+  }
+}
 
 const p=document.createElement("p");
 p.style.margin="0";
