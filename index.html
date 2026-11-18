@@ -2669,6 +2669,35 @@ reason.textContent="Reason: "+(r.reason||"Not specified");
 const date=document.createElement("p");
 date.textContent="Date: "+
 new Date(r.created_at).toLocaleString();
+if(r.status!=="resolved"){
+
+  const warnBtn=document.createElement("button");
+  warnBtn.textContent="⚠️ Give Warning";
+
+  warnBtn.onclick=async()=>{
+
+    const warningReason=prompt("Warning ka reason likhein:");
+    if(!warningReason || !warningReason.trim())return;
+
+    warnBtn.disabled=true;
+
+    const {error}=await db.rpc("admin_warn_report",{
+      p_report_id:r.id,
+      p_reason:warningReason.trim()
+    });
+
+    if(error){
+      alert(error.message);
+      warnBtn.disabled=false;
+      return;
+    }
+
+    alert("Warning successfully sent!");
+    await loadAdminReports();
+  };
+
+  card.appendChild(warnBtn);
+  }
 
 card.append(
 reporter,
