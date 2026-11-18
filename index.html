@@ -3506,7 +3506,13 @@ document.getElementById("app").classList.add("hidden");
 db.auth.getSession().then(({data})=>{
 if(data.session){
 me=data.session.user;
-startApp();
+startApp().catch(error=>{
+  console.error("StartApp Error:",error);
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("status").innerText="App Error: "+error.message;
+});
+  
 }else{
 document.getElementById("login").classList.remove("hidden");
 document.getElementById("app").classList.add("hidden");
