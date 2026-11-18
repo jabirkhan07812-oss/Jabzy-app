@@ -493,36 +493,35 @@ box-sizing:border-box;
 <div id="likesReceived">Loading likes...</div>
 </div>
 
-  <div id="friendsScreen" class="app-screen" style="display:none">
+<div id="friendsScreen" class="app-screen" style="display:none">
 
-  <h2>👥 My Friends</h2>
+  <h2 style="font-size:21px;margin-bottom:5px;">👥 Friends</h2>
+  <p style="font-size:12px;color:#aaa;margin:0 0 16px;">Discover new people on JABZY ❤️</p>
 
-  <div class="card">
-    <h3>✨ My Circle</h3>
-    <p>Your people, your community ❤️</p>
+  <div style="display:flex;gap:7px;margin-bottom:18px;">
+    <button id="friendsRequestsTab" onclick="showFriendsSection('requests')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:11px;font-weight:800;">
+      Requests
+    </button>
+
+    <button id="friendsListTab" onclick="showFriendsSection('friends')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:#342044;color:white;font-size:11px;font-weight:800;">
+      Friends
+    </button>
+
+    <button id="findFriendsTab" onclick="showFriendsSection('discover')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:#342044;color:white;font-size:11px;font-weight:800;">
+      Find Friends
+    </button>
+  </div>
+
+  <div id="friendRequestsPanel">
+    <div id="friendRequestsList">Loading...</div>
+  </div>
+
+  <div id="myFriendsPanel" style="display:none;">
     <div id="myFriendsCount">0 Friends</div>
     <div id="myFriendsList">Loading your friends...</div>
   </div>
 
-  <div class="card">
-    <h3>👥 Friend Requests</h3>
-    <button type="button" onclick="openFriendRequests()">
-      View Friend Requests
-    </button>
-    <div id="friendRequestsPanel" style="display:none">
-      <div id="friendRequestsList">Loading...</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>🔍 Find New Friends</h3>
-    <p>Discover new people on JABZY ❤️</p>
-    <button type="button" onclick="showTab('discover')">
-      Add Friends
-    </button>
-  </div>
-
-  </div>
+</div>
   
 <div id="matchesScreen" class="app-screen" style="display:none">
 
@@ -1287,7 +1286,30 @@ async function respondFriendRequest(requestId,status){
     box.appendChild(row);
   });
   }
-  
+
+  function showFriendsSection(section){
+  const requests=document.getElementById("friendRequestsPanel");
+  const friends=document.getElementById("myFriendsPanel");
+
+  const tabs={
+    requests:document.getElementById("friendsRequestsTab"),
+    friends:document.getElementById("friendsListTab"),
+    discover:document.getElementById("findFriendsTab")
+  };
+
+  requests.style.display=section==="requests"?"block":"none";
+  friends.style.display=section==="friends"?"block":"none";
+
+  Object.keys(tabs).forEach(key=>{
+    tabs[key].style.background=key===section
+      ?"linear-gradient(90deg,#ff55a8,#a45bea)"
+      :"#342044";
+  });
+
+  if(section==="requests") loadFriendRequests();
+  if(section==="friends") loadMyFriends();
+  if(section==="discover") showTab("discover");
+  }
 
 async function openPublicProfile(userId){
 
@@ -3064,8 +3086,7 @@ function showTab(tab){
 
   if(tab==="matches") loadMatches();
   if(tab==="friends"){
-  loadMyFriends();
-  loadFriendRequests();
+  showFriendsSection("requests");
   }
 
   if(tab==="profile"){
