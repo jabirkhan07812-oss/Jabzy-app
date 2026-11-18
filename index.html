@@ -637,6 +637,7 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let me=null;
 let selected=null;
+let replyingTo=null;
 let chatChannel=null;
 
 db.auth.onAuthStateChange((event, session)=>{
@@ -2257,6 +2258,29 @@ return;
 appStatus("Report submit ho gayi. Shukriya.");
 }
 
+  function startChatReply(messageId,messageText){
+  replyingTo={
+    id:messageId,
+    text:messageText
+  };
+
+  const preview=document.getElementById("replyPreview");
+  const previewText=document.getElementById("replyPreviewText");
+
+  previewText.textContent=messageText.startsWith("PHOTO:")
+    ? "📷 Photo"
+    : messageText;
+
+  preview.style.display="block";
+  document.getElementById("message").focus();
+}
+
+function cancelChatReply(){
+  replyingTo=null;
+  document.getElementById("replyPreview").style.display="none";
+  document.getElementById("replyPreviewText").textContent="";
+}
+
 function backToChatList(){
 document.getElementById("chatWindow").style.display="none";
 document.getElementById("chatList").style.display="block";
@@ -2595,9 +2619,10 @@ const message=input.value.trim();
 if(!message)return;
 
 const {error}=await db.from("messages").insert({
-sender_id:me.id,
-receiver_id:selected,
-message
+  sender_id:me.id,
+  receiver_id:selected,
+  message,
+  reply_to:replyingTo ? replyingTo.id : null
 });
 
 if(error){
@@ -2606,6 +2631,7 @@ return;
 }
 
 input.value="";
+cancelChatReply();
 await loadMessages();
 
 }catch(e){
