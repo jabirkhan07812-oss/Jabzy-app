@@ -525,47 +525,80 @@ box-sizing:border-box;
   
 <div id="matchesScreen" class="app-screen" style="display:none">
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;padding:0 2px;">
-  <h3 style="margin:0;font-size:17px;">Your Matches 💕</h3>
-  <button type="button" onclick="openNotifications()" class="notification-bell" style="width:auto;padding:6px 10px;margin:0;font-size:14px;">
-    🔔 <span id="notificationCountMatches">0</span>
-  </button>
+<div id="chatWindow" style="display:none;background:#171124;color:white;min-height:80vh;">
+
+  <div style="display:flex;align-items:center;gap:10px;padding:12px;background:#241832;border-bottom:1px solid #493257;position:sticky;top:0;z-index:10;">
+
+    <button onclick="backToChatList()" style="background:transparent;border:0;color:white;font-size:25px;padding:4px;margin:0;">←</button>
+
+    <img id="chatProfilePhoto" class="photo hidden" alt="Profile photo" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+
+    <div style="flex:1;min-width:0;">
+      <div id="chatTitle" style="font-weight:bold;font-size:15px;">Chat</div>
+      <div id="chatProfileInfo" style="font-size:11px;color:#c9b6d8;">JABZY Chat</div>
+      <div id="typingStatus" style="font-size:11px;color:#ff75c4;"></div>
+    </div>
+
+    <button onclick="chatComingSoon('Voice Call')" style="background:transparent;color:white;border:0;font-size:20px;padding:5px;">📞</button>
+    <button onclick="chatComingSoon('Video Call')" style="background:transparent;color:white;border:0;font-size:20px;padding:5px;">📹</button>
+    <button onclick="showChatMenu()" style="background:transparent;color:white;border:0;font-size:23px;padding:5px;">⋮</button>
+  </div>
+
+  <div id="chatOptionsMenu" style="display:none;position:absolute;right:12px;top:65px;z-index:20;background:#30213e;border:1px solid #69427f;border-radius:12px;width:205px;box-shadow:0 5px 20px #0008;overflow:hidden;">
+    <button onclick="searchInChat()" class="chat-menu-item">🔍 Search in Chat</button>
+    <button onclick="showChatMedia()" class="chat-menu-item">🖼️ Media, Links & Photos</button>
+    <button onclick="muteChat()" class="chat-menu-item">🔕 Mute Notifications</button>
+    <button onclick="chatBlockCurrent()" class="chat-menu-item">🚫 Block User</button>
+    <button onclick="chatReportCurrent()" class="chat-menu-item">🚩 Report User</button>
+    <button onclick="clearChat()" class="chat-menu-item">🗑️ Clear Chat</button>
+  </div>
+
+  <div id="messages" style="padding:12px;min-height:55vh;overflow-y:auto;"></div>
+
+  <div id="chatPhotoPreview" style="display:none;padding:12px;background:#241832;border-radius:14px;margin:8px;">
+    <div id="chatPhotoPreviewImages"></div>
+    <input id="chatPhotoCaption" placeholder="Add a caption..." style="width:100%;margin-top:10px;">
+    <button onclick="cancelChatPhotoPreview()" style="background:#555;">Cancel</button>
+    <button onclick="sendChatPhoto()" style="background:#a45bea;">Send Photos ➤</button>
+  </div>
+
+  <div id="replyPreview" style="display:none;margin:8px 10px 0;padding:10px;background:#30213e;border-left:4px solid #ff55a8;border-radius:9px;color:white;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <b style="color:#ff75c4;font-size:13px;">↩️ Replying to</b>
+      <button type="button" onclick="cancelChatReply()" style="width:28px;height:28px;padding:0;margin:0;background:transparent;color:white;border:0;">✕</button>
+    </div>
+    <div id="replyPreviewText" style="font-size:13px;margin-top:5px;overflow-wrap:anywhere;"></div>
+  </div>
+
+  <div id="chatComposer" style="display:flex;align-items:center;gap:8px;position:sticky;bottom:0;background:#241832;border:1px solid #69427f;border-radius:30px;padding:8px 12px;margin:10px;">
+
+    <input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewChatPhotos(this)" style="display:none;">
+
+    <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
+
+    <input id="message" placeholder="Message..." oninput="updateTypingStatus()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
+
+    <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">➤</button>
+  </div>
+
+  <p id="appStatus" style="padding:5px 12px;"></p>
 </div>
 
-<div id="matches">No matches yet.</div>
-
-</div>
-
-<div id="chatsScreen" class="app-screen" style="display:none">
-
-<div id="chatList">
-
-
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-  <h3 style="margin:0;">Your Chats 💬</h3>
-  <button type="button" onclick="openNotifications()" class="notification-bell" style="width:auto;padding:9px 12px;margin:0;border-radius:14px;background:#281b38;border:1px solid #69427f;color:white;">
-    🔔 <span id="notificationCountChats">0</span>
-  </button>
-</div>
-
-<div style="display:flex;gap:8px;margin-bottom:18px;">
-  <button id="messagesTab" onclick="showChatSection('messages')" style="flex:1;padding:9px 5px;margin:0;border:0;border-radius:20px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:12px;font-weight:800;">
-    💬 Messages
-  </button>
-
-  <button id="messageRequestsTab" onclick="showChatSection('requests')" style="flex:1;padding:9px 5px;margin:0;border:0;border-radius:20px;background:#342044;color:white;font-size:12px;font-weight:800;">
-    💌 Requests
-  </button>
-</div>
-
-<div id="chatListItems">Loading chats...</div>
-
-<div id="messageRequestsSection" style="display:none;">
-  <div id="messageRequestsList">Loading...</div>
-</div>
+<style>
+.chat-menu-item{
+  display:block;
+  width:100%;
+  padding:13px;
+  margin:0;
+  text-align:left;
+  color:white;
+  background:transparent;
+  border:0;
+  border-bottom:1px solid #ffffff18;
+  font-size:13px;
+}
+      </style>
   
-  
-</div>
 
 <div id="chatWindow" style="display:none">
 <button onclick="backToChatList()">← Back to Chats</button>
