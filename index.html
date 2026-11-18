@@ -2616,6 +2616,33 @@ if(messageIds.length){
   allReactions=reactionData||[];
                                                     }
 
+  const {data:starData,error:starError}=await db
+  .from("chat_message_stars")
+  .select("message_id")
+  .eq("user_id",me.id);
+
+if(starError){
+  appStatus(starError.message);
+  return;
+}
+
+const starredIds=new Set(
+  (starData||[]).map(x=>String(x.message_id))
+);
+
+const {data:pinData,error:pinError}=await db
+  .from("chat_message_pins")
+  .select("message_id");
+
+if(pinError){
+  appStatus(pinError.message);
+  return;
+}
+
+const pinnedIds=new Set(
+  (pinData||[]).map(x=>String(x.message_id))
+);
+
 for(const m of (data||[])){
 const own=m.sender_id===me.id;
 
@@ -2690,6 +2717,22 @@ row.appendChild(img);
 p.textContent+=m.message;
 row.appendChild(p);
 }
+
+  if(starredIds.has(String(m.id))){
+  const star=document.createElement("div");
+  star.textContent="⭐ Starred";
+  star.style.fontSize="11px";
+  star.style.marginBottom="5px";
+  row.appendChild(star);
+}
+
+if(pinnedIds.has(String(m.id))){
+  const pin=document.createElement("div");
+  pin.textContent="📌 Pinned";
+  pin.style.fontSize="11px";
+  pin.style.marginBottom="5px";
+  row.appendChild(pin);
+  }
 
   const messageReactions=allReactions.filter(
   r=>String(r.message_id)===String(m.id)
