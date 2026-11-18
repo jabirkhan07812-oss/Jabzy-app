@@ -3568,6 +3568,13 @@ function showTab(tab){
       screen.style.display=name===tab?"block":"none";
     }
   });
+
+    if(tab==="chats"){
+    const chatScreen=document.getElementById("matchesScreen");
+    if(chatScreen) chatScreen.style.display="block";
+    const matches=document.getElementById("matches");
+    if(matches) matches.style.display="none";
+    }
   
   const publicProfile=document.getElementById("publicProfileView");
   if(publicProfile) publicProfile.style.display="none";
