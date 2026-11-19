@@ -1222,9 +1222,11 @@ adminButton.style.display="block";
 adminButton.style.display="none";
 }
 
-const lastTab=localStorage.getItem("jabzyLastTab") || "home";
+document.getElementById("welcomeScreen").style.display="none";
+document.getElementById("login").classList.add("hidden");
+document.getElementById("signup").classList.add("hidden");
 
-showTab(lastTab);
+showTab("home");
 document.getElementById("app").classList.remove("hidden");
 
 Promise.all([
