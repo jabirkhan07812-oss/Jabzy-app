@@ -850,6 +850,17 @@ toast.style.transform="translate(-50%,-12px)";
 },2000);
 }
   
+
+function showAuthScreen(screen){
+  document.getElementById("welcomeScreen").style.display =
+    screen==="welcome" ? "block" : "none";
+
+  document.getElementById("login").classList.toggle("hidden",screen!=="login");
+  document.getElementById("signup").classList.toggle("hidden",screen!=="signup");
+
+  document.getElementById("status").innerText="";
+}
+
 async function signup(){
 
 const accepted=document.getElementById("privacyConsent");
@@ -858,22 +869,20 @@ status("Please accept the Privacy Notice first.");
 return;
 }
 
-const email=document.getElementById("email").value.trim();
-const password=document.getElementById("password").value;
+const email=document.getElementById("signupEmail").value.trim();
+const password=document.getElementById("signupPassword").value;
 const username=document.getElementById("signupName").value.trim();
 const dob=document.getElementById("signupDob").value;
 const bio=document.getElementById("signupBio").value.trim();
 
-if(!username || !dob){
-status("Name aur Date of Birth zaroori hai.");
+if(!email || !username || !dob){
+status("Email, Name aur Date of Birth zaroori hai.");
 return;
 }
 
 const birthDate=new Date(dob+"T00:00:00");
 const today=new Date();
-
 let age=today.getFullYear()-birthDate.getFullYear();
-
 const month=today.getMonth()-birthDate.getMonth();
 
 if(month<0 || (month===0 && today.getDate()<birthDate.getDate())){
@@ -884,8 +893,8 @@ if(birthDate>today || age<18){
 status("JABZY par account banane ke liye 18+ hona zaroori hai.");
 return;
 }
-  
-if(password.length < 6){
+
+if(password.length<6){
 status("Password kam se kam 6 characters ka hona chahiye.");
 return;
 }
@@ -905,13 +914,11 @@ emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
 
 status(error ? error.message : "Account created. Check your email for confirmation.");
 }
-  
-  
 
-  
 async function signin(){
-const email=document.getElementById("email").value;
-const password=document.getElementById("password").value;
+
+const email=document.getElementById("loginEmail").value.trim();
+const password=document.getElementById("loginPassword").value;
 
 try{
 const {data,error}=await db.auth.signInWithPassword({email,password});
@@ -927,11 +934,11 @@ await startApp();
 }catch(error){
 status("Internet connection nahi hai. Please check your internet and try again.");
 }
-}  
-
+}
 
 async function forgotPassword(){
-const email=document.getElementById("email").value;
+
+const email=document.getElementById("loginEmail").value.trim();
 
 if(!email){
 status("Pehle apna email likhiye.");
@@ -948,7 +955,8 @@ return;
 }
 
 status("Password reset link email par bhej diya gaya hai.");
-}
+  }
+  
 async function saveNewPassword(){
 const password=document.getElementById("newPassword").value;
 
