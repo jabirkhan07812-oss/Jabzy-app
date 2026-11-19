@@ -238,28 +238,41 @@ font-size:12px;
   <button onclick="showAuthScreen('welcome')">← Back</button>
 </div>
 
+
 <div class="card hidden" id="signup">
   <h3>Create Your JABZY Account ❤️</h3>
-  <input id="signupEmail" type="email" placeholder="Email">
-  <input id="signupPassword" type="password" placeholder="Password">
-  <input id="signupName" placeholder="Your Name">
-  <input id="signupDob" type="date">
-  <textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
 
-  <p style="font-size:13px;color:#ddd;line-height:1.6;">
-    <strong>JABZY Privacy Notice 🔒</strong><br>
-    Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation.
-  </p>
+  <div id="signupStep1">
+    <h4>Step 1 – Account Details</h4>
+    <input id="signupEmail" type="email" placeholder="Gmail / Email">
+    <input id="signupPassword" type="password" placeholder="Create Password">
+    <button onclick="goSignupStep2()">Next →</button>
+    <button onclick="showAuthScreen('login')">Already have an account? Login</button>
+    <button onclick="showAuthScreen('welcome')">← Back</button>
+  </div>
 
-  <label style="display:flex;align-items:flex-start;gap:8px;font-size:14px;">
-    <input id="privacyConsent" type="checkbox" style="width:auto;margin-top:4px;">
-    <span>I agree to the JABZY Privacy Notice.</span>
-  </label>
+  <div id="signupStep2" class="hidden">
+    <h4>Step 2 – Complete Your Profile</h4>
+    <input id="signupGoogleEmail" type="email" placeholder="Google Email" readonly style="display:none;">
+    <input id="signupName" placeholder="Your Name">
+    <input id="signupDob" type="date">
+    <textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
 
-  <button onclick="signup()">Create Account</button>
-  <button onclick="showAuthScreen('login')">Already have an account? Login</button>
-  <button onclick="showAuthScreen('welcome')">← Back</button>
+    <p style="font-size:13px;color:#ddd;line-height:1.6;">
+      <strong>JABZY Privacy Notice 🔒</strong><br>
+      Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation.
+    </p>
+
+    <label style="display:flex;align-items:flex-start;gap:8px;font-size:14px;">
+      <input id="privacyConsent" type="checkbox" style="width:auto;margin-top:4px;">
+      <span>I agree to the JABZY Privacy Notice.</span>
+    </label>
+
+    <button onclick="createJabzyAccount()">Create Account</button>
+    <button onclick="backSignupStep1()">← Back</button>
+  </div>
 </div>
+  
 
 <p id="status"></p>
   
@@ -852,6 +865,9 @@ toast.style.transform="translate(-50%,-12px)";
 },2000);
 }  
 
+
+let signupProvider = "email";
+
 function showAuthScreen(screen){
   document.getElementById("welcomeScreen").style.display =
     screen==="welcome" ? "block" : "none";
@@ -860,6 +876,38 @@ function showAuthScreen(screen){
   document.getElementById("signup").classList.toggle("hidden",screen!=="signup");
 
   document.getElementById("status").innerText="";
+}
+
+function goSignupStep2(){
+  const email=document.getElementById("signupEmail").value.trim();
+  const password=document.getElementById("signupPassword").value;
+
+  if(!email || !email.includes("@")){
+    status("Valid Gmail / Email enter karo.");
+    return;
+  }
+
+  if(password.length<6){
+    status("Password kam se kam 6 characters ka hona chahiye.");
+    return;
+  }
+
+  signupProvider="email";
+  document.getElementById("signupStep1").classList.add("hidden");
+  document.getElementById("signupStep2").classList.remove("hidden");
+  document.getElementById("signupGoogleEmail").style.display="none";
+  status("");
+}
+
+function backSignupStep1(){
+  if(signupProvider==="google"){
+    showAuthScreen("welcome");
+    return;
+  }
+
+  document.getElementById("signupStep2").classList.add("hidden");
+  document.getElementById("signupStep1").classList.remove("hidden");
+  status("");
 }
 
 async function signinWithGoogle(){
@@ -872,60 +920,76 @@ async function signinWithGoogle(){
 
   if(error) status(error.message);
 }
-  
-async function signup(){
 
-const accepted=document.getElementById("privacyConsent");
-if(!accepted || !accepted.checked){
-status("Please accept the Privacy Notice first.");
-return;
-}
+async function createJabzyAccount(){
+  const username=document.getElementById("signupName").value.trim();
+  const dob=document.getElementById("signupDob").value;
+  const bio=document.getElementById("signupBio").value.trim();
+  const accepted=document.getElementById("privacyConsent").checked;
 
-const email=document.getElementById("signupEmail").value.trim();
-const password=document.getElementById("signupPassword").value;
-const username=document.getElementById("signupName").value.trim();
-const dob=document.getElementById("signupDob").value;
-const bio=document.getElementById("signupBio").value.trim();
+  if(!username || !dob){
+    status("Name aur Date of Birth zaroori hai.");
+    return;
+  }
 
-if(!email || !username || !dob){
-status("Email, Name aur Date of Birth zaroori hai.");
-return;
-}
+  if(!accepted){
+    status("Please accept the Privacy Notice first.");
+    return;
+  }
 
-const birthDate=new Date(dob+"T00:00:00");
-const today=new Date();
-let age=today.getFullYear()-birthDate.getFullYear();
-const month=today.getMonth()-birthDate.getMonth();
+  const birthDate=new Date(dob+"T00:00:00");
+  const today=new Date();
+  let age=today.getFullYear()-birthDate.getFullYear();
+  const month=today.getMonth()-birthDate.getMonth();
 
-if(month<0 || (month===0 && today.getDate()<birthDate.getDate())){
-age--;
-}
+  if(month<0 || (month===0 && today.getDate()<birthDate.getDate())){
+    age--;
+  }
 
-if(birthDate>today || age<18){
-status("JABZY par account banane ke liye 18+ hona zaroori hai.");
-return;
-}
+  if(isNaN(birthDate.getTime()) || birthDate>today || age<18){
+    status("JABZY par account banane ke liye 18+ hona zaroori hai.");
+    return;
+  }
 
-if(password.length<6){
-status("Password kam se kam 6 characters ka hona chahiye.");
-return;
-}
+  status("Please wait...");
 
-const {error}=await db.auth.signUp({
-email,
-password,
-options:{
-data:{
-username:username,
-date_of_birth:dob,
-bio:bio
-},
-emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
-}
-});
+  if(signupProvider==="google"){
+    const {error}=await db.rpc("complete_google_profile",{
+      p_username:username,
+      p_dob:dob,
+      p_bio:bio,
+      p_privacy_accepted:true
+    });
 
-status(error ? error.message : "Account created. Check your email for confirmation.");
-}
+    if(error){
+      status(error.message);
+      return;
+    }
+
+    me=(await db.auth.getUser()).data.user;
+    await startApp();
+    return;
+  }
+
+  const email=document.getElementById("signupEmail").value.trim();
+  const password=document.getElementById("signupPassword").value;
+
+  const {error}=await db.auth.signUp({
+    email,
+    password,
+    options:{
+      data:{
+        username:username,
+        date_of_birth:dob,
+        bio:bio
+      },
+      emailRedirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
+    }
+  });
+
+  status(error ? error.message : "Account created. Check your email for confirmation.");
+  }
+    
 
 async function signin(){
 
@@ -1026,6 +1090,36 @@ document.getElementById("status").innerText=
 "Your account has been banned. Reason: "+reason;
 
 return;
+}
+
+  if(me && me.app_metadata?.provider==="google"){
+  const {data:profile,error:profileError}=await db
+    .from("profiles")
+    .select("id")
+    .eq("id",me.id)
+    .maybeSingle();
+
+  if(profileError){
+    status(profileError.message);
+    return;
+  }
+
+  if(!profile){
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("welcomeScreen").style.display="none";
+
+    document.getElementById("signup").classList.remove("hidden");
+    document.getElementById("signupStep1").classList.add("hidden");
+    document.getElementById("signupStep2").classList.remove("hidden");
+
+    document.getElementById("signupGoogleEmail").style.display="block";
+    document.getElementById("signupGoogleEmail").value=me.email || "";
+
+    signupProvider="google";
+    status("Complete your profile to continue.");
+    return;
+  }
 }
 
 document.getElementById("login").classList.add("hidden");
