@@ -205,35 +205,62 @@ font-size:12px;
 
 <div id="appBrandHeader">
   <h1>JABZY ❤️</h1>
-  <span>Make New Friends • 18+</span>
+</div>
+
+<div id="welcomeScreen" style="text-align:center;padding:25px 15px;background:linear-gradient(145deg,#171027,#39204f,#171027);border-radius:22px;margin-top:15px;">
+
+  <h1 style="font-size:30px;color:#ff70b7;margin:10px 0;">Your World. Your People.</h1>
+  <p style="color:#e6d5f5;">Make New Friends • Share Your World</p>
+
+  <div style="height:260px;border-radius:20px;background:linear-gradient(135deg,#ff55a8,#8b55e9,#24143b);display:flex;align-items:center;justify-content:center;margin:22px 0;">
+    <div style="font-size:75px;">👫❤️🌍</div>
+  </div>
+
+  <h2 style="color:white;">Welcome to JABZY!</h2>
+  <p style="color:#ddd;">Connect • Chat • Make Friends • Gaming Groups</p>
+
+  <button onclick="showAuthScreen('login')" style="width:100%;padding:15px;border-radius:30px;background:linear-gradient(90deg,#ff55a8,#a45bea);font-size:16px;">Login</button>
+
+  <button onclick="showAuthScreen('signup')" style="width:100%;padding:15px;border-radius:30px;background:#302342;border:1px solid #bd79ec;font-size:16px;">Create New Account</button>
+
+  <p style="font-size:12px;color:#cbbbd8;margin-top:20px;">JABZY is for users aged 18 years and above.</p>
 </div>
 
 <div class="card hidden" id="login">
-<h3>Login / Sign Up</h3>
-<input id="email" type="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<input id="signupName" placeholder="Your Name">
-<input id="signupDob" type="date">
-<textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
-<p style="font-size:13px;color:#ddd;line-height:1.6;">
-<strong>JABZY Privacy Notice 🔒</strong><br>
-Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation. Please do not share passwords or sensitive personal information.
-</p>
+  <h3>Welcome Back 👋</h3>
+  <input id="loginEmail" type="email" placeholder="Email">
+  <input id="loginPassword" type="password" placeholder="Password">
+  <button onclick="forgotPassword()">Forgot Password?</button>
+  <button onclick="signin()">Login</button>
+  <button onclick="showAuthScreen('signup')">Create New Account</button>
+  <button onclick="showAuthScreen('welcome')">← Back</button>
+</div>
 
-<div style="margin:12px 0;font-size:14px;line-height:1.6;">
-<label style="display:flex;align-items:flex-start;gap:8px;">
-<input id="privacyConsent" type="checkbox" style="width:auto;margin-top:4px;">
-<span>
-I agree to the JABZY Privacy Notice. I understand that authorized admins may review my chats and shared photos for safety and moderation.
-</span>
-</label>
+<div class="card hidden" id="signup">
+  <h3>Create Your JABZY Account ❤️</h3>
+  <input id="signupEmail" type="email" placeholder="Email">
+  <input id="signupPassword" type="password" placeholder="Password">
+  <input id="signupName" placeholder="Your Name">
+  <input id="signupDob" type="date">
+  <textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
+
+  <p style="font-size:13px;color:#ddd;line-height:1.6;">
+    <strong>JABZY Privacy Notice 🔒</strong><br>
+    Your profile information may be visible to other users. Authorized JABZY admins may review private messages and shared photos for safety, reports and moderation.
+  </p>
+
+  <label style="display:flex;align-items:flex-start;gap:8px;font-size:14px;">
+    <input id="privacyConsent" type="checkbox" style="width:auto;margin-top:4px;">
+    <span>I agree to the JABZY Privacy Notice.</span>
+  </label>
+
+  <button onclick="signup()">Create Account</button>
+  <button onclick="showAuthScreen('login')">Already have an account? Login</button>
+  <button onclick="showAuthScreen('welcome')">← Back</button>
 </div>
-  
-<button onclick="forgotPassword()">Forgot Password?</button>
-<button onclick="signup()">Create Account</button>
-<button onclick="signin()">Login</button>
+
 <p id="status"></p>
-</div>
+  
   
 <div class="card hidden" id="resetPassword">
 <h3>Set New Password 🔐</h3>
