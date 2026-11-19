@@ -3653,9 +3653,17 @@ document.getElementById("app").classList.add("hidden");
 showAuthScreen("welcome");
 });
   
-
-  
 async function logout(){
+
+const {error}=await db.auth.signOut();
+
+if(error){
+status(error.message);
+return;
+}
+
+me=null;
+selected=null;
 
 document.getElementById("app").classList.add("hidden");
 document.getElementById("loginEmail").value="";
@@ -3666,6 +3674,9 @@ document.getElementById("privacyConsent").checked=false;
 
 showAuthScreen("welcome");
 status("Logged out successfully.");
+}
+
+function showTab(tab){
   
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
