@@ -992,29 +992,32 @@ adminButton.style.display="block";
 adminButton.style.display="none";
 }
 
-await Promise.all([
-loadProfile(),
-loadMyFriends(),
-updateOnlineStatus(),
-loadBlockedUsers(),
-loadPeople(),
-loadMatches()
-]);
-await loadNotificationCount();
-  
 const lastTab=localStorage.getItem("jabzyLastTab") || "home";
+
 showTab(lastTab);
 document.getElementById("app").classList.remove("hidden");
-  
+
+Promise.all([
+  loadProfile(),
+  loadMyFriends(),
+  updateOnlineStatus(),
+  loadBlockedUsers(),
+  loadPeople(),
+  loadMatches()
+]).then(()=>{
+  loadNotificationCount();
+}).catch(error=>{
+  console.error("Background Loading Error:",error);
+});
+
 if(!window.jabzyTimersStarted){
-window.jabzyTimersStarted=true;
-setInterval(updateOnlineStatus,60000);
-setInterval(checkTypingStatus,2000);
-setInterval(loadMatches,60000);
+  window.jabzyTimersStarted=true;
+  setInterval(updateOnlineStatus,60000);
+  setInterval(checkTypingStatus,2000);
+  setInterval(loadMatches,60000);
 }
 
-}
-
+  }
 
 async function loadNotificationCount(){
 
