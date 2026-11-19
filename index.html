@@ -287,8 +287,56 @@ font-size:12px;
   background:linear-gradient(120deg,#286bd1,#7548c9);
   border-color:#6799ff;
     }
+
+    /* DISCOVER COMPACT LAYOUT */
+#discoverScreen{
+  padding:2px 4px 90px;
+}
+
+#discoverScreen .discover-heading{
+  margin:4px 0;
+}
+
+#discoverScreen .swipe-container{
+  margin:5px auto;
+}
+
+#discoverScreen #swipeCard{
+  min-height:auto;
+  padding:12px;
+}
+
+#discoverScreen #swipeCard img{
+  height:220px !important;
+}
+
+#discoverScreen .discover-actions{
+  margin-top:8px;
+  gap:8px;
+}
+
+#discoverScreen .discover-actions button{
+  padding:10px 5px;
+  font-size:12px;
+  border-radius:12px;
+    }
+
+    #discoverScreen .discover-card-actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+#discoverScreen .discover-card-actions button{
+  flex:1;
+  min-width:0;
+  padding:9px 5px;
+  margin:0;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:700;
+}
     
-  
 </style>
 </head>
 <body>
@@ -483,11 +531,11 @@ font-size:12px;
       Loading profiles...
     </div>
 
-    <div class="discover-actions">
-      <button type="button" class="skip-btn" onclick="dislikeUser()">✕ Skip</button>
-      <button type="button" onclick="likeUser()">👥 Add Friend</button>
-      <button type="button" class="message-btn" onclick="messageCurrentUser()">💬 Message</button>
-    </div>
+  <div class="discover-actions">
+  <button type="button" class="skip-btn" onclick="dislikeUser()">✕ Skip</button>
+  <button type="button" class="message-btn" onclick="messageCurrentUser()">💬 Message</button>
+  </div>
+    
   </div>
 
   <div id="people" style="display:none"></div>
@@ -1836,26 +1884,37 @@ async function showSwipeCard(){
 
   card.append(name,info);
 
-  const followBtn=document.createElement("button");
-  followBtn.type="button";
-  followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
-  followBtn.onclick=()=>toggleFollow(p.id,followBtn);
-  card.appendChild(followBtn);
-
   const request=(requestResult.data||[]).find(r=>
     r.status==="accepted" || r.status==="pending"
   );
 
+  const actionRow=document.createElement("div");
+  actionRow.className="discover-card-actions";
+
+  const followBtn=document.createElement("button");
+  followBtn.type="button";
+  followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
+  followBtn.onclick=()=>toggleFollow(p.id,followBtn);
+
+  const friendBtn=document.createElement("button");
+  friendBtn.type="button";
+  friendBtn.textContent="👥 Add Friend";
+  friendBtn.onclick=()=>likeUser();
+
   if(request){
-    const status=document.createElement("p");
-    status.textContent=request.status==="accepted"
-      ? "✓ Already Friends"
-      : request.sender_id===me.id
-        ? "⏳ Friend Request Sent"
-        : "👥 Sent you a Friend Request";
-    card.appendChild(status);
-  }
+    if(request.status==="accepted"){
+      friendBtn.textContent="✓ Friends";
+    }else if(request.sender_id===me.id){
+      friendBtn.textContent="Request Sent";
+    }else{
+      friendBtn.textContent="Request Received";
     }
+    friendBtn.disabled=true;
+  }
+
+  actionRow.append(followBtn,friendBtn);
+  card.appendChild(actionRow);
+  }
   
   
 async function likeUser(){
