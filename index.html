@@ -2957,7 +2957,7 @@ const {data,error}=await db.from("messages").select("*")
 .order("created_at",{ascending:true});
 
 const box=document.getElementById("messages");
-box.innerHTML="";
+const fragment=document.createDocumentFragment();
 if(error){box.innerText=error.message;return}
 
 const messageMap=new Map(
@@ -3285,8 +3285,10 @@ row.addEventListener("contextmenu",e=>{
   showChatActionMenu();
 });
 
-box.appendChild(row);
+fragment.appendChild(row);
       }
+
+  box.replaceChildren(fragment);
 
   if(box.lastElementChild){
     box.lastElementChild.scrollIntoView({
