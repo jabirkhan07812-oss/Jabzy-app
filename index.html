@@ -3287,7 +3287,14 @@ row.addEventListener("contextmenu",e=>{
 
 box.appendChild(row);
       }
- } 
+
+  if(box.lastElementChild){
+    box.lastElementChild.scrollIntoView({
+      block:"end",
+      behavior:"auto"
+    });
+  }
+ }
 
 async function toggleChatStar(messageId){
   const {data:existing,error:findError}=await db
