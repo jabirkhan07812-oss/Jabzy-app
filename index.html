@@ -2690,11 +2690,12 @@ return;
 }
 
 selected=id;
-await startChatRealtime();
+startChatRealtime();
   
 showTab("chats");
 document.getElementById("chatList").style.display="none";
 document.getElementById("chatWindow").style.display="block";
+document.getElementById("messages").style.visibility="hidden";
 const nav=document.querySelector(".bottom-nav");
 if(nav) nav.style.display="none";
 document.getElementById("chatTitle").innerText=name;
@@ -3290,12 +3291,8 @@ fragment.appendChild(row);
 
   box.replaceChildren(fragment);
 
-  if(box.lastElementChild){
-    box.lastElementChild.scrollIntoView({
-      block:"end",
-      behavior:"auto"
-    });
-  }
+  box.scrollTop=box.scrollHeight;
+  box.style.visibility="visible";
  }
 
 async function toggleChatStar(messageId){
