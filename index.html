@@ -3628,53 +3628,45 @@ await loadAdminUsers();
 await openAdminUserProfile(id);
   }
 
+
+document.getElementById("welcomeScreen").style.display="none";
 document.getElementById("login").classList.add("hidden");
+document.getElementById("signup").classList.add("hidden");
 document.getElementById("app").classList.add("hidden");
-  
+
 db.auth.getSession().then(({data})=>{
 if(data.session){
 me=data.session.user;
 startApp().catch(error=>{
   console.error("StartApp Error:",error);
-  document.getElementById("login").classList.remove("hidden");
   document.getElementById("app").classList.add("hidden");
-  document.getElementById("status").innerText="App Error: "+error.message;
+  showAuthScreen("login");
+  status("App Error: "+error.message);
 });
-  
 }else{
-document.getElementById("login").classList.remove("hidden");
 document.getElementById("app").classList.add("hidden");
+showAuthScreen("welcome");
 }
 }).catch(error=>{
 console.error("Session Error:",error);
-document.getElementById("login").classList.remove("hidden");
 document.getElementById("app").classList.add("hidden");
+showAuthScreen("welcome");
 });
-
+  
 
   
 async function logout(){
 
-const {error}=await db.auth.signOut();
-
-if(error){
-status(error.message);
-return;
-}
-
-me=null;
-selected=null;
-
 document.getElementById("app").classList.add("hidden");
-document.getElementById("login").classList.remove("hidden");
-
-document.getElementById("email").value="";
-document.getElementById("password").value="";
+document.getElementById("loginEmail").value="";
+document.getElementById("loginPassword").value="";
+document.getElementById("signupEmail").value="";
+document.getElementById("signupPassword").value="";
 document.getElementById("privacyConsent").checked=false;
 
-status("Loged out successfully.");
-}
- 
+showAuthScreen("welcome");
+status("Logged out successfully.");
+  
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
