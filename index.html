@@ -197,7 +197,97 @@ padding:10px 4px;
 margin:0;
 font-size:12px;
   }
-  
+
+    
+/* JABZY PREMIUM DISCOVER */
+#discoverScreen{
+  padding:10px 4px 95px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #382052 0%, #15101f 48%, #10101c 100%);
+  min-height:100vh;
+}
+
+#discoverScreen .discover-heading{
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:.4px;
+  background:linear-gradient(90deg,#ff70bd,#b58aff,#65caff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin:12px 0;
+}
+
+#discoverScreen .notification-bell{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#39234f,#21172f);
+  border:1px solid #8154a7;
+  box-shadow:0 0 16px #a34bce35;
+}
+
+#discoverScreen .swipe-container{
+  max-width:440px;
+  margin:18px auto;
+}
+
+#discoverScreen #swipeCard{
+  background:linear-gradient(155deg,#292039,#191625 75%);
+  border:1px solid #754b91;
+  border-radius:25px;
+  padding:16px;
+  min-height:390px;
+  box-shadow:0 12px 35px #0008,0 0 20px #a64de522;
+}
+
+#discoverScreen #swipeCard img{
+  width:100%;
+  height:310px;
+  object-fit:cover;
+  border-radius:19px;
+  border:1px solid #9a62bd;
+  box-shadow:0 5px 20px #0007;
+}
+
+#discoverScreen #swipeCard h2{
+  color:#ffb0dc;
+  font-size:23px;
+  margin:15px 0 5px;
+}
+
+#discoverScreen #swipeCard p{
+  color:#d4c5e5;
+  font-size:14px;
+}
+
+#discoverScreen .discover-actions{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+
+#discoverScreen .discover-actions button{
+  flex:1;
+  border-radius:16px;
+  padding:14px 8px;
+  font-size:14px;
+  font-weight:800;
+  border:1px solid #9862bb;
+  background:linear-gradient(120deg,#a83e9c,#6844bd);
+  box-shadow:0 5px 16px #9c42c744;
+}
+
+#discoverScreen .discover-actions .skip-btn{
+  background:#292238;
+  border-color:#554267;
+  color:#e6d8f2;
+}
+
+#discoverScreen .discover-actions .message-btn{
+  background:linear-gradient(120deg,#286bd1,#7548c9);
+  border-color:#6799ff;
+    }
+    
   
 </style>
 </head>
@@ -382,12 +472,13 @@ font-size:12px;
 </div>
   
 
+
 <div id="discoverScreen" class="app-screen" style="display:block">
   <div style="display:flex;justify-content:space-between;align-items:center">
-  <h2>Discover 🔍</h2>
-  <button type="button" onclick="openNotifications()" class="notification-bell">
-    🔔 <span id="notificationCountDiscover">0</span>
-  </button>
+    <h2 class="discover-heading">Discover ✨</h2>
+    <button type="button" onclick="openNotifications()" class="notification-bell">
+      🔔 <span id="notificationCountDiscover">0</span>
+    </button>
   </div>
 
   <div class="swipe-container">
@@ -395,15 +486,15 @@ font-size:12px;
       Loading profiles...
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:15px">
-      <button type="button" onclick="dislikeUser()">❌ Skip</button>
-      <button type="button" onclick="likeUser()">👥 Add Friend</button>
+    <div class="discover-actions">
+      <button type="button" class="skip-btn" onclick="dislikeUser()">✕ Skip</button>
+      <button type="button" class="message-btn" onclick="messageCurrentUser()">💬 Message</button>
     </div>
   </div>
 
   <div id="people" style="display:none"></div>
-
 </div>
+  
   
 <div id="profileScreen" class="app-screen">
 
@@ -1805,7 +1896,62 @@ async function likeUser(){
   window.jabzyIndex++;
   showSwipeCard();
   }
-  
+
+  async function messageCurrentUser(){
+  const p=window.jabzyPeople?.[window.jabzyIndex];
+  if(!p)return;
+
+  const {data:requests,error:requestError}=await db
+    .from("friend_requests")
+    .select("id,status")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`);
+
+  if(requestError){
+    appStatus(requestError.message);
+    return;
+  }
+
+  if((requests||[]).some(r=>r.status==="accepted")){
+    chooseUser(p.id,p.username||"User");
+    return;
+  }
+
+  const firstMessage=prompt("Pehla message likhein:");
+  if(!firstMessage||!firstMessage.trim())return;
+
+  const {data:old,error:checkError}=await db
+    .from("message_requests")
+    .select("id,sender_id,status")
+    .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`);
+
+  if(checkError){
+    appStatus(checkError.message);
+    return;
+  }
+
+  const pending=(old||[]).find(r=>r.status==="pending");
+
+  if(pending){
+    appStatus(pending.sender_id===me.id
+      ?"Request pehle hi bhej di hai."
+      :"Is user ki request aapke Chats mein hai.");
+    return;
+  }
+
+  const {error}=await db.from("message_requests").insert({
+    sender_id:me.id,
+    receiver_id:p.id,
+    message:firstMessage.trim(),
+    status:"pending"
+  });
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  appStatus("Message Request sent ❤️");
+  }
 
 function dislikeUser(){
 if(!window.jabzyPeople[window.jabzyIndex])return;
