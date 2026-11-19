@@ -206,24 +206,26 @@ font-size:12px;
 <div id="appBrandHeader">
   <h1>JABZY ❤️</h1>
 </div>
+  
+<div id="welcomeScreen" style="text-align:center;padding:15px;background:linear-gradient(145deg,#08051d,#24104a,#08051d);border-radius:22px;margin-top:15px;">
 
-<div id="welcomeScreen" style="text-align:center;padding:25px 15px;background:linear-gradient(145deg,#171027,#39204f,#171027);border-radius:22px;margin-top:15px;">
+  <img src="JABZY_final_welcome_artwork-1.png"
+       alt="JABZY Friends Gaming and Creators"
+       style="width:100%;height:auto;display:block;border-radius:18px;">
 
-  <h1 style="font-size:30px;color:#ff70b7;margin:10px 0;">Your World. Your People.</h1>
-  <p style="color:#e6d5f5;">Make New Friends • Share Your World</p>
+  <button onclick="signinWithGoogle()" style="width:100%;padding:15px;margin-top:15px;border-radius:30px;background:white;color:#222;font-size:16px;">
+    🌐 Continue with Google
+  </button>
 
-  <div style="height:260px;border-radius:20px;background:linear-gradient(135deg,#ff55a8,#8b55e9,#24143b);display:flex;align-items:center;justify-content:center;margin:22px 0;">
-    <div style="font-size:75px;">👫❤️🌍</div>
-  </div>
+  <button onclick="showAuthScreen('signup')" style="width:100%;padding:15px;margin-top:10px;border-radius:30px;background:linear-gradient(90deg,#ff1493,#8b20ff);font-size:16px;">
+    Create Account
+  </button>
 
-  <h2 style="color:white;">Welcome to JABZY!</h2>
-  <p style="color:#ddd;">Connect • Chat • Make Friends • Gaming Groups</p>
+  <button onclick="showAuthScreen('login')" style="width:100%;padding:15px;margin-top:10px;border-radius:30px;background:#160b35;border:1px solid #bd79ec;font-size:16px;">
+    Login
+  </button>
 
-  <button onclick="showAuthScreen('login')" style="width:100%;padding:15px;border-radius:30px;background:linear-gradient(90deg,#ff55a8,#a45bea);font-size:16px;">Login</button>
-
-  <button onclick="showAuthScreen('signup')" style="width:100%;padding:15px;border-radius:30px;background:#302342;border:1px solid #bd79ec;font-size:16px;">Create New Account</button>
-
-  <p style="font-size:12px;color:#cbbbd8;margin-top:20px;">JABZY is for users aged 18 years and above.</p>
+  <p style="font-size:12px;color:#d9c5ff;margin-top:18px;">JABZY is for users aged 18 years and above.</p>
 </div>
 
 <div class="card hidden" id="login">
