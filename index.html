@@ -527,7 +527,22 @@ box-sizing:border-box;
 <div id="matches">Loading connections...</div>
 <div id="chatList" style="display:none;padding:14px;">
   <h2>💬 Chats</h2>
+
+  <div style="display:flex;gap:8px;margin-bottom:15px;">
+    <button id="messagesTab" onclick="showChatSection('messages')" style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:20px;padding:10px;">
+      Messages
+    </button>
+
+    <button id="messageRequestsTab" onclick="showChatSection('requests')" style="flex:1;background:#342044;color:white;border:0;border-radius:20px;padding:10px;">
+      Requests
+    </button>
+  </div>
+
   <div id="chatListItems">Loading chats...</div>
+
+  <div id="messageRequestsSection" style="display:none;">
+    <div id="messageRequestsList">Loading requests...</div>
+  </div>
 </div>
 
 <div id="chatWindow" style="display:none;background:#171124;color:white;min-height:80vh;">
