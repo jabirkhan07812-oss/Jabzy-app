@@ -336,6 +336,61 @@ font-size:12px;
   font-size:12px;
   font-weight:700;
 }
+
+    /* JABZY INSTAGRAM STYLE FULL SCREEN */
+html,body{
+  width:100%;
+  margin:0;
+  padding:0;
+  overflow-x:hidden;
+}
+
+body{
+  background:#100b19;
+  padding-bottom:0;
+}
+
+#app.card{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  background:transparent;
+}
+
+#homeScreen{
+  width:100%;
+  min-height:100vh;
+  margin:0;
+  border-radius:0!important;
+  padding:10px 0 90px!important;
+    }
+
+    /* JABZY FULL SCREEN LAYOUT */
+body{
+  padding:0 !important;
+  padding-bottom:0 !important;
+}
+
+#app.card{
+  width:100%;
+  min-height:100vh;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+
+#homeScreen{
+  width:100%;
+  min-height:100vh;
+  margin:0 !important;
+  border-radius:0 !important;
+    }
     
 </style>
 </head>
@@ -440,82 +495,56 @@ font-size:12px;
     </div>
   </div>
 
-<!-- SLIM WELCOME BANNER -->
-<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;margin-bottom:18px;border-radius:16px;background:linear-gradient(110deg,#54205f,#302052,#25163e);border:1px solid #9953b9;">
-  <div style="min-width:0;">
-    <strong style="display:block;font-size:14px;color:#ffb2df;">WELCOME TO JABZY ✨</strong>
-    <span style="font-size:10px;color:#ead8f2;">Meet. Connect. Belong.</span>
+<!-- INSTAGRAM STYLE STORIES -->
+<div style="margin:0 -12px 16px;padding:0 12px;">
+  <div style="display:flex;gap:15px;overflow-x:auto;padding:5px 0 10px;scrollbar-width:none;">
+
+    <div style="flex:0 0 65px;text-align:center;">
+      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
+        <div style="width:100%;height:100%;border-radius:50%;background:#21152d;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:25px;">＋</div>
+      </div>
+      <div style="font-size:11px;margin-top:6px;">Your Story</div>
+    </div>
+
+    <div style="flex:0 0 65px;text-align:center;">
+      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
+        <div style="width:100%;height:100%;border-radius:50%;background:#30203f;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:24px;">👥</div>
+      </div>
+      <div style="font-size:11px;margin-top:6px;">Friends</div>
+    </div>
+
+    <div style="flex:0 0 65px;text-align:center;">
+      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
+        <div style="width:100%;height:100%;border-radius:50%;background:#30203f;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:24px;">🎮</div>
+      </div>
+      <div style="font-size:11px;margin-top:6px;">Gamers</div>
+    </div>
+
   </div>
-  <button type="button" onclick="showTab('discover')" style="flex-shrink:0;width:auto;padding:9px 12px;margin:0;border:0;border-radius:18px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-weight:800;font-size:11px;white-space:nowrap;">Explore People →</button>
 </div>
-  
-  
-  <!-- STORIES -->
-  <div style="margin-bottom:18px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <strong style="font-size:16px;color:#ff9bd2;">✨ Stories</strong>
-      <button type="button" onclick="appStatus('All Stories coming soon ❤️')" style="width:auto;padding:5px 9px;margin:0;background:transparent;color:#d9a4ff;font-size:11px;">See All →</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:17px;background:#1d162b;border:1px solid #49315d;">
-      <div style="width:43px;height:43px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);font-size:23px;">＋</div>
-      <div style="flex:1;">
-        <strong style="font-size:13px;">Share your moment</strong>
-        <div style="font-size:11px;color:#bba9ca;margin-top:3px;">Stories are coming soon ❤️</div>
-      </div>
-      <button type="button" onclick="appStatus('Add Story feature coming soon ❤️')" style="width:auto;padding:7px 12px;margin:0;border-radius:18px;background:#382348;color:#ffb4df;font-size:11px;">Add</button>
-    </div>
-  </div>
 
-  <!-- CREATE POST -->
-  <div style="padding:14px;margin-bottom:18px;border-radius:18px;background:#1d162b;border:1px solid #49315d;">
-    <strong style="display:block;font-size:15px;color:#ff9bd2;margin-bottom:11px;">💬 Create a Post</strong>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <textarea id="homePostText" rows="1" placeholder="What's on your mind?" style="flex:1;min-width:0;min-height:42px;height:42px;padding:11px;margin:0;border-radius:13px;resize:none;font-size:12px;background:#100d19;color:white;border:1px solid #614477;"></textarea>
-      <button type="button" onclick="appStatus('Create Post feature coming soon ❤️')" style="width:auto;padding:10px 13px;margin:0;border-radius:18px;background:linear-gradient(90deg,#ff55a8,#9657e8);color:white;font-size:12px;">＋ Post</button>
-    </div>
-    <div style="font-size:11px;color:#bba9ca;margin-top:9px;">📷 Photo sharing coming soon</div>
-  </div>
+<!-- INSTAGRAM CREATE POST -->
+<div style="display:flex;align-items:center;gap:10px;padding:12px 0;margin-bottom:14px;border-bottom:1px solid #382744;">
+  <div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:19px;">👤</div>
 
-  <!-- MY GROUPS -->
-  <div style="margin-bottom:19px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <strong style="font-size:16px;color:#ff9bd2;">👥 My Groups</strong>
-      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="width:auto;padding:5px 9px;margin:0;background:transparent;color:#d9a4ff;font-size:11px;">See All →</button>
-    </div>
+  <textarea id="homePostText" rows="1" placeholder="What's on your mind?" style="flex:1;min-width:0;height:38px;min-height:38px;padding:10px 13px;margin:0;border-radius:22px;resize:none;font-size:12px;background:#21172e;color:white;border:1px solid #49315d;"></textarea>
 
-    <div style="display:flex;align-items:center;gap:11px;padding:13px;margin-bottom:9px;border-radius:16px;background:linear-gradient(110deg,#251b36,#30203f);border:1px solid #523765;">
-      <div style="width:43px;height:43px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:#49305e;font-size:23px;">🎮</div>
-      <div style="flex:1;min-width:0;">
-        <strong style="font-size:13px;">Gaming Zone</strong>
-        <div style="font-size:11px;color:#bba9ca;margin-top:3px;">Gaming Community</div>
-      </div>
-      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="width:auto;padding:7px 12px;margin:0;border-radius:17px;background:#49305e;color:#f4d9ff;font-size:11px;">Join</button>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:11px;padding:13px;border-radius:16px;background:linear-gradient(110deg,#251b36,#30203f);border:1px solid #523765;">
-      <div style="width:43px;height:43px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:#49305e;font-size:23px;">❤️</div>
-      <div style="flex:1;min-width:0;">
-        <strong style="font-size:13px;">Friends Forever</strong>
-        <div style="font-size:11px;color:#bba9ca;margin-top:3px;">Friends Community</div>
-      </div>
-      <button type="button" onclick="appStatus('Groups feature coming soon ❤️')" style="width:auto;padding:7px 12px;margin:0;border-radius:17px;background:#49305e;color:#f4d9ff;font-size:11px;">Join</button>
-    </div>
-
-    <button type="button" onclick="appStatus('Create Group feature coming soon ❤️')" style="width:100%;padding:11px;margin:10px 0 0;border-radius:18px;background:#281b38;border:1px solid #68447e;color:#e8c7ff;font-size:12px;">＋ Create Group</button>
-  </div>
-
-  <!-- HOME FEED -->
-  <div style="margin-bottom:12px;">
-    <strong style="display:block;font-size:16px;color:#ff9bd2;margin-bottom:10px;">📰 Your Home Feed</strong>
-    <div id="homeFeed" class="card" style="padding:18px 12px;margin:0;border-radius:17px;background:#1d162b;border:1px solid #49315d;">
-      <div style="text-align:center;font-size:30px;margin-bottom:7px;">💜</div>
-      <p style="text-align:center;color:#f3dfff;font-size:13px;margin:3px 0;">No posts yet</p>
-      <p style="text-align:center;color:#bba9ca;font-size:11px;margin:5px 0;">Be the first to share something with your friends!</p>
-    </div>
-  </div>
-
+  <button type="button" onclick="appStatus('Create Post feature coming soon ❤️')" style="width:auto;padding:9px 13px;margin:0;border:0;border-radius:20px;background:linear-gradient(90deg,#ff55a8,#9657e8);color:white;font-size:12px;">Post</button>
 </div>
-  
+
+
+<!-- INSTAGRAM HOME FEED -->
+<div style="margin:0 -12px 12px;">
+  <div id="homeFeed" style="padding:0;margin:0;background:transparent;">
+
+    <div style="text-align:center;padding:35px 12px;border-bottom:1px solid #382744;">
+      <div style="font-size:38px;margin-bottom:10px;">📸</div>
+      <strong style="font-size:15px;color:#f3dfff;">Welcome to JABZY</strong>
+      <p style="font-size:12px;color:#bba9ca;margin:7px 0;">Your friends' posts will appear here.</p>
+    </div>
+
+  </div>
+</div>
 
 
 <div id="discoverScreen" class="app-screen" style="display:block">
