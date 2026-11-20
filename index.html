@@ -1013,17 +1013,43 @@ box-sizing:border-box;
     <button onclick="cancelChatPhotoPreview()" style="width:auto;margin:0;background:transparent;color:white;">✕</button>
     <span id="chatPhotoCount"></span>
   </div>
-
+  
   <div id="chatPhotoPreviewImages" style="
   flex:1;
   min-height:0;
-  overflow-y:auto;
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px;
-  align-content:start;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
   padding:8px 0;
+">
+  <div id="chatPhotoMainArea" style="
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    touch-action:pan-y;
+  ">
+    <img id="chatPhotoMainImage" style="
+      max-width:100%;
+      max-height:100%;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    ">
+  </div>
+
+  <div id="chatPhotoThumbnails" style="
+    height:76px;
+    flex-shrink:0;
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    align-items:center;
+    padding:8px 2px;
   "></div>
+</div>
 
   <div style="
   display:flex;
@@ -3997,11 +4023,28 @@ async function sendChatPhoto(){
   await loadMessages();
   }
 
+ let chatPhotoPreviewIndex=0;
+let chatPhotoPreviewUrls=[];
+
+function showChatPhotoAt(index){
+  if(index<0 || index>=chatPhotoPreviewUrls.length)return;
+
+  chatPhotoPreviewIndex=index;
+
+  document.getElementById("chatPhotoMainImage").src=
+    chatPhotoPreviewUrls[index];
+
+  document.querySelectorAll("#chatPhotoThumbnails img").forEach((img,i)=>{
+    img.style.border=index===i?"2px solid #ff55a8":"2px solid transparent";
+  });
+}
+
 function previewChatPhotos(input){
   const files=Array.from(input.files || []);
   const preview=document.getElementById("chatPhotoPreview");
-  const images=document.getElementById("chatPhotoPreviewImages");
   const count=document.getElementById("chatPhotoCount");
+  const thumbnails=document.getElementById("chatPhotoThumbnails");
+  const mainArea=document.getElementById("chatPhotoMainArea");
 
   if(!files.length)return;
 
@@ -4019,45 +4062,69 @@ function previewChatPhotos(input){
     }
   }
 
-  images.innerHTML="";
+  chatPhotoPreviewUrls.forEach(url=>URL.revokeObjectURL(url));
+  chatPhotoPreviewUrls=files.map(file=>URL.createObjectURL(file));
 
-  files.forEach(file=>{
+  thumbnails.innerHTML="";
+
+  chatPhotoPreviewUrls.forEach((url,index)=>{
     const img=document.createElement("img");
-    img.src=URL.createObjectURL(file);
-    img.style.width="100%";
-    img.style.height="180px";
-    img.style.objectFit="contain";
-    img.style.background="#241832";
-    img.style.borderRadius="12px";
+    img.src=url;
+    img.style.width="62px";
+    img.style.height="62px";
+    img.style.objectFit="cover";
+    img.style.borderRadius="8px";
+    img.style.flexShrink="0";
+    img.style.border="2px solid transparent";
+    img.style.boxSizing="border-box";
+    img.style.cursor="pointer";
 
-    images.appendChild(img);
+    img.onclick=()=>showChatPhotoAt(index);
+    thumbnails.appendChild(img);
   });
+
+  chatPhotoPreviewIndex=0;
+  showChatPhotoAt(0);
 
   count.innerText=files.length+" photos";
 
-document.body.appendChild(preview);
-document.getElementById("chatWindow").style.display="none";
+  let startX=0;
 
-preview.style.display="flex";
-  }
+  mainArea.ontouchstart=e=>{
+    startX=e.touches[0].clientX;
+  };
 
-function cancelChatPhotoPreview(){
-  const box=document.getElementById("chatPhotoPreviewImages");
+  mainArea.ontouchend=e=>{
+    const diff=e.changedTouches[0].clientX-startX;
+
+    if(Math.abs(diff)>50){
+      showChatPhotoAt(
+        chatPhotoPreviewIndex+(diff<0?1:-1)
+      );
+    }
+  };
+
+  document.body.appendChild(preview);
+  document.getElementById("chatWindow").style.display="none";
+  preview.style.display="flex";
+       }
+
+ function cancelChatPhotoPreview(){
+  chatPhotoPreviewUrls.forEach(url=>URL.revokeObjectURL(url));
+  chatPhotoPreviewUrls=[];
+  chatPhotoPreviewIndex=0;
+
   const preview=document.getElementById("chatPhotoPreview");
 
-  box.querySelectorAll("img").forEach(img=>{
-    if(img.src.startsWith("blob:")){
-      URL.revokeObjectURL(img.src);
-    }
-  });
+  document.getElementById("chatPhotoMainImage").removeAttribute("src");
+  document.getElementById("chatPhotoThumbnails").innerHTML="";
 
-  box.innerHTML="";
   preview.style.display="none";
   document.getElementById("chatWindow").style.display="flex";
   document.getElementById("chatPhotoFile").value="";
   document.getElementById("chatPhotoCaption").value="";
   document.getElementById("chatPhotoCount").innerText="";
-  }
+    }
 
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
