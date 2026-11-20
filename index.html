@@ -198,6 +198,59 @@ margin:0;
 font-size:12px;
   }
 
+    /* JABZY CHAT FULL SCREEN FIX */
+#chatWindow{
+  position:fixed !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100vh !important;
+  height:100dvh !important;
+  min-height:0 !important;
+  box-sizing:border-box;
+  display:flex !important;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:10000;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+#chatWindow > div:first-child{
+  position:relative !important;
+  top:auto !important;
+  flex-shrink:0;
+}
+
+#chatWindow #messages{
+  flex:1;
+  min-height:0;
+  height:auto;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  margin:0;
+  border-radius:0;
+}
+
+#chatWindow #chatComposer{
+  position:relative !important;
+  bottom:auto !important;
+  flex-shrink:0;
+  margin:8px 10px;
+}
+
+#chatWindow #chatPhotoPreview,
+#chatWindow #replyPreview{
+  flex-shrink:0;
+}
+
+#chatWindow #appStatus{
+  flex-shrink:0;
+  margin:0;
+}
+
+#chatWindow .bottom-nav{
+  display:none !important;
+    }
+
     
 /* JABZY PREMIUM DISCOVER */
 #discoverScreen{
@@ -896,11 +949,6 @@ box-sizing:border-box;
 <div id="chatList" style="display:none;padding:0 14px;margin-top:-8px;">
   <h2 style="margin:0 0 12px;">💬 Chats</h2>
 
-  <button type="button" onclick="clearAllChatsForMe()"
-style="width:100%;margin:8px 0 14px;padding:12px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:12px;font-weight:bold;">
-🗑️ Clear All Chats
-  </button>
-
   <div style="display:flex;gap:8px;margin-bottom:15px;">
     <button id="messagesTab" onclick="showChatSection('messages')" style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:20px;padding:10px;">
       Messages
@@ -945,6 +993,7 @@ style="width:100%;margin:8px 0 14px;padding:12px;background:linear-gradient(90de
     <button onclick="muteChat()" class="chat-menu-item">🔕 Mute Notifications</button>
     <button onclick="chatBlockCurrent()" class="chat-menu-item">🚫 Block User</button>
     <button onclick="chatReportCurrent()" class="chat-menu-item">🚩 Report User</button>
+    <button onclick="clearCurrentChatForMe()" class="chat-menu-item">🗑️ Clear All Chats</button>
   </div>
 
   <div id="messages" style="padding:12px;min-height:55vh;overflow-y:auto;"></div>
@@ -2581,26 +2630,23 @@ const box=document.getElementById("chatListItems");
 
 if(!me)return;
 
-const {data:clearData,error:clearError}=await db
-.from("user_chat_clears")
-.select("cleared_at")
-.eq("user_id",me.id)
-.maybeSingle();
+const {data:clearRows,error:clearError}=await db
+.from("user_chat_clears_per_chat")
+.select("other_user_id,cleared_at")
+.eq("user_id",me.id);
 
 if(clearError){box.innerText=clearError.message;return}
 
-let chatQuery=db.from("messages")
+const {data:messages,error}=await db.from("messages")
 .select("sender_id,receiver_id,message,created_at")
-.or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
-
-if(clearData?.cleared_at){
-  chatQuery=chatQuery.gt("created_at",clearData.cleared_at);
-}
-
-const {data:messages,error}=await chatQuery
+.or("sender_id.eq."+me.id+",receiver_id.eq."+me.id)
 .order("created_at",{ascending:false});
 
 if(error){box.innerText=error.message;return}
+
+const clearMap=new Map(
+  (clearRows||[]).map(x=>[x.other_user_id,x.cleared_at])
+);
 
   let blocked;
 try{
@@ -2611,11 +2657,16 @@ try{
 }
 const latest=new Map();
 
-(messages||[]).forEach(m=>{
-const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
-if(!blocked.has(other)&&!latest.has(other)){
-latest.set(other,m);
-}
+(messages||[]).filter(m=>{
+  const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
+  const clearedAt=clearMap.get(other);
+  return (!clearedAt || new Date(m.created_at)>new Date(clearedAt))
+    && !blocked.has(other);
+}).forEach(m=>{
+  const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
+  if(!latest.has(other)){
+    latest.set(other,m);
+  }
 });
 
 const ids=[...latest.keys()];
@@ -2874,6 +2925,28 @@ function chatReportCurrent(){
   const name=document.getElementById("chatTitle").innerText;
   document.getElementById("chatOptionsMenu").style.display="none";
   reportUser(selected,name);
+  }
+
+  async function clearCurrentChatForMe(){
+  if(!selected)return;
+
+  const name=document.getElementById("chatTitle").innerText||"this user";
+
+  if(!confirm("Clear all messages with "+name+" from your inbox? The other user will still see their messages."))return;
+
+  const {error}=await db.rpc("clear_chat_for_me",{
+    p_other_user_id:selected
+  });
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  document.getElementById("chatOptionsMenu").style.display="none";
+  await loadMessages();
+  await loadChatList();
+  appStatus("Chat cleared from your inbox.");
   }
 
   function showChatMedia(){
@@ -3273,9 +3346,10 @@ return;
 }
 
 const {data:clearData,error:clearError}=await db
-.from("user_chat_clears")
+.from("user_chat_clears_per_chat")
 .select("cleared_at")
 .eq("user_id",me.id)
+.eq("other_user_id",selected)
 .maybeSingle();
 
 if(clearError){appStatus(clearError.message);return}
