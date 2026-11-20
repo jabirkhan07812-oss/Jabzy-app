@@ -998,7 +998,7 @@ box-sizing:border-box;
 
   <div id="messages" style="padding:12px;min-height:55vh;overflow-y:auto;"></div>
 
-  <div id="chatPhotoPreview" style="
+<div id="chatPhotoPreview" style="
 display:none;
 position:fixed;
 inset:0;
@@ -1006,12 +1006,11 @@ z-index:20000;
 background:#100b19;
 color:white;
 flex-direction:column;
-padding:16px;
+padding:12px;
 box-sizing:border-box;
 ">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
-    <button onclick="cancelChatPhotoPreview()" style="width:auto;margin:0;background:transparent;color:white;">✕ Cancel</button>
-    <b>Photo Preview</b>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;">
+    <button onclick="cancelChatPhotoPreview()" style="width:auto;margin:0;background:transparent;color:white;">✕</button>
     <span id="chatPhotoCount"></span>
   </div>
 
@@ -1026,14 +1025,32 @@ box-sizing:border-box;
   padding:8px 0;
   "></div>
 
-  <input id="chatPhotoCaption" placeholder="Add a caption..."
-  style="width:100%;box-sizing:border-box;margin:10px 0;padding:14px;border-radius:12px;">
+  <div style="
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#241832;
+  border:1px solid #69427f;
+  border-radius:28px;
+  padding:6px 8px;
+  margin-bottom:env(safe-area-inset-bottom);
+  ">
+    <input id="chatPhotoCaption"
+    placeholder="Add a caption..."
+    style="flex:1;min-width:0;background:transparent;border:0;color:white;outline:none;padding:10px;">
 
-  <button onclick="sendChatPhoto()" style="background:#a45bea;padding:14px;border-radius:12px;">
-    Send Photos ➤
-  </button>
+    <button onclick="sendChatPhoto()" style="
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    border-radius:50%;
+    margin:0;
+    background:#a45bea;
+    color:white;
+    ">➤</button>
   </div>
-
+</div>
+  
   <div id="replyPreview" style="display:none;margin:8px 10px 0;padding:10px;background:#30213e;border-left:4px solid #ff55a8;border-radius:9px;color:white;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <b style="color:#ff75c4;font-size:13px;">↩️ Replying to</b>
@@ -4017,7 +4034,11 @@ function previewChatPhotos(input){
   });
 
   count.innerText=files.length+" photos";
-  preview.style.display="flex";
+
+document.body.appendChild(preview);
+document.getElementById("chatWindow").style.display="none";
+
+preview.style.display="flex";
   }
 
 function cancelChatPhotoPreview(){
@@ -4031,7 +4052,7 @@ function cancelChatPhotoPreview(){
   });
 
   box.innerHTML="";
-  preview.style.display="none";
+  document.getElementById("chatWindow").style.display="flex";
   document.getElementById("chatPhotoFile").value="";
   document.getElementById("chatPhotoCaption").value="";
   document.getElementById("chatPhotoCount").innerText="";
