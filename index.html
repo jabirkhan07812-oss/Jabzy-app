@@ -2655,15 +2655,27 @@ try{
   box.innerText=e.message;
   return;
 }
-const latest=new Map();
+
+  const latest=new Map();
 
 (messages||[]).filter(m=>{
   const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
-  const clearedAt=clearMap.get(other);
-  return (!clearedAt || new Date(m.created_at)>new Date(clearedAt))
-    && !blocked.has(other);
+  return !blocked.has(other);
 }).forEach(m=>{
   const other=m.sender_id===me.id?m.receiver_id:m.sender_id;
+  const clearedAt=clearMap.get(other);
+
+  if(clearedAt && new Date(m.created_at)<=new Date(clearedAt)){
+    if(!latest.has(other)){
+      latest.set(other,{
+        ...m,
+        message:"Chat cleared",
+        created_at:clearedAt
+      });
+    }
+    return;
+  }
+
   if(!latest.has(other)){
     latest.set(other,m);
   }
