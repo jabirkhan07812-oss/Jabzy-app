@@ -998,11 +998,40 @@ box-sizing:border-box;
 
   <div id="messages" style="padding:12px;min-height:55vh;overflow-y:auto;"></div>
 
-  <div id="chatPhotoPreview" style="display:none;padding:12px;background:#241832;border-radius:14px;margin:8px;">
-    <div id="chatPhotoPreviewImages"></div>
-    <input id="chatPhotoCaption" placeholder="Add a caption..." style="width:100%;margin-top:10px;">
-    <button onclick="cancelChatPhotoPreview()" style="background:#555;">Cancel</button>
-    <button onclick="sendChatPhoto()" style="background:#a45bea;">Send Photos ➤</button>
+  <div id="chatPhotoPreview" style="
+display:none;
+position:fixed;
+inset:0;
+z-index:20000;
+background:#100b19;
+color:white;
+flex-direction:column;
+padding:16px;
+box-sizing:border-box;
+">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+    <button onclick="cancelChatPhotoPreview()" style="width:auto;margin:0;background:transparent;color:white;">✕ Cancel</button>
+    <b>Photo Preview</b>
+    <span id="chatPhotoCount"></span>
+  </div>
+
+  <div id="chatPhotoPreviewImages" style="
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  align-content:start;
+  padding:8px 0;
+  "></div>
+
+  <input id="chatPhotoCaption" placeholder="Add a caption..."
+  style="width:100%;box-sizing:border-box;margin:10px 0;padding:14px;border-radius:12px;">
+
+  <button onclick="sendChatPhoto()" style="background:#a45bea;padding:14px;border-radius:12px;">
+    Send Photos ➤
+  </button>
   </div>
 
   <div id="replyPreview" style="display:none;margin:8px 10px 0;padding:10px;background:#30213e;border-left:4px solid #ff55a8;border-radius:9px;color:white;">
@@ -3876,114 +3905,136 @@ if(error)appStatus(error.message);
 }
   
 async function sendChatPhoto(){
-if(!me||!selected){
-appStatus("Pehle kisi user ko Chat select karein.");
-return;
-}
+  if(!me || !selected)return;
 
-let blocked;
-try{blocked=await getBlockedIds()}
-catch(e){appStatus(e.message);return}
+  const input=document.getElementById("chatPhotoFile");
+  const files=Array.from(input.files || []);
+  const caption=document.getElementById("chatPhotoCaption").value.trim();
 
-if(blocked.has(selected)){
-appStatus("Blocked user ko photo nahi bhej sakte.");
-return;
-}
-
-const file=document.getElementById("chatPhotoFile").files[0];
-if(!file){
-appStatus("Pehle photo select karein.");
-return;
-}
-
-const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[file.type];
-if(!ext){
-appStatus("JPG, PNG ya WEBP photo select karein.");
-return;
-}
-
-if(file.size>10*1024*1024){
-appStatus("Photo 10 MB se chhoti honi chahiye.");
-return;
-}
-
-const path=me.id+"/"+selected+"/"+Date.now()+"."+ext;
-
-appStatus("Photo upload ho rahi hai...");
-
-const {error:uploadError}=await db.storage
-.from("chat-photos")
-.upload(path,file,{contentType:file.type});
-
-if(uploadError){
-appStatus(uploadError.message);
-return;
-}
-
-const {error}=await db.from("messages").insert({
-sender_id:me.id,
-receiver_id:selected,
-message:"PHOTO:"+path
-});
-
-if(error){
-appStatus(error.message);
-return;
-}
-
-cancelChatPhotoPreview();
-document.getElementById("message").value="";
-appStatus("Photo send ho gayi!");
-await loadMessages();
-}
-
-  function previewChatPhotos(input){
-  const file=input.files && input.files[0];
-  if(!file)return;
-
-  const ext={"image/jpeg":1,"image/png":1,"image/webp":1};
-
-  if(!ext[file.type]){
-    appStatus("JPG, PNG ya WEBP photo select karein.");
-    input.value="";
+  if(!files.length){
+    appStatus("Pehle photo select karein.");
     return;
   }
 
-  if(file.size>10*1024*1024){
-    appStatus("Photo 10 MB se chhoti honi chahiye.");
-    input.value="";
+  let blocked;
+  try{blocked=await getBlockedIds()}
+  catch(e){appStatus(e.message);return}
+
+  if(blocked.has(selected)){
+    appStatus("Blocked user ko photo nahi bhej sakte.");
     return;
   }
 
-  const box=document.getElementById("chatPhotoPreviewImages");
+  appStatus("Photos upload ho rahi hain...");
+
+  const rows=[];
+
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    const ext={
+      "image/jpeg":"jpg",
+      "image/png":"png",
+      "image/webp":"webp"
+    }[file.type];
+
+    if(!ext || file.size>10*1024*1024){
+      appStatus("Har photo JPG, PNG ya WEBP aur 10 MB se chhoti honi chahiye.");
+      return;
+    }
+
+    const path=me.id+"/"+selected+"/"+Date.now()+"_"+i+"."+ext;
+
+    const {error:uploadError}=await db.storage
+      .from("chat-photos")
+      .upload(path,file,{contentType:file.type});
+
+    if(uploadError){
+      appStatus(uploadError.message);
+      return;
+    }
+
+    rows.push({
+      sender_id:me.id,
+      receiver_id:selected,
+      message:"PHOTO:"+path
+    });
+  }
+
+  if(caption){
+    rows.push({
+      sender_id:me.id,
+      receiver_id:selected,
+      message:caption
+    });
+  }
+
+  const {error}=await db.from("messages").insert(rows);
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  cancelChatPhotoPreview();
+  appStatus("Photos send ho gayi!");
+  await loadMessages();
+  }
+
+function previewChatPhotos(input){
+  const files=Array.from(input.files || []);
   const preview=document.getElementById("chatPhotoPreview");
+  const images=document.getElementById("chatPhotoPreviewImages");
+  const count=document.getElementById("chatPhotoCount");
 
-  box.innerHTML="";
+  if(!files.length)return;
 
-  const img=document.createElement("img");
-  img.src=URL.createObjectURL(file);
-  img.dataset.objectUrl=img.src;
-  img.style.maxWidth="100%";
-  img.style.maxHeight="220px";
-  img.style.borderRadius="12px";
+  for(const file of files){
+    if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+      appStatus("Only JPG, PNG and WEBP images are allowed.");
+      input.value="";
+      return;
+    }
 
-  box.appendChild(img);
-  preview.style.display="block";
-}
+    if(file.size>10*1024*1024){
+      appStatus("Each photo must be under 10 MB.");
+      input.value="";
+      return;
+    }
+  }
+
+  images.innerHTML="";
+
+  files.forEach(file=>{
+    const img=document.createElement("img");
+    img.src=URL.createObjectURL(file);
+    img.style.width="100%";
+    img.style.height="180px";
+    img.style.objectFit="contain";
+    img.style.background="#241832";
+    img.style.borderRadius="12px";
+
+    images.appendChild(img);
+  });
+
+  count.innerText=files.length+" photos";
+  preview.style.display="flex";
+  }
 
 function cancelChatPhotoPreview(){
   const box=document.getElementById("chatPhotoPreviewImages");
   const preview=document.getElementById("chatPhotoPreview");
-  const img=box.querySelector("img");
 
-  if(img && img.dataset.objectUrl){
-    URL.revokeObjectURL(img.dataset.objectUrl);
-  }
+  box.querySelectorAll("img").forEach(img=>{
+    if(img.src.startsWith("blob:")){
+      URL.revokeObjectURL(img.src);
+    }
+  });
 
   box.innerHTML="";
   preview.style.display="none";
   document.getElementById("chatPhotoFile").value="";
   document.getElementById("chatPhotoCaption").value="";
+  document.getElementById("chatPhotoCount").innerText="";
   }
 
 async function sendMessage(){
