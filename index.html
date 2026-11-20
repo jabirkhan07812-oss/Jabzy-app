@@ -222,7 +222,7 @@ font-size:12px;
 
 #chatWindow #messages{
   flex:1;
-  min-height:0;
+  min-height:0 !important;
   height:auto;
   overflow-y:auto;
   overscroll-behavior:contain;
@@ -3579,6 +3579,10 @@ emojiBar.style.marginBottom="7px";
   b.style.fontSize="20px";
   b.style.padding="4px";
 
+    b.style.width="auto";
+  b.style.margin="0";
+  b.style.flex="0 0 auto";
+
   b.onclick=()=>{
     toggleChatReaction(m.id,emoji);
     actionMenu.style.display="none";
@@ -3651,6 +3655,34 @@ document.body.appendChild(actionMenu);
 
 function showChatActionMenu(){
   actionMenu.style.display="block";
+  
+    if(actionMenu.outsideTapHandler){
+    document.removeEventListener(
+      "pointerdown",
+      actionMenu.outsideTapHandler,
+      true
+    );
+  }
+
+  actionMenu.outsideTapHandler=(e)=>{
+    if(!actionMenu.contains(e.target)){
+      actionMenu.style.display="none";
+
+      document.removeEventListener(
+        "pointerdown",
+        actionMenu.outsideTapHandler,
+        true
+      );
+
+      actionMenu.outsideTapHandler=null;
+    }
+  };
+
+  document.addEventListener(
+    "pointerdown",
+    actionMenu.outsideTapHandler,
+    true
+  );
 
   const rect=row.getBoundingClientRect();
   const menu=actionMenu.getBoundingClientRect();
