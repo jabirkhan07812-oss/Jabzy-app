@@ -1119,6 +1119,42 @@ box-sizing:border-box;
 </div>
 
   
+<div id="roomsScreen" class="app-screen" style="display:none;padding:15px 12px 90px;">
+  <h2>🎮 Rooms</h2>
+
+  <div style="display:flex;gap:8px;margin:15px 0;">
+    <button id="liveRoomsTab"
+      onclick="showRoomsSection('live')"
+      style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);">
+      🎙️ Live Rooms
+    </button>
+
+    <button id="groupsTab"
+      onclick="showRoomsSection('groups')"
+      style="flex:1;background:#342044;">
+      👥 Groups
+    </button>
+  </div>
+
+  <div id="liveRoomsSection">
+    <h3>🎙️ Live Audio Rooms</h3>
+    <p style="color:#bbb;">Join live voice rooms and play games together.</p>
+    <div id="activeRoomsList">No live rooms yet.</div>
+    <button onclick="createLiveRoom()">＋ Create Room</button>
+  </div>
+
+  <div id="groupsSection" style="display:none;">
+    <h3>👥 My Groups</h3>
+    <div id="myGroupsList">No groups joined yet.</div>
+
+    <h3>🔎 Discover Groups</h3>
+    <div id="discoverGroupsList">No groups available yet.</div>
+
+    <button onclick="createGroup()">＋ Create Group</button>
+  </div>
+</div>
+  
+  
 <div id="notificationsScreen" class="app-screen" style="display:none">
 
   <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1133,12 +1169,15 @@ box-sizing:border-box;
 </div>
   
 
+
 <div class="bottom-nav">
   <button onclick="showTab('home')">🏠<br>Home</button>
   <button onclick="showTab('friends')">👥<br>Friends</button>
   <button onclick="showTab('chats')">💬<br>Chats</button>
+  <button onclick="showTab('rooms')">🎮<br>Rooms</button>
   <button onclick="showTab('profile')">👤<br>Profile</button>
 </div>
+  
   
 </div>
 
@@ -4631,14 +4670,32 @@ document.getElementById("privacyConsent").checked=false;
 showAuthScreen("welcome");
 status("Logged out successfully.");
 }
+
+
+function showRoomsSection(section){
+  const live=document.getElementById("liveRoomsSection");
+  const groups=document.getElementById("groupsSection");
+  const liveTab=document.getElementById("liveRoomsTab");
+  const groupsTab=document.getElementById("groupsTab");
+
+  live.style.display=section==="live"?"block":"none";
+  groups.style.display=section==="groups"?"block":"none";
+
+  liveTab.style.background=section==="live"
+    ?"linear-gradient(90deg,#ff55a8,#a45bea)":"#342044";
+
+  groupsTab.style.background=section==="groups"
+    ?"linear-gradient(90deg,#ff55a8,#a45bea)":"#342044";
+}
+  
   
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
   const screens=[
-    "home","discover","likes","matches","friends",
-"chats","profile","notifications"
-  ];
+  "home","discover","likes","matches","friends",
+  "chats","rooms","profile","notifications"
+];
 
   screens.forEach(name=>{
     const screen=document.getElementById(name+"Screen");
