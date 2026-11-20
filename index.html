@@ -207,7 +207,7 @@ font-size:12px;
   height:100dvh !important;
   min-height:0 !important;
   box-sizing:border-box;
-  display:flex !important;
+  display:flex;
   flex-direction:column;
   overflow:hidden;
   z-index:10000;
@@ -3086,7 +3086,7 @@ startChatRealtime();
   
 showTab("chats");
 document.getElementById("chatList").style.display="none";
-document.getElementById("chatWindow").style.display="block";
+document.getElementById("chatWindow").style.display="flex";
 document.getElementById("messages").style.visibility="hidden";
 const nav=document.querySelector(".bottom-nav");
 if(nav) nav.style.display="none";
