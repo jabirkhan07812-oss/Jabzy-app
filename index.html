@@ -456,6 +456,44 @@ body{
   background:linear-gradient(90deg,#ff55a8,#9657e8);
   border-radius:14px;
     }
+
+    /* JABZY ACCOUNT SETTINGS */
+#accountSettingsPanel{
+  padding:12px;
+  border:1px solid #69427f;
+  border-radius:16px;
+  background:linear-gradient(145deg,#21152f,#171222);
+}
+
+#accountSettingsPanel button{
+  width:100%;
+  display:block;
+  margin:8px 0;
+  padding:13px 12px;
+  text-align:left;
+  color:white;
+  font-size:14px;
+  font-weight:700;
+  border:1px solid #69427f;
+  border-radius:12px;
+  background:linear-gradient(110deg,#30203f,#21172e);
+}
+
+#accountSettingsPanel button:active{
+  background:linear-gradient(90deg,#ff55a8,#9657e8);
+}
+
+#blockedUsersPanel{
+  margin-top:8px;
+  padding:10px;
+  border-radius:12px;
+  background:#100b19;
+}
+
+#blockedUsers button{
+  width:100%;
+  margin:6px 0;
+    }
     
 </style>
 </head>
@@ -679,10 +717,37 @@ accept="image/jpeg,image/png,image/webp">
 <button onclick="cancelEditProfile()">Cancel</button>
 </div>
 
-<h3>Blocked Users 🚫</h3>
-<div id="blockedUsers">No blocked users.</div>
+<!-- ACCOUNT SETTINGS -->
+<div style="margin:22px 0;padding:16px;border:1px solid #69427f;border-radius:18px;background:linear-gradient(145deg,#21152f,#171222);">
 
-<p>Account Settings</p>
+  <button type="button" onclick="toggleAccountSettings()"
+  style="display:flex;justify-content:space-between;align-items:center;margin:0;background:linear-gradient(90deg,#ff55a8,#9657e8);">
+    ⚙️ Account Settings
+    <span>⌄</span>
+  </button>
+
+  <div id="accountSettingsPanel" style="display:none;margin-top:12px;">
+
+    <button type="button" onclick="toggleBlockedUsers()">
+      🚫 Blocked Users
+    </button>
+    <div id="blockedUsersPanel" style="display:none;padding:10px;background:#171222;border-radius:12px;">
+      <div id="blockedUsers">No blocked users.</div>
+    </div>
+
+    <button type="button" onclick="appStatus('Privacy Settings coming soon ❤️')">🔒 Privacy</button>
+    <button type="button" onclick="appStatus('Notification Settings coming soon ❤️')">🔔 Notifications</button>
+    <button type="button" onclick="appStatus('Security Settings coming soon ❤️')">🔑 Security</button>
+    <button type="button" onclick="appStatus('Account Information coming soon ❤️')">📱 Account Information</button>
+    <button type="button" onclick="appStatus('Language Settings coming soon ❤️')">🌐 Language</button>
+    <button type="button" onclick="appStatus('Appearance Settings coming soon ❤️')">🎨 Appearance</button>
+    <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
+    <button type="button" onclick="appStatus('Privacy Policy coming soon ❤️')">📜 Privacy Policy</button>
+    <button type="button" onclick="appStatus('Terms & Conditions coming soon ❤️')">📄 Terms & Conditions</button>
+    <button type="button" onclick="appStatus('About JABZY coming soon ❤️')">ℹ️ About JABZY</button>
+
+  </div>
+</div>
 
 <button id="adminButton"
 style="display:none"
@@ -1051,7 +1116,28 @@ loadMessages();
 })
 .subscribe();
 }
-  
+
+  function toggleAccountSettings(){
+  const panel=document.getElementById("accountSettingsPanel");
+
+  if(!panel)return;
+
+  panel.style.display=
+    panel.style.display==="none" ? "block" : "none";
+}
+
+function toggleBlockedUsers(){
+  const panel=document.getElementById("blockedUsersPanel");
+
+  if(!panel)return;
+
+  const opening=panel.style.display==="none";
+  panel.style.display=opening ? "block" : "none";
+
+  if(opening){
+    loadBlockedUsers();
+  }
+  }
   
 function status(t){
 document.getElementById("status").innerText=t;
