@@ -391,6 +391,71 @@ body{
   margin:0 !important;
   border-radius:0 !important;
     }
+
+    /* PREMIUM MY PROFILE */
+#profileScreen{
+  min-height:100vh;
+  padding:18px 14px 100px;
+  color:white;
+  background:linear-gradient(155deg,#0b0914,#1b1028 55%,#100b1c);
+}
+
+#profileView{
+  text-align:center;
+}
+
+#profileView h2{
+  margin:5px 0 22px;
+  font-size:24px;
+  color:#ff70ae;
+}
+
+#profileView .photo{
+  width:125px;
+  height:125px;
+  border:4px solid transparent;
+  background:linear-gradient(#21152d,#21152d) padding-box,
+             linear-gradient(135deg,#ff55a8,#8b55e9,#35d9ff) border-box;
+  padding:3px;
+}
+
+#profileView h3{
+  margin:12px 0 5px;
+  font-size:22px;
+  color:white;
+}
+
+#profileView p{
+  margin:5px 0;
+  color:#cbb8df;
+}
+
+#profileView .profile-stats{
+  display:flex;
+  gap:10px;
+  margin:22px 0;
+}
+
+#profileView .profile-stats div{
+  flex:1;
+  padding:16px 8px;
+  border:1px solid #69427f;
+  border-radius:16px;
+  background:#21172e;
+  color:#e9d8ff;
+}
+
+#profileView .profile-stats strong{
+  display:block;
+  margin-top:6px;
+  font-size:21px;
+  color:#ff70ae;
+}
+
+#profileView button{
+  background:linear-gradient(90deg,#ff55a8,#9657e8);
+  border-radius:14px;
+    }
     
 </style>
 </head>
@@ -576,21 +641,26 @@ body{
 <div id="profileScreen" class="app-screen">
 
 <div id="profileView">
-<h2>My Profile 👤</h2>
 
-<img id="myPhoto" class="photo hidden" alt="Your photo">
+<div style="text-align:center;padding:10px 8px 20px;">
 
-<h3 id="viewUsername">Your Name</h3>
-<p id="viewAge"></p>
-<p id="viewBio"></p>
+  <div style="font-size:24px;font-weight:900;color:#ff70ae;margin-bottom:20px;">
+    My Profile 👤
+  </div>
 
-<div class="profile-stats">
-  <div>👥 Followers <strong id="myFollowers">0</strong></div>
-  <div>➕ Following <strong id="myFollowing">0</strong></div>
-</div>
+  <img id="myPhoto" class="photo hidden" alt="Your photo">
 
+  <h3 id="viewUsername">Your Name</h3>
+  <p id="viewAge"></p>
+  <p id="viewBio"></p>
 
-<button onclick="openEditProfile()">✏️ Edit Profile</button>
+  <div class="profile-stats">
+    <div>👥 Followers <strong id="myFollowers">0</strong></div>
+    <div>➕ Following <strong id="myFollowing">0</strong></div>
+  </div>
+
+  <button onclick="openEditProfile()">✏️ Edit Profile</button>
+
 </div>
 
 <div id="profileEdit" style="display:none">
@@ -645,9 +715,7 @@ border-radius:12px;
 
 <button onclick="logout()">Logout 🚪</button>
   
-</div>
-
-
+  </div>
 
 <div id="publicProfileView" style="
 display:none;
