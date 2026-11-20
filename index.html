@@ -896,6 +896,11 @@ box-sizing:border-box;
 <div id="chatList" style="display:none;padding:0 14px;margin-top:-8px;">
   <h2 style="margin:0 0 12px;">💬 Chats</h2>
 
+  <button type="button" onclick="clearAllChatsForMe()"
+style="width:100%;margin:8px 0 14px;padding:12px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:12px;font-weight:bold;">
+🗑️ Clear All Chats
+  </button>
+
   <div style="display:flex;gap:8px;margin-bottom:15px;">
     <button id="messagesTab" onclick="showChatSection('messages')" style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:20px;padding:10px;">
       Messages
@@ -940,7 +945,6 @@ box-sizing:border-box;
     <button onclick="muteChat()" class="chat-menu-item">🔕 Mute Notifications</button>
     <button onclick="chatBlockCurrent()" class="chat-menu-item">🚫 Block User</button>
     <button onclick="chatReportCurrent()" class="chat-menu-item">🚩 Report User</button>
-    <button onclick="clearChat()" class="chat-menu-item">🗑️ Clear Chat</button>
   </div>
 
   <div id="messages" style="padding:12px;min-height:55vh;overflow-y:auto;"></div>
@@ -2549,24 +2553,62 @@ function showChatSection(section){
   if(section==="messages") loadChatList();
   if(section==="requests") loadMessageRequests();
 }
-  
+
+  async function clearAllChatsForMe(){
+  const confirmed=confirm(
+    "Are you sure you want to clear all chats? This will remove all chats from your inbox. The other users will still see their messages."
+  );
+
+  if(!confirmed)return;
+
+  const {error}=await db.rpc("clear_all_chats_for_me");
+
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  selected=null;
+  document.getElementById("chatWindow").style.display="none";
+  document.getElementById("chatList").style.display="block";
+
+  await loadChatList();
+  appStatus("All chats cleared from your inbox.");
+  }
     
 async function loadChatList(){
 const box=document.getElementById("chatListItems");
 
 if(!me)return;
 
-const {data:messages,error}=await db.from("messages")
+const {data:clearData,error:clearError}=await db
+.from("user_chat_clears")
+.select("cleared_at")
+.eq("user_id",me.id)
+.maybeSingle();
+
+if(clearError){box.innerText=clearError.message;return}
+
+let chatQuery=db.from("messages")
 .select("sender_id,receiver_id,message,created_at")
-.or("sender_id.eq."+me.id+",receiver_id.eq."+me.id)
+.or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+
+if(clearData?.cleared_at){
+  chatQuery=chatQuery.gt("created_at",clearData.cleared_at);
+}
+
+const {data:messages,error}=await chatQuery
 .order("created_at",{ascending:false});
 
 if(error){box.innerText=error.message;return}
 
-let blocked;
-try{blocked=await getBlockedIds()}
-catch(e){box.innerText=e.message;return}
-
+  let blocked;
+try{
+  blocked=await getBlockedIds();
+}catch(e){
+  box.innerText=e.message;
+  return;
+}
 const latest=new Map();
 
 (messages||[]).forEach(m=>{
@@ -2789,6 +2831,73 @@ appStatus(name+" unblock ho gaya!");
 await loadBlockedUsers();
 await loadPeople();
 await loadMatches();
+}
+
+function showChatMenu(){
+  const menu=document.getElementById("chatOptionsMenu");
+  if(!menu)return;
+
+  menu.style.display=
+    menu.style.display==="none" ? "block" : "none";
+  }
+
+  function searchInChat(){
+  const term=prompt("Chat mein kya search karna hai?");
+  if(!term || !term.trim())return;
+
+  const box=document.getElementById("messages");
+  const rows=Array.from(box.children);
+
+  const found=rows.find(row=>
+    row.innerText.toLowerCase().includes(term.trim().toLowerCase())
+  );
+
+  document.getElementById("chatOptionsMenu").style.display="none";
+
+  if(found){
+    found.scrollIntoView({behavior:"smooth",block:"center"});
+    appStatus("Message mil gaya.");
+  }else{
+    appStatus("Message nahi mila.");
+  }
+}
+
+function chatBlockCurrent(){
+  if(!selected)return;
+  const name=document.getElementById("chatTitle").innerText;
+  document.getElementById("chatOptionsMenu").style.display="none";
+  blockUser(selected,name);
+}
+
+function chatReportCurrent(){
+  if(!selected)return;
+  const name=document.getElementById("chatTitle").innerText;
+  document.getElementById("chatOptionsMenu").style.display="none";
+  reportUser(selected,name);
+  }
+
+  function showChatMedia(){
+  document.getElementById("chatOptionsMenu").style.display="none";
+
+  const box=document.getElementById("messages");
+  const photos=Array.from(box.querySelectorAll("img"));
+
+  if(!photos.length){
+    appStatus("Is chat mein koi photo nahi hai.");
+    return;
+  }
+
+  appStatus("Is chat mein "+photos.length+" photos hain.");
+  photos[0].scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function muteChat(){
+  document.getElementById("chatOptionsMenu").style.display="none";
+  appStatus("Mute Notifications abhi available nahi hai.");
+}
+
+function chatComingSoon(feature){
+  appStatus(feature+" coming soon ❤️");
 }
   
 async function blockUser(targetId,targetName){
@@ -3163,8 +3272,22 @@ appStatus("Blocked user ke saath chat nahi ho sakti.");
 return;
 }
 
-const {data,error}=await db.from("messages").select("*")
-.or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")")
+const {data:clearData,error:clearError}=await db
+.from("user_chat_clears")
+.select("cleared_at")
+.eq("user_id",me.id)
+.maybeSingle();
+
+if(clearError){appStatus(clearError.message);return}
+
+let messageQuery=db.from("messages").select("*")
+.or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")");
+
+if(clearData?.cleared_at){
+  messageQuery=messageQuery.gt("created_at",clearData.cleared_at);
+}
+
+const {data,error}=await messageQuery
 .order("created_at",{ascending:true});
 
 const box=document.getElementById("messages");
@@ -3690,12 +3813,60 @@ appStatus(error.message);
 return;
 }
 
-document.getElementById("chatPhotoFile").value="";
+cancelChatPhotoPreview();
 document.getElementById("message").value="";
 appStatus("Photo send ho gayi!");
 await loadMessages();
 }
-  
+
+  function previewChatPhotos(input){
+  const file=input.files && input.files[0];
+  if(!file)return;
+
+  const ext={"image/jpeg":1,"image/png":1,"image/webp":1};
+
+  if(!ext[file.type]){
+    appStatus("JPG, PNG ya WEBP photo select karein.");
+    input.value="";
+    return;
+  }
+
+  if(file.size>10*1024*1024){
+    appStatus("Photo 10 MB se chhoti honi chahiye.");
+    input.value="";
+    return;
+  }
+
+  const box=document.getElementById("chatPhotoPreviewImages");
+  const preview=document.getElementById("chatPhotoPreview");
+
+  box.innerHTML="";
+
+  const img=document.createElement("img");
+  img.src=URL.createObjectURL(file);
+  img.dataset.objectUrl=img.src;
+  img.style.maxWidth="100%";
+  img.style.maxHeight="220px";
+  img.style.borderRadius="12px";
+
+  box.appendChild(img);
+  preview.style.display="block";
+}
+
+function cancelChatPhotoPreview(){
+  const box=document.getElementById("chatPhotoPreviewImages");
+  const preview=document.getElementById("chatPhotoPreview");
+  const img=box.querySelector("img");
+
+  if(img && img.dataset.objectUrl){
+    URL.revokeObjectURL(img.dataset.objectUrl);
+  }
+
+  box.innerHTML="";
+  preview.style.display="none";
+  document.getElementById("chatPhotoFile").value="";
+  document.getElementById("chatPhotoCaption").value="";
+  }
 
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
