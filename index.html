@@ -1191,6 +1191,117 @@ style="display:none;padding:15px 12px 100px;">
   </div>
 
   </div>
+
+  
+<!-- JABZY JOINED ROOM SCREEN -->
+<div id="joinedRoomScreen" style="
+display:none;
+position:fixed;
+inset:0;
+z-index:10001;
+background:#100b1c;
+color:white;
+padding:12px;
+overflow-y:auto;
+">
+
+  <!-- ROOM HEADER -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button onclick="minimizeJoinedRoom()" style="width:42px;padding:10px;margin:0;background:#342044;">←</button>
+    <div style="flex:1;min-width:0;">
+      <b id="joinedRoomName">JABZY Room</b>
+      <div style="font-size:12px;color:#ff70ae;">
+        🔴 LIVE · <span id="joinedRoomMemberCount">1</span> Members
+      </div>
+    </div>
+    <button onclick="leaveJoinedRoom()" style="width:auto;padding:10px;margin:0;background:#a83245;">Leave</button>
+  </div>
+
+  <!-- SPEAKERS -->
+  <h3>🎤 Speakers</h3>
+  <div id="roomSpeakers" style="
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    text-align:center;
+    padding:15px 5px;
+    background:#21152f;
+    border-radius:16px;
+  ">
+    <div>🎙️<br><small>Room Owner</small></div>
+  </div>
+
+  <!-- LISTENERS -->
+  <h3>👥 Listeners</h3>
+  <div id="roomListeners" style="
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    padding:12px;
+    background:#21152f;
+    border-radius:16px;
+  ">No listeners yet.</div>
+
+  <!-- ROOM CHAT -->
+  <h3>💬 Room Chat</h3>
+  <div id="roomChatMessages" style="
+    height:220px;
+    overflow-y:auto;
+    background:#1b1328;
+    border-radius:15px;
+    padding:12px;
+  ">Welcome to JABZY Room!</div>
+
+  <div style="display:flex;gap:7px;margin-top:8px;">
+    <input id="roomChatInput" placeholder="Message..." style="flex:1;min-width:0;margin:0;">
+    <button onclick="sendRoomChatMessage()" style="width:55px;margin:0;">➤</button>
+  </div>
+
+  <!-- ROOM CONTROLS -->
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:7px;
+    margin-top:20px;
+    text-align:center;
+  ">
+    <button onclick="toggleRoomMic()" style="margin:0;padding:12px 2px;font-size:11px;">🎤<br>Mic</button>
+    <button onclick="toggleRoomSpeaker()" style="margin:0;padding:12px 2px;font-size:11px;">🔊<br>Speaker</button>
+    <button onclick="openRoomGift()" style="margin:0;padding:12px 2px;font-size:11px;">🎁<br>Gift</button>
+    <button onclick="shareJoinedRoom()" style="margin:0;padding:12px 2px;font-size:11px;">↗<br>Share</button>
+    <button onclick="openRoomMoreMenu()" style="margin:0;padding:12px 2px;font-size:11px;">⋯<br>More</button>
+  </div>
+
+  <div id="roomMoreMenu" style="display:none;background:#241632;padding:12px;border-radius:14px;margin-top:10px;">
+  </div>
+
+</div>
+
+<!-- MINI ROOM BAR -->
+<div id="miniRoomBar" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+z-index:10002;
+background:#241632;
+border-bottom:2px solid #a45bea;
+padding:8px 10px;
+color:white;
+">
+  <div style="font-size:13px;font-weight:bold;margin-bottom:7px;">
+    🎮 <span id="miniRoomName">JABZY Room</span> · 🔴 LIVE ·
+    <span id="miniRoomMemberCount">1</span> Members
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;">
+    <button onclick="toggleRoomMic()" style="width:auto;margin:0;padding:7px;background:#342044;font-size:11px;">🎤 Mic</button>
+    <button onclick="toggleRoomSpeaker()" style="width:auto;margin:0;padding:7px;background:#342044;font-size:11px;">🔊 Speaker</button>
+    <button onclick="openJoinedRoom()" style="width:auto;margin:0;padding:7px;background:#a45bea;font-size:11px;">↗ Open</button>
+    <button onclick="leaveJoinedRoom()" style="width:auto;margin:0;padding:7px;background:#a83245;font-size:11px;">✕ Leave</button>
+  </div>
+</div>
+  
   
 <div id="notificationsScreen" class="app-screen" style="display:none">
 
@@ -4834,8 +4945,11 @@ async function endLiveRoom(roomId){
   alert("Room ended successfully!");
   await loadActiveRooms();
 }
+  
+let currentJoinedRoom = null;
+let roomChatChannel = null;
+let roomMembersChannel = null;
 
- 
 async function joinLiveRoom(room){
   let error;
 
@@ -4844,7 +4958,7 @@ async function joinLiveRoom(room){
       p_room_id: room.id
     }));
   } else {
-    const code = prompt("Private Room ka code/password daalo:");
+    const code = prompt("Private Room ka password daalo:");
     if(!code) return;
 
     ({error} = await db.rpc("join_private_room_with_code", {
@@ -4858,10 +4972,412 @@ async function joinLiveRoom(room){
     return;
   }
 
-  alert("Room successfully joined!");
-  await loadActiveRooms();
+  currentJoinedRoom = room;
+  openJoinedRoom();
+
+  const {count} = await db
+    .from("live_room_members")
+    .select("user_id", {count:"exact", head:true})
+    .eq("room_id", room.id);
+
+  if(count !== null){
+    document.getElementById("joinedRoomMemberCount").textContent = count;
+    document.getElementById("miniRoomMemberCount").textContent = count;
+  }
 }
 
+async function openJoinedRoom(){
+  if(!currentJoinedRoom) return;
+
+  document.getElementById("joinedRoomName").textContent =
+    currentJoinedRoom.name;
+
+  document.getElementById("miniRoomName").textContent =
+    currentJoinedRoom.name;
+
+  document.getElementById("miniRoomBar").style.display = "none";
+  document.getElementById("joinedRoomScreen").style.display = "block";
+
+  document.querySelectorAll(".app-screen").forEach(screen => {
+    screen.style.display = "none";
+  });
+
+  document.querySelector(".bottom-nav").style.display = "none";
+
+  await loadRoomChatMessages();
+  await loadRoomParticipants();
+
+  if(roomChatChannel){
+    await db.removeChannel(roomChatChannel);
+  }
+
+  roomChatChannel = db
+    .channel("room-chat-" + currentJoinedRoom.id)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "live_room_messages",
+      filter: "room_id=eq." + currentJoinedRoom.id
+    }, () => {
+      loadRoomChatMessages();
+    })
+    .subscribe();
+  
+  if(roomMembersChannel){
+  await db.removeChannel(roomMembersChannel);
+}
+
+roomMembersChannel = db
+  .channel("room-members-" + currentJoinedRoom.id)
+  .on("postgres_changes", {
+    event: "*",
+    schema: "public",
+    table: "live_room_members",
+    filter: "room_id=eq." + currentJoinedRoom.id
+  }, () => {
+    loadRoomParticipants();
+  })
+  .subscribe();
+}
+
+function minimizeJoinedRoom(){
+  document.getElementById("joinedRoomScreen").style.display = "none";
+  document.getElementById("miniRoomBar").style.display = "block";
+  showTab("rooms");
+}
+
+  async function leaveJoinedRoom(){
+  if(roomChatChannel){
+  await db.removeChannel(roomChatChannel);
+  roomChatChannel = null;
+  }
+
+  if(roomMembersChannel){
+  await db.removeChannel(roomMembersChannel);
+  roomMembersChannel = null;
+}
+  
+  if(!currentJoinedRoom) return;
+
+  const isOwner = currentJoinedRoom.created_by === me.id;
+
+  const confirmText = isOwner
+    ? "Room End karna chahte hain?"
+    : "Room se Leave karna chahte hain?";
+
+  if(!confirm(confirmText)) return;
+
+  const rpcName = isOwner ? "end_live_room" : "leave_live_room";
+
+  const {error} = await db.rpc(rpcName, {
+    p_room_id: currentJoinedRoom.id
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  currentJoinedRoom = null;
+
+  document.getElementById("joinedRoomScreen").style.display = "none";
+  document.getElementById("miniRoomBar").style.display = "none";
+
+  showTab("rooms");
+  await loadActiveRooms();
+  await loadMyPrivateRooms();
+}
+
+  let roomMicOn = false;
+let roomSpeakerOn = true;
+
+function toggleRoomMic(){
+  roomMicOn = !roomMicOn;
+
+  document.querySelectorAll('[onclick="toggleRoomMic()"]').forEach(btn => {
+    btn.textContent = roomMicOn ? "🎤 Mic ON" : "🎤 Mic OFF";
+  });
+}
+
+function toggleRoomSpeaker(){
+  roomSpeakerOn = !roomSpeakerOn;
+
+  document.querySelectorAll('[onclick="toggleRoomSpeaker()"]').forEach(btn => {
+    btn.textContent = roomSpeakerOn
+      ? "🔊 Speaker ON"
+      : "🔇 Speaker OFF";
+  });
+}
+
+ async function loadRoomParticipants(){
+  if(!currentJoinedRoom) return;
+
+  const speakersBox = document.getElementById("roomSpeakers");
+  const listenersBox = document.getElementById("roomListeners");
+
+  const {data:members, error} = await db
+    .from("live_room_members")
+    .select("user_id,role,audio_role")
+    .eq("room_id", currentJoinedRoom.id);
+
+  if(error){
+    speakersBox.textContent = error.message;
+    return;
+  }
+
+  const ids = (members || []).map(m => m.user_id);
+
+  const {data:profiles, error:profileError} = await db
+    .from("profiles")
+    .select("id,username,age,photo_url")
+    .in("id", ids);
+
+  if(profileError){
+    listenersBox.textContent = profileError.message;
+    return;
+  }
+
+  speakersBox.replaceChildren();
+  listenersBox.replaceChildren();
+
+  (members || []).forEach(member => {
+    const profile = (profiles || []).find(p => p.id === member.user_id);
+
+    const card = document.createElement("div");
+    card.style.textAlign = "center";
+    card.style.padding = "8px";
+
+    if(profile?.photo_url){
+      const img = document.createElement("img");
+      img.src = profile.photo_url;
+      img.style.width = "48px";
+      img.style.height = "48px";
+      img.style.borderRadius = "50%";
+      img.style.objectFit = "cover";
+      card.appendChild(img);
+    } else {
+      const avatar = document.createElement("div");
+      avatar.textContent = "👤";
+      avatar.style.fontSize = "32px";
+      card.appendChild(avatar);
+    }
+
+    const name = document.createElement("div");
+    name.textContent = profile?.username || "Member";
+    card.appendChild(name);
+
+    const label = document.createElement("small");
+    label.textContent = member.role === "owner" ? "Owner" : "";
+    card.appendChild(label);
+    if(currentJoinedRoom.created_by === me.id){
+  const roleBtn = document.createElement("button");
+
+  roleBtn.textContent =
+    member.audio_role === "speaker"
+      ? "Make Listener"
+      : "Make Speaker";
+
+  roleBtn.style.fontSize = "10px";
+  roleBtn.style.padding = "6px";
+  roleBtn.style.marginTop = "5px";
+
+  roleBtn.onclick = async () => {
+    const newRole =
+      member.audio_role === "speaker"
+        ? "listener"
+        : "speaker";
+
+    const {error} = await db.rpc("set_room_audio_role", {
+      p_room_id: currentJoinedRoom.id,
+      p_user_id: member.user_id,
+      p_audio_role: newRole
+    });
+
+    if(error){
+      alert(error.message);
+      return;
+    }
+
+    await loadRoomParticipants();
+  };
+
+  card.appendChild(roleBtn);
+  }
+
+    if(member.audio_role === "speaker"){
+      speakersBox.appendChild(card);
+    } else {
+      listenersBox.appendChild(card);
+    }
+  });
+
+  if(!speakersBox.children.length){
+    speakersBox.textContent = "No speakers yet.";
+  }
+
+  if(!listenersBox.children.length){
+    listenersBox.textContent = "No listeners yet.";
+  }
+
+  document.getElementById("joinedRoomMemberCount").textContent =
+    members.length;
+
+  document.getElementById("miniRoomMemberCount").textContent =
+    members.length;
+}
+
+  async function loadRoomChatMessages(){
+  if(!currentJoinedRoom) return;
+
+  const box = document.getElementById("roomChatMessages");
+
+  const {data, error} = await db
+    .from("live_room_messages")
+    .select("user_id,message,created_at")
+    .eq("room_id", currentJoinedRoom.id)
+    .order("created_at", {ascending:true});
+
+  if(error){
+    box.textContent = error.message;
+    return;
+  }
+
+  box.replaceChildren();
+
+  (data || []).forEach(msg => {
+    const item = document.createElement("div");
+    item.style.marginBottom = "10px";
+
+    const sender = document.createElement("b");
+    sender.textContent = msg.user_id === me.id ? "You: " : "Member: ";
+
+    const content = document.createElement("span");
+    content.textContent = msg.message;
+
+    item.append(sender, content);
+    box.appendChild(item);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendRoomChatMessage(){
+  if(!currentJoinedRoom) return;
+
+  const input = document.getElementById("roomChatInput");
+  const message = input.value.trim();
+
+  if(!message) return;
+
+  const {error} = await db
+    .from("live_room_messages")
+    .insert({
+      room_id: currentJoinedRoom.id,
+      user_id: me.id,
+      message: message
+    });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  input.value = "";
+  await loadRoomChatMessages();
+}
+
+async function shareJoinedRoom(){
+  if(!currentJoinedRoom) return;
+
+  const shareData = {
+    title: "JABZY Room Invitation",
+    text: "Join my JABZY Room: " + currentJoinedRoom.name,
+    url: window.location.href
+  };
+
+  try{
+    if(navigator.share){
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(
+        shareData.text + "\n" + shareData.url
+      );
+      alert("Room link copied!");
+    }
+  }catch(error){
+    if(error.name !== "AbortError"){
+      alert("Share nahi ho paya.");
+    }
+  }
+}
+
+  function openRoomMoreMenu(){
+  if(!currentJoinedRoom) return;
+
+  const menu = document.getElementById("roomMoreMenu");
+  menu.style.display =
+    menu.style.display === "block" ? "none" : "block";
+
+  const isOwner = currentJoinedRoom.created_by === me.id;
+
+  menu.replaceChildren();
+
+  const options = isOwner
+    ? [
+        ["👥 Invite Members", "invite"],
+        ["⚙️ Room Settings", "settings"],
+        ["🔴 End Room", "end"]
+      ]
+    : [
+        ["👥 Room Members", "members"],
+        ["⚙️ Settings", "settings"],
+        ["🚩 Report Room", "report"]
+      ];
+
+  options.forEach(([label, action]) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.style.width = "100%";
+    btn.style.margin = "5px 0";
+
+    btn.onclick = () => {
+      menu.style.display = "none";
+
+      if(action === "end"){
+        leaveJoinedRoom();
+      } else if(action === "members"){
+        document.getElementById("roomSpeakers").scrollIntoView({
+          behavior:"smooth"
+        });
+      } else if(action === "invite"){
+        alert("Invite Members feature agle step mein connect karenge.");
+      } else if(action === "settings"){
+        alert("Room Settings agle step mein connect karenge.");
+      } else if(action === "report"){
+  const reason = prompt("Room report karne ka reason likhein:");
+
+  if(!reason || reason.trim().length < 3){
+    alert("Please valid reason likhein.");
+    return;
+  }
+
+  const {error} = await db.rpc("report_live_room", {
+    p_room_id: currentJoinedRoom.id,
+    p_reason: reason.trim()
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Room report successfully submitted.");
+}
+    };
+
+    menu.appendChild(btn);
+  });
+                  }
 
 async function joinPrivateRoomByCode(){
   const roomCode = document.getElementById("privateRoomId").value.trim();
