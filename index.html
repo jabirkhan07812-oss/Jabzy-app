@@ -1143,10 +1143,7 @@ box-sizing:border-box;
     <button onclick="createLiveRoom()">＋ Create Room</button>
   </div>
 
-  <h3>📩 Private Room Invitations</h3>
- <div id="privateRoomInvitesList">
-  No pending invitations.
- </div>
+
   
   <div id="groupsSection" style="display:none;">
     <h3>👥 My Groups</h3>
@@ -3853,6 +3850,48 @@ row.addEventListener("contextmenu",e=>{
   showChatActionMenu();
 });
 
+  const {data:roomInvites,error:roomInviteError}=await db.rpc(
+  "get_chat_room_invites",
+  {p_other_user:selected}
+);
+
+if(roomInviteError){
+  appStatus(roomInviteError.message);
+} else {
+  (roomInvites || []).forEach(invite=>{
+    const card=document.createElement("div");
+    card.style.cssText=
+      "background:#241632;padding:14px;margin:12px;border-radius:12px;text-align:center;";
+
+    const title=document.createElement("b");
+    title.textContent="🔒 Private Room Invitation";
+
+    const message=document.createElement("p");
+    message.textContent="आपके दोस्त ने आपको एक Private Room में बुलाया है।";
+
+    const roomName=document.createElement("p");
+    roomName.textContent="🎮 "+invite.room_name;
+
+    const info=document.createElement("p");
+    info.textContent=invite.category+" · Private Room";
+
+    card.append(title,message,roomName,info);
+
+    if(invite.invited_user_id===me.id){
+      const joinBtn=document.createElement("button");
+      joinBtn.textContent="Join";
+      joinBtn.onclick=()=>acceptPrivateRoomInvite(invite.room_id);
+      card.appendChild(joinBtn);
+    } else {
+      const sent=document.createElement("p");
+      sent.textContent="Invitation sent";
+      card.appendChild(sent);
+    }
+
+    fragment.appendChild(card);
+  });
+  }
+
 fragment.appendChild(row);
       }
 
@@ -5081,9 +5120,9 @@ async function loadMyPrivateRooms(){
 
   alert("Private Room successfully joined!");
 
-  await loadPrivateRoomInvites();
   await loadMyPrivateRooms();
-}
+  await loadMessages();
+  }
 
 async function loadPrivateRoomInvites(){
   const box = document.getElementById("privateRoomInvitesList");
