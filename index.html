@@ -3850,7 +3850,11 @@ row.addEventListener("contextmenu",e=>{
   showChatActionMenu();
 });
 
-  const {data:roomInvites,error:roomInviteError}=await db.rpc(
+
+fragment.appendChild(row);
+      }
+
+    const {data:roomInvites,error:roomInviteError}=await db.rpc(
   "get_chat_room_invites",
   {p_other_user:selected}
 );
@@ -3890,11 +3894,9 @@ if(roomInviteError){
 
     fragment.appendChild(card);
   });
-  }
-
-fragment.appendChild(row);
-      }
-
+}
+  
+  
   box.replaceChildren(fragment);
 
   box.scrollTop=box.scrollHeight;
