@@ -5124,47 +5124,6 @@ async function loadMyPrivateRooms(){
   await loadMessages();
   }
 
-async function loadPrivateRoomInvites(){
-  const box = document.getElementById("privateRoomInvitesList");
-  if(!box) return;
-
-  box.innerText = "Loading invitations...";
-
-  const {data, error} = await db
-    .from("room_invites")
-    .select("room_id, invited_by, created_at")
-    .eq("invited_user_id", me.id)
-    .order("created_at", {ascending:false});
-
-  if(error){
-    box.innerText = error.message;
-    return;
-  }
-
-  if(!data || data.length === 0){
-    box.innerText = "No pending invitations.";
-    return;
-  }
-
-  box.innerHTML = "";
-
-  data.forEach(invite => {
-    const card = document.createElement("div");
-    card.style.cssText =
-      "background:#241632;padding:12px;margin:10px 0;border-radius:12px;";
-
-    const title = document.createElement("b");
-    title.textContent = "🔒 Private Room Invitation";
-
-    const btn = document.createElement("button");
-    btn.textContent = "Accept & Join";
-    btn.onclick = () => acceptPrivateRoomInvite(invite.room_id);
-
-    card.append(title, btn);
-    box.appendChild(card);
-  });
-  }
-
 async function loadActiveRooms(){
   const box = document.getElementById("activeRoomsList");
   box.innerText = "Loading rooms...";
@@ -5279,7 +5238,6 @@ function showTab(tab){
 if(tab==="rooms"){
   loadActiveRooms();
   loadMyPrivateRooms();
-  loadPrivateRoomInvites();
 }
   
   if(tab==="friends"){
