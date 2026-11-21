@@ -4670,7 +4670,66 @@ document.getElementById("privacyConsent").checked=false;
 showAuthScreen("welcome");
 status("Logged out successfully.");
 }
+  
+async function createGroup(){
+  const name = prompt("Group ka naam likho:");
+  if(!name || !name.trim()) return;
 
+  const description = prompt("Group ke baare mein likho:");
+  if(description === null) return;
+
+  const visibility = prompt("Public ya Private group?");
+  if(!visibility) return;
+
+  const {data, error} = await db.rpc("create_community_group", {
+    p_name: name.trim(),
+    p_description: description.trim(),
+    p_visibility: visibility.trim().toLowerCase()
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Group successfully created!");
+}
+  
+async function createLiveRoom(){
+  const name = prompt("Room ka naam likho:");
+  if(!name || !name.trim()) return;
+
+  const category = prompt("Category likho: Gaming ya Social");
+  if(!category) return;
+
+  const roomType = "audio";
+
+  const visibility = prompt("Public ya Private?");
+  if(!visibility) return;
+
+  let code = null;
+
+  if(visibility.toLowerCase() === "private"){
+    code = prompt("Private Room ka password/code banao:");
+    if(!code) return;
+  }
+
+  const {data, error} = await db.rpc("create_live_room", {
+    p_name: name.trim(),
+    p_category: category.trim(),
+    p_room_type: roomType,
+    p_visibility: visibility.trim().toLowerCase(),
+    p_code: code
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Room successfully created!");
+  }
+  
 
 function showRoomsSection(section){
   const live=document.getElementById("liveRoomsSection");
