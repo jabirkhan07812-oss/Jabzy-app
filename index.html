@@ -1118,56 +1118,48 @@ box-sizing:border-box;
 
 </div>
 
-  
-<div id="roomsScreen" class="app-screen" style="display:none;padding:15px 12px 90px;">
-  <h2>🎮 Rooms</h2>
+  <div id="roomsScreen" class="app-screen"
+style="display:none;padding:15px 12px 100px;">
 
-  <div style="display:flex;gap:8px;margin:15px 0;">
+  <h2>👑 JABZY ROOMS</h2>
+
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+    margin:15px 0;
+  ">
+
+    <button onclick="createLiveRoom()"
+    style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:linear-gradient(135deg,#ff55a8,#a45bea);"
+      ＋<br>Create
+    </button>
+
     <button id="liveRoomsTab"
-      onclick="showRoomsSection('live')"
-      style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);">
-      🎙️ Live Rooms
+    onclick="showRoomsSection('live')"
+    style="padding:12px 3px;font-size:11px;">
+      🎙️<br>Rooms
     </button>
 
     <button id="groupsTab"
-      onclick="showRoomsSection('groups')"
-      style="flex:1;background:#342044;">
-      👥 Groups
+  onclick="showRoomsSection('groups')"
+  style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
+  👥<br>Groups
     </button>
+
+    <button id="privateRoomsTab"
+  onclick="showRoomsSection('private')"
+  style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
+  🔒<br>Private
+    </button>
+
   </div>
 
   <div id="liveRoomsSection">
-    <h3>🎙️ Live Audio Rooms</h3>
-    <p style="color:#bbb;">Join live voice rooms and play games together.</p>
+    <h3>🔥 Live Rooms</h3>
     <div id="activeRoomsList">No live rooms yet.</div>
-    <button onclick="createLiveRoom()">＋ Create Room</button>
   </div>
 
-  <h3>🔒 My Private Rooms</h3>
-  <div id="myPrivateRoomsList">
-  No private rooms joined yet.
-  </div>
-
-  <h3>🔑 Join Private Room</h3>
-
-<input
-  type="text"
-  id="privateRoomId"
-  placeholder="8-digit Room ID"
-  maxlength="8"
-  inputmode="numeric"
->
-
-<input
-  type="password"
-  id="privateRoomCode"
-  placeholder="Room Password"
->
-
-<button onclick="joinPrivateRoomByCode()">
-  Join Private Room
-</button>
-  
   <div id="groupsSection" style="display:none;">
     <h3>👥 My Groups</h3>
     <div id="myGroupsList">No groups joined yet.</div>
@@ -1177,8 +1169,28 @@ box-sizing:border-box;
 
     <button onclick="createGroup()">＋ Create Group</button>
   </div>
-</div>
-  
+
+  <div id="privateRoomsSection" style="display:none;">
+    <h3>🔒 My Private Rooms</h3>
+    <div id="myPrivateRoomsList">
+      No private rooms joined yet.
+    </div>
+
+    <h3>🔑 Join Private Room</h3>
+
+    <input type="text" id="privateRoomId"
+      placeholder="8-digit Room ID"
+      maxlength="8" inputmode="numeric">
+
+    <input type="password" id="privateRoomCode"
+      placeholder="Room Password">
+
+    <button onclick="joinPrivateRoomByCode()">
+      Join Private Room
+    </button>
+  </div>
+
+  </div>
   
 <div id="notificationsScreen" class="app-screen" style="display:none">
 
@@ -5202,23 +5214,33 @@ async function loadActiveRooms(){
   });
   }
     
-
 function showRoomsSection(section){
-  const live=document.getElementById("liveRoomsSection");
-  const groups=document.getElementById("groupsSection");
-  const liveTab=document.getElementById("liveRoomsTab");
-  const groupsTab=document.getElementById("groupsTab");
+  const sections = {
+    live: "liveRoomsSection",
+    groups: "groupsSection",
+    private: "privateRoomsSection"
+  };
 
-  live.style.display=section==="live"?"block":"none";
-  groups.style.display=section==="groups"?"block":"none";
+  const tabs = {
+    live: "liveRoomsTab",
+    groups: "groupsTab",
+    private: "privateRoomsTab"
+  };
 
-  liveTab.style.background=section==="live"
-    ?"linear-gradient(90deg,#ff55a8,#a45bea)":"#342044";
+  Object.keys(sections).forEach(key => {
+    document.getElementById(sections[key]).style.display =
+      key === section ? "block" : "none";
 
-  groupsTab.style.background=section==="groups"
-    ?"linear-gradient(90deg,#ff55a8,#a45bea)":"#342044";
+    document.getElementById(tabs[key]).style.background =
+      key === section
+        ? "linear-gradient(90deg,#ff55a8,#a45bea)"
+        : "#342044";
+  });
+
+  if(section === "private"){
+    loadMyPrivateRooms();
+  }
 }
-  
   
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
