@@ -4731,14 +4731,31 @@ async function createLiveRoom(){
   await loadActiveRooms();
   }
 
-  
+
+
+async function endLiveRoom(roomId){
+  if(!confirm("Kya aap is Room ko end karna chahte hain?")) return;
+
+  const {error} = await db.rpc("end_live_room", {
+    p_room_id: roomId
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Room ended successfully!");
+  await loadActiveRooms();
+}
+
 async function loadActiveRooms(){
   const box = document.getElementById("activeRoomsList");
   box.innerText = "Loading rooms...";
 
   const {data, error} = await db
     .from("live_rooms")
-    .select("id,name,category,room_type,visibility,status,created_at")
+    .select("id,name,category,room_type,visibility,status,created_at,created_by")
     .eq("status", "active")
     .order("created_at", {ascending:false});
 
@@ -4767,10 +4784,18 @@ async function loadActiveRooms(){
       room.category + " • " + room.room_type + " • " + room.visibility;
 
     card.append(title, info);
+
+    if(room.created_by === me.id){
+      const endBtn = document.createElement("button");
+      endBtn.textContent = "End Room";
+      endBtn.onclick = () => endLiveRoom(room.id);
+      card.appendChild(endBtn);
+    }
+
     box.appendChild(card);
   });
   }
-  
+    
 
 function showRoomsSection(section){
   const live=document.getElementById("liveRoomsSection");
