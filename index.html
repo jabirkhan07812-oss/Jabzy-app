@@ -4728,6 +4728,47 @@ async function createLiveRoom(){
   }
 
   alert("Room successfully created!");
+  await loadActiveRooms();
+  }
+
+  
+async function loadActiveRooms(){
+  const box = document.getElementById("activeRoomsList");
+  box.innerText = "Loading rooms...";
+
+  const {data, error} = await db
+    .from("live_rooms")
+    .select("id,name,category,room_type,visibility,status,created_at")
+    .eq("status", "active")
+    .order("created_at", {ascending:false});
+
+  if(error){
+    box.innerText = error.message;
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerText = "No live rooms yet.";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  data.forEach(room => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#241632;padding:12px;margin:10px 0;border-radius:12px;";
+
+    const title = document.createElement("b");
+    title.textContent = room.name;
+
+    const info = document.createElement("p");
+    info.textContent =
+      room.category + " • " + room.room_type + " • " + room.visibility;
+
+    card.append(title, info);
+    box.appendChild(card);
+  });
   }
   
 
@@ -4787,6 +4828,7 @@ function showTab(tab){
   }
 
   if(tab==="matches") loadMatches();
+  if(tab==="rooms") loadActiveRooms();
   if(tab==="friends"){
   showFriendsSection("requests");
   }
