@@ -675,6 +675,12 @@ body{
     </div>
   </div>
 
+  
+<!-- JABZY HOME AD -->
+<div id="homeAds" style="margin:12px 0;"></div>
+<!-- END HOME AD -->
+  
+
 <!-- INSTAGRAM STYLE STORIES -->
 <div style="margin:0 -12px 16px;padding:0 12px;">
   <div style="display:flex;gap:15px;overflow-x:auto;padding:5px 0 10px;scrollbar-width:none;">
@@ -852,6 +858,61 @@ margin:10px 0;
 border:1px solid #888;
 border-radius:12px;
 "></div>
+
+  
+<!-- JABZY ADS MANAGER -->
+<div id="adminAdsManager" style="
+  background:#21152f;
+  padding:14px;
+  margin:15px 0;
+  border-radius:14px;
+">
+  <h3>📢 JABZY Ads Manager</h3>
+
+  <h4>📊 Ads Overview</h4>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">
+    <div style="background:#342044;padding:10px;border-radius:10px;">
+      <b id="totalAds">0</b><br>
+      <small>Total Ads</small>
+    </div>
+    <div style="background:#342044;padding:10px;border-radius:10px;">
+      <b id="activeAds">0</b><br>
+      <small>Active Ads</small>
+    </div>
+    <div style="background:#342044;padding:10px;border-radius:10px;">
+      <b id="totalAdClicks">0</b><br>
+      <small>Clicks</small>
+    </div>
+  </div>
+
+  <h4>＋ Create New Ad</h4>
+
+  <input id="adTitle" placeholder="Ad Title">
+  <input id="adAdvertiser" placeholder="Business / Advertiser Name">
+
+  <select id="adType">
+    <option value="banner">Banner Ad</option>
+    <option value="sponsored">Sponsored Post</option>
+    <option value="video">Video Ad</option>
+  </select>
+
+  <select id="adPlacement">
+    <option value="home">Home</option>
+    <option value="reels">Reels</option>
+    <option value="rooms">Rooms</option>
+  </select>
+
+  <input id="adImageUrl" placeholder="Ad Image URL">
+  <input id="adTargetUrl" placeholder="Business Website / Link">
+
+  <button onclick="createJabzyAd()">＋ Save Ad</button>
+
+  <h4>📋 Manage Advertisements</h4>
+  <div id="adminAdsList">No advertisements yet.</div>
+</div>
+<!-- END JABZY ADS MANAGER -->
+  
 
 <button onclick="closeAdminDashboard()">← Back to Profile</button>
 </div>
@@ -1122,6 +1183,9 @@ box-sizing:border-box;
 style="display:none;padding:15px 12px 100px;">
 
   <h2>👑 JABZY ROOMS</h2>
+    <!-- JABZY ROOMS AD -->
+<div id="roomsAds" style="margin:12px 0;"></div>
+<!-- END ROOMS AD -->
 
   <div style="
     display:grid;
@@ -4425,12 +4489,129 @@ document.getElementById("adminUsers").innerText="Loading...";
 await loadAdminReports();
 await loadAdminUsers();
 await loadAdminAllChats();
+await loadAdminAds();
 }
 
 function closeAdminDashboard(){
 document.getElementById("adminDashboard").style.display="none";
 }
 
+
+async function createJabzyAd(){
+  const title = document.getElementById("adTitle").value.trim();
+  const advertiser = document.getElementById("adAdvertiser").value.trim();
+  const type = document.getElementById("adType").value;
+  const placement = document.getElementById("adPlacement").value;
+  const image = document.getElementById("adImageUrl").value.trim();
+  const target = document.getElementById("adTargetUrl").value.trim();
+
+  if(!title || !advertiser){
+    alert("Ad Title aur Business Name likhein.");
+    return;
+  }
+
+  const {error} = await db.from("jabzy_ads").insert({
+    title: title,
+    advertiser_name: advertiser,
+    ad_type: type,
+    placement: placement,
+    image_url: image || null,
+    target_url: target || null
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Ad successfully saved. Ab approval ke liye pending hai.");
+
+  document.getElementById("adTitle").value = "";
+  document.getElementById("adAdvertiser").value = "";
+  document.getElementById("adImageUrl").value = "";
+  document.getElementById("adTargetUrl").value = "";
+
+  await loadAdminAds();
+}
+
+async function loadAdminAds(){
+  const box = document.getElementById("adminAdsList");
+  if(!box) return;
+
+  box.textContent = "Loading Ads...";
+
+  const {data:ads,error} = await db
+    .from("jabzy_ads")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  if(error){
+    box.textContent = error.message;
+    return;
+  }
+
+  const total = ads.length;
+  const active = ads.filter(a => a.status === "active").length;
+  const clicks = ads.reduce((sum,a) => sum + Number(a.clicks || 0),0);
+
+  document.getElementById("totalAds").textContent = total;
+  document.getElementById("activeAds").textContent = active;
+  document.getElementById("totalAdClicks").textContent = clicks;
+
+  box.replaceChildren();
+
+  if(!total){
+    box.textContent = "No advertisements yet.";
+    return;
+  }
+
+  ads.forEach(ad => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#342044;padding:12px;margin:10px 0;border-radius:12px;";
+
+    const title = document.createElement("b");
+    title.textContent = ad.title;
+    card.appendChild(title);
+
+    const details = document.createElement("p");
+    details.textContent =
+      ad.advertiser_name + " · " + ad.ad_type +
+      " · " + ad.placement + " · " + ad.status;
+    card.appendChild(details);
+
+    const statusOptions = [
+      ["active","Approve / Activate"],
+      ["paused","Pause"],
+      ["rejected","Reject"]
+    ];
+
+    statusOptions.forEach(([status,label]) => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.style.cssText = "width:auto;margin:4px;padding:8px;";
+
+      btn.onclick = async () => {
+        const {error} = await db
+          .from("jabzy_ads")
+          .update({status})
+          .eq("id",ad.id);
+
+        if(error){
+          alert(error.message);
+          return;
+        }
+
+        await loadAdminAds();
+      };
+
+      card.appendChild(btn);
+    });
+
+    box.appendChild(card);
+  });
+    }
+           
 
 async function loadAdminReports(){
 
@@ -5757,7 +5938,73 @@ function showRoomsSection(section){
     loadMyPrivateRooms();
   }
 }
-  
+
+async function loadJabzyAds(placement){
+  const box = document.getElementById(
+    placement === "home" ? "homeAds" : "roomsAds"
+  );
+
+  if(!box) return;
+
+  box.replaceChildren();
+
+  const {data:ads,error} = await db
+    .from("jabzy_ads")
+    .select("id,title,advertiser_name,ad_type,image_url,target_url")
+    .eq("placement",placement)
+    .eq("status","active")
+    .in("ad_type",["banner","sponsored"])
+    .order("created_at",{ascending:false});
+
+  if(error){
+    console.error("Ads loading error:",error.message);
+    return;
+  }
+
+  (ads || []).forEach(ad => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#21152f;border:1px solid #49315d;padding:10px;margin:10px 0;border-radius:14px;";
+
+    const label = document.createElement("small");
+    label.textContent = "Sponsored · " + ad.advertiser_name;
+    label.style.color = "#cbb8df";
+    card.appendChild(label);
+
+    const title = document.createElement("div");
+    title.textContent = ad.title;
+    title.style.cssText = "font-weight:bold;margin:7px 0;";
+    card.appendChild(title);
+
+    if(ad.image_url){
+      const img = document.createElement("img");
+      img.src = ad.image_url;
+      img.alt = ad.title;
+      img.style.cssText =
+        "width:100%;max-height:220px;object-fit:cover;border-radius:10px;";
+      card.appendChild(img);
+    }
+
+    if(ad.target_url){
+      try{
+        const url = new URL(ad.target_url);
+        if(url.protocol === "https:" || url.protocol === "http:"){
+          const link = document.createElement("a");
+          link.href = url.href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Learn More";
+          link.style.cssText =
+            "display:inline-block;margin-top:10px;color:#ff70ae;";
+          card.appendChild(link);
+        }
+      }catch(e){}
+    }
+
+    box.appendChild(card);
+  });
+}
+    
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
@@ -5774,6 +6021,10 @@ function showTab(tab){
       screen.style.display=name===tab?"block":"none";
     }
   });
+
+  if(tab==="home"){
+  loadJabzyAds("home");
+  }
 
     if(tab==="chats"){
     const chatScreen=document.getElementById("matchesScreen");
@@ -5801,6 +6052,7 @@ function showTab(tab){
 if(tab==="rooms"){
   loadActiveRooms();
   loadMyPrivateRooms();
+  loadJabzyAds("rooms");
 }
   
   if(tab==="friends"){
