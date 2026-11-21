@@ -1143,7 +1143,30 @@ box-sizing:border-box;
     <button onclick="createLiveRoom()">＋ Create Room</button>
   </div>
 
+  <h3>🔒 My Private Rooms</h3>
+  <div id="myPrivateRoomsList">
+  No private rooms joined yet.
+  </div>
 
+  <h3>🔑 Join Private Room</h3>
+
+<input
+  type="text"
+  id="privateRoomId"
+  placeholder="8-digit Room ID"
+  maxlength="8"
+  inputmode="numeric"
+>
+
+<input
+  type="password"
+  id="privateRoomCode"
+  placeholder="Room Password"
+>
+
+<button onclick="joinPrivateRoomByCode()">
+  Join Private Room
+</button>
   
   <div id="groupsSection" style="display:none;">
     <h3>👥 My Groups</h3>
