@@ -1143,6 +1143,11 @@ box-sizing:border-box;
     <button onclick="createLiveRoom()">＋ Create Room</button>
   </div>
 
+  <h3>📩 Private Room Invitations</h3>
+ <div id="privateRoomInvitesList">
+  No pending invitations.
+ </div>
+  
   <div id="groupsSection" style="display:none;">
     <h3>👥 My Groups</h3>
     <div id="myGroupsList">No groups joined yet.</div>
@@ -4695,6 +4700,7 @@ async function createGroup(){
   alert("Group successfully created!");
 }
   
+
 async function createLiveRoom(){
   const name = prompt("Room ka naam likho:");
   if(!name || !name.trim()) return;
@@ -4707,19 +4713,12 @@ async function createLiveRoom(){
   const visibility = prompt("Public ya Private?");
   if(!visibility) return;
 
-  let code = null;
-
-  if(visibility.toLowerCase() === "private"){
-    code = prompt("Private Room ka password/code banao:");
-    if(!code) return;
-  }
-
   const {data, error} = await db.rpc("create_live_room", {
     p_name: name.trim(),
     p_category: category.trim(),
     p_room_type: roomType,
     p_visibility: visibility.trim().toLowerCase(),
-    p_code: code
+    p_code: null
   });
 
   if(error){
@@ -4727,10 +4726,21 @@ async function createLiveRoom(){
     return;
   }
 
-  alert("Room successfully created!");
-  await loadActiveRooms();
+  if(data && data.password){
+    alert(
+      "Private Room Created!\n\n" +
+      "Room ID: " + data.room_code +
+      "\nPassword: " + data.password +
+      "\n\nYe details sirf aapko dikhayi jayengi. Inhe save kar lein."
+    );
+  } else {
+    alert("Public Room successfully created!");
   }
 
+  await loadActiveRooms();
+  await loadMyPrivateRooms();
+      }
+    
 
 
 async function endLiveRoom(roomId){
@@ -4749,6 +4759,373 @@ async function endLiveRoom(roomId){
   await loadActiveRooms();
 }
 
+ 
+async function joinLiveRoom(room){
+  let error;
+
+  if(room.visibility === "public"){
+    ({error} = await db.rpc("join_public_live_room", {
+      p_room_id: room.id
+    }));
+  } else {
+    const code = prompt("Private Room ka code/password daalo:");
+    if(!code) return;
+
+    ({error} = await db.rpc("join_private_room_with_code", {
+      p_room_id: room.id,
+      p_code: code
+    }));
+  }
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Room successfully joined!");
+  await loadActiveRooms();
+}
+
+
+async function joinPrivateRoomByCode(){
+  const roomCode = document.getElementById("privateRoomId").value.trim();
+  const code = document.getElementById("privateRoomCode").value;
+
+  if(!roomCode || !code){
+    alert("8-digit Room ID aur Password dono daalo.");
+    return;
+  }
+
+  if(!/^\d{8}$/.test(roomCode)){
+    alert("Room ID exactly 8 digits ki honi chahiye.");
+    return;
+  }
+
+  const {error} = await db.rpc("join_private_room_by_code", {
+    p_room_code: roomCode,
+    p_code: code
+  });
+
+  if(error){
+    alert("Room ID ya Password galat hai.");
+    return;
+  }
+
+  document.getElementById("privateRoomId").value = "";
+  document.getElementById("privateRoomCode").value = "";
+
+  alert("Private Room successfully joined!");
+
+  await loadMyPrivateRooms();
+}
+  
+
+async function leaveLiveRoom(roomId){
+  if(!confirm("Kya aap Room chhodna chahte hain?")) return;
+
+  const {error} = await db.rpc("leave_live_room", {
+    p_room_id: roomId
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Aap Room se bahar aa gaye.");
+  await loadMyPrivateRooms();
+  await loadActiveRooms();
+}
+
+async function loadMyPrivateRooms(){
+  const box = document.getElementById("myPrivateRoomsList");
+  if(!box) return;
+
+  box.innerText = "Loading private rooms...";
+
+  const {data, error} = await db
+    .from("live_rooms")
+    .select("id,name,category,room_type,visibility,created_by")
+    .eq("status", "active")
+    .eq("visibility", "private")
+    .order("created_at", {ascending:false});
+
+  if(error){
+    box.innerText = error.message;
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerText = "No private rooms joined yet.";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  data.forEach(room => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#241632;padding:12px;margin:10px 0;border-radius:12px;";
+
+    const title = document.createElement("b");
+    title.textContent = "🔒 " + room.name;
+
+    const info = document.createElement("p");
+    info.textContent = room.category + " • Private";
+
+    card.append(title, info);
+
+    const btn = document.createElement("button");
+
+    if(room.created_by === me.id){
+      btn.textContent = "End Room";
+      btn.onclick = () => endLiveRoom(room.id);
+    } else {
+      btn.textContent = "Leave Room";
+      btn.onclick = () => leaveLiveRoom(room.id);
+    }
+
+    card.appendChild(btn);
+    box.appendChild(card);
+  });
+}
+
+
+async function invitePrivateRoomUser(roomId, userId){
+  const {error} = await db
+    .from("room_invites")
+    .insert({
+      room_id: roomId,
+      invited_user_id: userId,
+      invited_by: me.id
+    });
+
+  if(error){
+    alert(error.code === "23505"
+      ? "User ko pehle hi invite bheja gaya hai."
+      : error.message);
+    return;
+  }
+
+  alert("Invitation sent successfully!");
+}
+
+async function loadMyPrivateRooms(){
+  const box = document.getElementById("myPrivateRoomsList");
+  if(!box) return;
+
+  box.innerText = "Loading private rooms...";
+
+  const {data, error} = await db
+    .from("live_rooms")
+    .select("id,name,category,room_type,visibility,created_by")
+    .eq("status", "active")
+    .eq("visibility", "private")
+    .order("created_at", {ascending:false});
+
+  if(error){
+    box.innerText = error.message;
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerText = "No private rooms joined yet.";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  for(const room of data){
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#241632;padding:14px;margin:12px 0;border-radius:14px;";
+
+    const title = document.createElement("b");
+    title.textContent = "🔒 " + room.name;
+
+    const info = document.createElement("p");
+    info.textContent = room.category + " • Private";
+
+    card.append(title, info);
+
+    if(room.created_by === me.id){
+
+      const search = document.createElement("input");
+      search.placeholder = "Search username...";
+      search.style.cssText = "width:100%;padding:11px;margin:8px 0;";
+
+      const searchBtn = document.createElement("button");
+      searchBtn.textContent = "🔎 Search & Invite";
+
+      const results = document.createElement("div");
+
+      searchBtn.onclick = async () => {
+        const username = search.value.trim();
+        if(!username){
+          alert("Username daalo.");
+          return;
+        }
+
+        const {data:users, error} = await db
+          .from("profiles")
+          .select("id,username")
+          .ilike("username", "%" + username + "%")
+          .neq("id", me.id)
+          .limit(10);
+
+        if(error){
+          alert(error.message);
+          return;
+        }
+
+        results.innerHTML = "";
+
+        if(!users || users.length === 0){
+          results.innerText = "User nahi mila.";
+          return;
+        }
+
+        users.forEach(user => {
+          const row = document.createElement("div");
+          row.style.cssText = "padding:8px;margin:5px 0;";
+
+          const name = document.createElement("span");
+          name.textContent = "@" + user.username + " ";
+
+          const btn = document.createElement("button");
+          btn.textContent = "Invite";
+          btn.onclick = () =>
+            invitePrivateRoomUser(room.id, user.id);
+
+          row.append(name, btn);
+          results.appendChild(row);
+        });
+      };
+
+      const friendsTitle = document.createElement("h4");
+      friendsTitle.textContent = "👥 Invite Friends";
+
+      const friendSelect = document.createElement("select");
+      friendSelect.style.cssText = "width:100%;padding:11px;margin:8px 0;";
+
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Select a friend";
+      friendSelect.appendChild(option);
+
+      const {data:requests, error:friendError} = await db
+        .from("friend_requests")
+        .select("sender_id,receiver_id")
+        .eq("status", "accepted")
+        .or("sender_id.eq." + me.id + ",receiver_id.eq." + me.id);
+
+      if(!friendError && requests){
+        const ids = [...new Set(requests.map(r =>
+          r.sender_id === me.id ? r.receiver_id : r.sender_id
+        ))];
+
+        if(ids.length){
+          const {data:friends} = await db
+            .from("profiles")
+            .select("id,username")
+            .in("id", ids);
+
+          (friends || []).forEach(friend => {
+            const opt = document.createElement("option");
+            opt.value = friend.id;
+            opt.textContent = "@" + friend.username;
+            friendSelect.appendChild(opt);
+          });
+        }
+      }
+
+      const friendBtn = document.createElement("button");
+      friendBtn.textContent = "Invite Selected Friend";
+      friendBtn.onclick = () => {
+        if(!friendSelect.value){
+          alert("Pehle friend select karo.");
+          return;
+        }
+        invitePrivateRoomUser(room.id, friendSelect.value);
+      };
+
+      const endBtn = document.createElement("button");
+      endBtn.textContent = "End Room";
+      endBtn.onclick = () => endLiveRoom(room.id);
+
+      card.append(
+        search, searchBtn, results,
+        friendsTitle, friendSelect, friendBtn, endBtn
+      );
+
+    } else {
+      const leaveBtn = document.createElement("button");
+      leaveBtn.textContent = "Leave Room";
+      leaveBtn.onclick = () => leaveLiveRoom(room.id);
+      card.appendChild(leaveBtn);
+    }
+
+    box.appendChild(card);
+  }
+  }
+
+  async function acceptPrivateRoomInvite(roomId){
+  const {error} = await db.rpc("join_invited_private_room", {
+    p_room_id: roomId
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  alert("Private Room successfully joined!");
+
+  await loadPrivateRoomInvites();
+  await loadMyPrivateRooms();
+}
+
+async function loadPrivateRoomInvites(){
+  const box = document.getElementById("privateRoomInvitesList");
+  if(!box) return;
+
+  box.innerText = "Loading invitations...";
+
+  const {data, error} = await db
+    .from("room_invites")
+    .select("room_id, invited_by, created_at")
+    .eq("invited_user_id", me.id)
+    .order("created_at", {ascending:false});
+
+  if(error){
+    box.innerText = error.message;
+    return;
+  }
+
+  if(!data || data.length === 0){
+    box.innerText = "No pending invitations.";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  data.forEach(invite => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "background:#241632;padding:12px;margin:10px 0;border-radius:12px;";
+
+    const title = document.createElement("b");
+    title.textContent = "🔒 Private Room Invitation";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Accept & Join";
+    btn.onclick = () => acceptPrivateRoomInvite(invite.room_id);
+
+    card.append(title, btn);
+    box.appendChild(card);
+  });
+  }
+
 async function loadActiveRooms(){
   const box = document.getElementById("activeRoomsList");
   box.innerText = "Loading rooms...";
@@ -4757,6 +5134,7 @@ async function loadActiveRooms(){
     .from("live_rooms")
     .select("id,name,category,room_type,visibility,status,created_at,created_by")
     .eq("status", "active")
+     .eq("visibility", "public")
     .order("created_at", {ascending:false});
 
   if(error){
@@ -4790,6 +5168,11 @@ async function loadActiveRooms(){
       endBtn.textContent = "End Room";
       endBtn.onclick = () => endLiveRoom(room.id);
       card.appendChild(endBtn);
+    } else {
+      const joinBtn = document.createElement("button");
+      joinBtn.textContent = "Join Room";
+      joinBtn.onclick = () => joinLiveRoom(room);
+      card.appendChild(joinBtn);
     }
 
     box.appendChild(card);
@@ -4853,7 +5236,13 @@ function showTab(tab){
   }
 
   if(tab==="matches") loadMatches();
-  if(tab==="rooms") loadActiveRooms();
+
+if(tab==="rooms"){
+  loadActiveRooms();
+  loadMyPrivateRooms();
+  loadPrivateRoomInvites();
+}
+  
   if(tab==="friends"){
   showFriendsSection("requests");
   }
