@@ -971,7 +971,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Appearance Settings coming soon ❤️')">🎨 Appearance</button>
     <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
     <button type="button" onclick="appStatus('Privacy Policy coming soon ❤️')">📜 Privacy Policy</button>
-    <button type="button" onclick="appStatus('Terms & Conditions coming soon ❤️')">📄 Terms & Conditions</button>
+    <button type="button" onclick="openTermsConditions()">📄 Terms & Conditions</button>
     <button type="button" onclick="openAboutApp()">ℹ️ About App</button>
     <button type="button" onclick="openUserSupport('feedback')">💬 Feedback</button>
     <button type="button" onclick="openUserSupport('help')">❓ Help &amp; Support</button>
@@ -988,6 +988,36 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <p id="userSupportHint" style="font-size:13px;color:#d4c8df;">Apna feedback likhein.</p>
     <textarea id="userSupportMessage" rows="5" maxlength="3000" placeholder="Yahan apni baat likhein..." style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;background:#130f1d;color:white;border:1px solid #665276;resize:vertical;"></textarea>
     <button id="userSupportSubmit" type="button" onclick="submitUserSupport()" style="margin-top:12px;">Submit</button>
+  </div>
+</div>
+
+<div id="termsConditionsModal" style="display:none;position:fixed;inset:0;z-index:100070;background:#090711ee;padding:16px;box-sizing:border-box;overflow-y:auto;">
+  <div style="width:100%;max-width:600px;margin:18px auto;background:linear-gradient(145deg,#30203f,#171222);border:1px solid #8154a7;border-radius:20px;padding:20px;box-sizing:border-box;color:white;">
+    <h2 style="margin:4px 0 8px;color:#ff80bd;">JABZY Terms &amp; Conditions</h2>
+    <p style="font-size:12px;color:#bfaed0;">Last updated: 23 November 2026</p>
+    <p>Welcome to JABZY. By creating an account or using the app, you agree to these Terms. If you do not agree, please do not use JABZY.</p>
+    <h3>1. Age requirement</h3>
+    <p>JABZY is intended only for people aged 18 years or older. You must provide accurate information and must not use the app if you are under 18.</p>
+    <h3>2. Your account</h3>
+    <p>You are responsible for keeping your login details secure and for activity carried out through your account. Do not impersonate another person or create accounts using false or misleading information.</p>
+    <h3>3. Respectful behaviour</h3>
+    <p>Do not harass, threaten, bully, stalk, exploit, or abuse other users. Respect other people's boundaries and privacy.</p>
+    <h3>4. Content rules</h3>
+    <p>Do not post or share illegal, hateful, threatening, sexually exploitative, non-consensual, misleading, or otherwise harmful content. You must have the rights and permissions needed to share photos, videos, messages, and other material.</p>
+    <h3>5. Safety and reporting</h3>
+    <p>You can report content or users that appear to violate these Terms. JABZY may review reports and take appropriate action to help protect the community.</p>
+    <h3>6. Moderation and account action</h3>
+    <p>We may remove content, restrict features, suspend, or disable accounts when we reasonably believe these Terms or applicable law have been violated, or when action is needed to protect users or the service.</p>
+    <h3>7. Privacy</h3>
+    <p>Your use of JABZY is also subject to the app's Privacy Policy and notices. Do not share another person's personal information without permission. Information may be reviewed by authorised admins for safety, reports, and moderation as described in the app's privacy notice.</p>
+    <h3>8. Service availability</h3>
+    <p>We work to keep JABZY available and secure, but features may change, be interrupted, or become unavailable. We do not guarantee uninterrupted or error-free service.</p>
+    <h3>9. Disclaimer</h3>
+    <p>Users are responsible for their interactions and the content they share. Use care when communicating with people online. To the extent permitted by applicable law, JABZY is provided without a guarantee that every user or user-submitted item is genuine, accurate, or safe.</p>
+    <h3>10. Changes and contact</h3>
+    <p>We may update these Terms from time to time. Continued use after an update means you accept the revised Terms. For questions or support, contact <a href="mailto:jabzyofficial@gmail.com" style="color:#ff80bd;">jabzyofficial@gmail.com</a>.</p>
+    <p style="font-size:12px;color:#bfaed0;">These in-app terms are a general starting point and should be reviewed by a qualified legal professional for your business and applicable laws.</p>
+    <button type="button" onclick="closeTermsConditions()" style="margin-top:12px;">Close</button>
   </div>
 </div>
 
@@ -1747,7 +1777,9 @@ loadMessages(true);
 .subscribe();
 }
 
-  function openAboutApp(){const modal=document.getElementById("aboutAppModal");if(modal)modal.style.display="flex";}
+  function openTermsConditions(){const modal=document.getElementById("termsConditionsModal");if(modal)modal.style.display="block";}
+function closeTermsConditions(){const modal=document.getElementById("termsConditionsModal");if(modal)modal.style.display="none";}
+function openAboutApp(){const modal=document.getElementById("aboutAppModal");if(modal)modal.style.display="flex";}
 function closeAboutApp(){const modal=document.getElementById("aboutAppModal");if(modal)modal.style.display="none";}
 
 let activeUserSupportCategory="feedback";
