@@ -790,31 +790,43 @@ body{
 <!-- END HOME AD -->
   
 
-<!-- INSTAGRAM STYLE STORIES -->
+<!-- LIVE JABZY STORIES -->
 <div style="margin:0 -12px 16px;padding:0 12px;">
-  <div style="display:flex;gap:15px;overflow-x:auto;padding:5px 0 10px;scrollbar-width:none;">
-
-    <div style="flex:0 0 65px;text-align:center;">
-      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
-        <div style="width:100%;height:100%;border-radius:50%;background:#21152d;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:25px;">＋</div>
+  <div id="jabzyStoriesRow" style="display:flex;gap:14px;overflow-x:auto;padding:5px 0 10px;scrollbar-width:none;">
+    <button type="button" onclick="openStoryUpload()" style="flex:0 0 68px;width:68px;padding:0;margin:0;background:none;border:0;color:white;">
+      <div style="width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
+        <div style="width:100%;height:100%;border-radius:50%;background:#21152d;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:27px;">＋</div>
       </div>
       <div style="font-size:11px;margin-top:6px;">Your Story</div>
+    </button>
+    <div id="jabzyStoryFriends" style="display:flex;gap:14px;"></div>
+  </div>
+</div>
+<div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711ed;padding:24px;overflow:auto;">
+  <div style="max-width:430px;margin:45px auto;background:#21152d;border:1px solid #634477;border-radius:18px;padding:18px;color:white;">
+    <div style="display:flex;justify-content:space-between;align-items:center;"><b>＋ Add Story</b><button onclick="closeStoryUpload()" style="width:auto;margin:0;padding:5px 10px;">✕</button></div>
+    <input id="storyMediaFile" type="file" accept="image/*,video/*" style="margin-top:18px;">
+    <input id="storyCaption" type="text" maxlength="180" placeholder="Add a caption..." style="margin-top:10px;">
+    <button id="storyUploadBtn" onclick="uploadJabzyStory()" style="margin-top:12px;">Share Story</button>
+    <p id="storyUploadStatus" style="font-size:12px;color:#d9c4e8;"></p>
+  </div>
+</div>
+<div id="storyViewerModal" style="display:none;position:fixed;inset:0;z-index:100002;background:#08060df5;color:white;padding:12px;overflow:auto;">
+  <div style="max-width:500px;height:calc(100dvh - 24px);min-height:500px;margin:auto;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 2px;"><b id="storyViewerUser">Story</b><button onclick="closeJabzyStory()" style="width:auto;margin:0;padding:5px 12px;">✕</button></div>
+    <div id="storyViewerMedia" style="flex:1;min-height:280px;display:flex;align-items:center;justify-content:center;background:#15101d;border-radius:14px;overflow:hidden;"></div>
+    <div id="storyViewerCaption" style="padding:9px 4px;font-size:13px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+      <button id="storyLikeBtn" onclick="toggleJabzyStoryLike()" style="width:auto;margin:0;border-radius:22px;">🤍 Like</button>
+      <button id="storyViewersBtn" onclick="toggleStoryViewers()" style="width:auto;margin:0;border-radius:22px;">👀 Viewers</button>
+      <button id="storyDeleteBtn" onclick="deleteJabzyStory()" style="display:none;width:auto;margin:0;border-radius:22px;">🗑️</button>
     </div>
-
-    <div style="flex:0 0 65px;text-align:center;">
-      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
-        <div style="width:100%;height:100%;border-radius:50%;background:#30203f;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:24px;">👥</div>
-      </div>
-      <div style="font-size:11px;margin-top:6px;">Friends</div>
+    <div id="storyViewersList" style="display:none;max-height:130px;overflow:auto;background:#21152d;border-radius:10px;padding:8px;font-size:12px;"></div>
+    <div id="storyCommentsList" style="flex:0 0 auto;max-height:150px;overflow:auto;background:#171020;border-radius:10px;padding:8px;font-size:12px;"></div>
+    <div style="display:flex;gap:7px;padding:8px 0;">
+      <input id="storyCommentInput" placeholder="Reply to story..." maxlength="1000" style="flex:1;margin:0;border-radius:22px;">
+      <button onclick="sendJabzyStoryComment()" style="width:auto;margin:0;border-radius:22px;">Send</button>
     </div>
-
-    <div style="flex:0 0 65px;text-align:center;">
-      <div style="width:58px;height:58px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;">
-        <div style="width:100%;height:100%;border-radius:50%;background:#30203f;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:24px;">🎮</div>
-      </div>
-      <div style="font-size:11px;margin-top:6px;">Gamers</div>
-    </div>
-
   </div>
 </div>
 
@@ -7045,6 +7057,175 @@ async function loadJabzyAds(placement){
   });
 }
     
+
+// ================= JABZY STORIES =================
+let activeJabzyStory = null;
+let activeJabzyStoryOwner = false;
+let jabzyStoryRows = [];
+
+function openStoryUpload(){
+  if(!me){alert("Please login first.");return;}
+  document.getElementById("storyUploadModal").style.display="block";
+}
+function closeStoryUpload(){
+  document.getElementById("storyUploadModal").style.display="none";
+}
+async function uploadJabzyStory(){
+  const file=document.getElementById("storyMediaFile").files[0];
+  const caption=document.getElementById("storyCaption").value.trim();
+  const status=document.getElementById("storyUploadStatus");
+  const btn=document.getElementById("storyUploadBtn");
+  if(!file){status.textContent="Photo ya video select karein.";return;}
+  if(!file.type.startsWith("image/") && !file.type.startsWith("video/")){status.textContent="Only photo/video allowed.";return;}
+  if(file.size>50*1024*1024){status.textContent="File 50 MB se chhoti honi chahiye.";return;}
+  btn.disabled=true;status.textContent="Uploading...";
+  const ext=(file.name.split(".").pop()||"file").replace(/[^a-zA-Z0-9]/g,"");
+  const path=me.id+"/"+Date.now()+"."+ext;
+  const {error:upErr}=await db.storage.from("stories").upload(path,file,{contentType:file.type,upsert:false});
+  if(upErr){status.textContent=upErr.message;btn.disabled=false;return;}
+  const {data:urlData}=db.storage.from("stories").getPublicUrl(path);
+  const {error:insertErr}=await db.from("stories").insert({
+    user_id:me.id,media_url:urlData.publicUrl,
+    media_type:file.type.startsWith("video/")?"video":"image",
+    caption:caption||null
+  });
+  if(insertErr){
+    await db.storage.from("stories").remove([path]);
+    status.textContent=insertErr.message;btn.disabled=false;return;
+  }
+  document.getElementById("storyMediaFile").value="";
+  document.getElementById("storyCaption").value="";
+  status.textContent="Story shared successfully ❤️";
+  await loadJabzyStories();
+  setTimeout(closeStoryUpload,650);
+  btn.disabled=false;
+}
+async function loadJabzyStories(){
+  const row=document.getElementById("jabzyStoryFriends");
+  if(!row || !me)return;
+  const {data:stories,error}=await db.from("stories").select("*").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:true});
+  if(error){row.textContent=error.message;return;}
+  jabzyStoryRows=stories||[];
+  const groups=new Map();
+  jabzyStoryRows.forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,[]);groups.get(s.user_id).push(s);});
+  const ids=[...groups.keys()];
+  let profiles=[];
+  if(ids.length){
+    const result=await db.from("profiles").select("id,username").in("id",ids);
+    profiles=result.data||[];
+  }
+  const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
+  row.replaceChildren();
+  [...groups.entries()].forEach(([userId,list])=>{
+    const btn=document.createElement("button");
+    btn.type="button";btn.style.cssText="flex:0 0 68px;width:68px;padding:0;margin:0;background:none;border:0;color:white;";
+    const ring=document.createElement("div");
+    ring.style.cssText="width:60px;height:60px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#ffca55,#ff4fa3,#9b55ed);margin:auto;";
+    const inner=document.createElement("div");
+    inner.style.cssText="width:100%;height:100%;border-radius:50%;background:#30203f;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;overflow:hidden;";
+    const thumb=document.createElement("img");thumb.src=list[list.length-1].media_url;thumb.style.cssText="width:100%;height:100%;object-fit:cover;";
+    inner.appendChild(thumb);ring.appendChild(inner);
+    const label=document.createElement("div");label.textContent=userId===me.id?"Your Story":names[userId]||"User";label.style.cssText="font-size:11px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+    btn.append(ring,label);btn.onclick=()=>openJabzyStory(userId,0);row.appendChild(btn);
+  });
+}
+async function openJabzyStory(userId,index){
+  const list=jabzyStoryRows.filter(s=>s.user_id===userId);
+  const story=list[index];if(!story)return;
+  activeJabzyStory=story;activeJabzyStoryOwner=story.user_id===me.id;
+  document.getElementById("storyViewerModal").style.display="block";
+  document.getElementById("storyViewersList").style.display="none";
+  document.getElementById("storyViewerUser").textContent=userId===me.id?"Your Story":"Story";
+  document.getElementById("storyViewerCaption").textContent=story.caption||"";
+  const media=document.getElementById("storyViewerMedia");media.replaceChildren();
+  const el=document.createElement(story.media_type==="video"?"video":"img");
+  el.src=story.media_url;el.style.cssText="width:100%;height:100%;max-height:58vh;object-fit:contain;";
+  if(story.media_type==="video"){el.controls=true;el.autoplay=true;el.playsInline=true;}
+  media.appendChild(el);
+  document.getElementById("storyDeleteBtn").style.display=activeJabzyStoryOwner?"block":"none";
+  document.getElementById("storyLikeBtn").style.display=activeJabzyStoryOwner?"none":"block";
+  document.getElementById("storyViewersBtn").style.display=activeJabzyStoryOwner?"block":"none";
+  if(!activeJabzyStoryOwner){
+    const {error}=await db.from("story_views").upsert({story_id:story.id,viewer_id:me.id,viewed_at:new Date().toISOString()},{onConflict:"story_id,viewer_id",ignoreDuplicates:true});
+    if(error)console.warn("Story view:",error.message);
+    await refreshStoryLikeButton();
+  }
+  await loadStoryComments();
+}
+async function refreshStoryLikeButton(){
+  const {data}=await db.from("story_views").select("liked_at").eq("story_id",activeJabzyStory.id).eq("viewer_id",me.id).maybeSingle();
+  const liked=!!data?.liked_at;
+  const btn=document.getElementById("storyLikeBtn");btn.textContent=liked?"❤️ Liked":"🤍 Like";btn.style.background=liked?"#8d245d":"#352343";
+}
+async function toggleJabzyStoryLike(){
+  if(!activeJabzyStory || activeJabzyStoryOwner)return;
+  const {data}=await db.from("story_views").select("id,liked_at").eq("story_id",activeJabzyStory.id).eq("viewer_id",me.id).maybeSingle();
+  const {error}=await db.from("story_views").update({liked_at:data?.liked_at?null:new Date().toISOString()}).eq("story_id",activeJabzyStory.id).eq("viewer_id",me.id);
+  if(error){alert(error.message);return;}
+  await refreshStoryLikeButton();
+}
+async function toggleStoryViewers(){
+  const box=document.getElementById("storyViewersList");
+  box.style.display=box.style.display==="none"?"block":"none";
+  if(box.style.display==="none")return;
+  box.textContent="Loading...";
+  const {data,error}=await db.from("story_views").select("viewer_id,viewed_at,liked_at").eq("story_id",activeJabzyStory.id).order("liked_at",{ascending:false,nullsFirst:false}).order("viewed_at",{ascending:false});
+  if(error){box.textContent=error.message;return;}
+  const ids=[...new Set((data||[]).map(v=>v.viewer_id))];
+  let profiles=[];
+  if(ids.length){const p=await db.from("profiles").select("id,username").in("id",ids);profiles=p.data||[];}
+  const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
+  box.replaceChildren();
+  (data||[]).forEach(v=>{
+    const line=document.createElement("div");line.style.cssText="padding:6px;border-bottom:1px solid #493454;";
+    line.textContent=(names[v.viewer_id]||"User")+(v.liked_at?"  ❤️":"  · Viewed");
+    box.appendChild(line);
+  });
+  if(!data?.length)box.textContent="No viewers yet.";
+}
+async function loadStoryComments(){
+  const box=document.getElementById("storyCommentsList");box.textContent="Loading...";
+  const {data,error}=await db.from("story_comments").select("*").eq("story_id",activeJabzyStory.id).order("created_at",{ascending:true});
+  if(error){box.textContent=error.message;return;}
+  const ids=[...new Set((data||[]).map(x=>x.user_id))];
+  let profiles=[];if(ids.length){const p=await db.from("profiles").select("id,username").in("id",ids);profiles=p.data||[];}
+  const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
+  box.replaceChildren();
+  (data||[]).forEach(comment=>{
+    const line=document.createElement("div");line.style.cssText="padding:5px 2px;";
+    const strong=document.createElement("b");strong.textContent=names[comment.user_id]||"User";
+    const span=document.createElement("span");span.textContent=" "+comment.comment;
+    line.append(strong,span);
+    if(comment.parent_comment_id)line.style.paddingLeft="18px";
+    const reply=document.createElement("button");reply.textContent="Reply";reply.style.cssText="width:auto;padding:2px 7px;margin:0 0 0 6px;font-size:10px;";
+    reply.onclick=()=>{const input=document.getElementById("storyCommentInput");input.value="@"+(names[comment.user_id]||"User")+" ";input.dataset.parent=comment.id;input.focus();};
+    line.appendChild(reply);box.appendChild(line);
+  });
+  if(!data?.length)box.textContent="No comments yet. Be the first!";
+}
+async function sendJabzyStoryComment(){
+  const input=document.getElementById("storyCommentInput");const comment=input.value.trim();
+  if(!comment || !activeJabzyStory)return;
+  const parent=input.dataset.parent||null;
+  const {error}=await db.from("story_comments").insert({story_id:activeJabzyStory.id,user_id:me.id,parent_comment_id:parent,comment});
+  if(error){alert(error.message);return;}
+  input.value="";delete input.dataset.parent;await loadStoryComments();
+}
+async function deleteJabzyStory(){
+  if(!activeJabzyStoryOwner || !activeJabzyStory)return;
+  if(!confirm("Delete this story?"))return;
+  const story=activeJabzyStory;
+  const path=story.media_url.split("/stories/").pop();
+  const {error}=await db.from("stories").delete().eq("id",story.id).eq("user_id",me.id);
+  if(error){alert(error.message);return;}
+  if(path)await db.storage.from("stories").remove([decodeURIComponent(path)]);
+  closeJabzyStory();await loadJabzyStories();
+}
+function closeJabzyStory(){
+  const media=document.getElementById("storyViewerMedia");media.querySelectorAll("video").forEach(v=>v.pause());media.replaceChildren();
+  document.getElementById("storyViewerModal").style.display="none";activeJabzyStory=null;
+}
+
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
@@ -7064,6 +7245,7 @@ function showTab(tab){
 
   if(tab==="home"){
   loadJabzyAds("home");
+  loadJabzyStories();
   }
 
     if(tab==="chats"){
