@@ -1603,7 +1603,7 @@ if(
 (m.sender_id===me.id&&m.receiver_id===selected)||
 (m.sender_id===selected&&m.receiver_id===me.id)
 ){
-loadMessages();
+loadMessages(true);
 }
 })
 .subscribe();
@@ -3768,7 +3768,7 @@ async function forwardChatMessage(message){
   }
                   
 
-async function loadMessages(){
+async function loadMessages(incremental=false){
 if(!selected)return;
 
 let blocked;
@@ -3801,6 +3801,9 @@ const {data,error}=await messageQuery
 
 const box=document.getElementById("messages");
 const fragment=document.createDocumentFragment();
+const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+const existingMessageIds = new Set(Array.from(box.children).map(x=>x.dataset.messageId).filter(Boolean));
+const existingInviteIds = new Set(Array.from(box.children).map(x=>x.dataset.inviteId).filter(Boolean));
 if(error){box.innerText=error.message;return}
 
 const messageMap=new Map(
@@ -3852,6 +3855,9 @@ const pinnedIds=new Set(
 );
 
 for(const m of (data||[])){
+
+if(incremental && existingMessageIds.has(String(m.id))) continue;
+
 const own=m.sender_id===me.id;
 
 const row=document.createElement("div");
@@ -4175,6 +4181,9 @@ if(roomInviteError){
   appStatus(roomInviteError.message);
 } else {
   (roomInvites || []).forEach(invite=>{
+
+    if(incremental && existingInviteIds.has(String(invite.room_id))) return;
+
     const card=document.createElement("div");
     card.dataset.createdAt = invite.created_at;
     card.dataset.inviteId = String(invite.room_id);
@@ -4219,10 +4228,29 @@ timelineItems.sort((a,b)=>
 
 fragment.replaceChildren(...timelineItems);
   
-  box.replaceChildren(fragment);
+  if(incremental){
 
+  for(const item of timelineItems){
+    const nextItem=Array.from(box.children).find(existing=>
+      new Date(existing.dataset.createdAt).getTime() >
+      new Date(item.dataset.createdAt).getTime()
+    );
+
+    box.insertBefore(item,nextItem||null);
+  }
+
+  if(wasAtBottom){
+    box.scrollTop=box.scrollHeight;
+  }
+
+} else {
+
+  box.replaceChildren(fragment);
   box.scrollTop=box.scrollHeight;
-  box.style.visibility="visible";
+
+}
+
+box.style.visibility="visible";
  }
 
 async function toggleChatStar(messageId){
