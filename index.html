@@ -7164,7 +7164,7 @@ async function loadJabzyStories(){
     btn.append(ring,label);btn.onclick=()=>openJabzyStory(userId,0);row.appendChild(btn);
   });
 }
-async function openStoryUserProfile(){
+async async function openStoryUserProfile(){
   const userId=activeJabzyStory?.user_id;
   if(!userId)return;
   closeJabzyStory();
