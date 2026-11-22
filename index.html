@@ -7251,6 +7251,16 @@ let storyTouchStartY=0;
   const viewer=document.getElementById("storyViewerModal");
   if(!viewer || viewer.dataset.swipeReady==="1")return;
   viewer.dataset.swipeReady="1";
+  const storyMediaArea=document.getElementById("storyViewerMedia");
+  storyMediaArea.addEventListener("click",()=>{
+    if(activeJabzyStoryOwner){
+      const panel=document.getElementById("storyOwnerPanel");
+      if(panel && panel.style.display==="block"){
+        panel.style.display="none";
+        document.getElementById("storyOwnerSwipeHint").style.display="block";
+      }
+    }
+  });
   viewer.addEventListener("touchstart",event=>{storyTouchStartY=event.touches[0].clientY;},{passive:true});
   viewer.addEventListener("touchend",event=>{
     if(!activeJabzyStory)return;
