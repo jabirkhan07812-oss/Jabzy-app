@@ -1360,17 +1360,22 @@ padding:12px;
 overflow-y:auto;
 ">
 
-  <!-- ROOM HEADER -->
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button onclick="minimizeJoinedRoom()" style="width:42px;padding:10px;margin:0;background:#342044;">←</button>
-    <div style="flex:1;min-width:0;">
-      <b id="joinedRoomName">JABZY Room</b>
-      <div style="font-size:12px;color:#ff70ae;">
-        🔴 LIVE · <span id="joinedRoomMemberCount">1</span> Members
-      </div>
+
+<!-- ROOM HEADER -->
+<div style="display:flex;align-items:center;gap:8px;">
+  <button onclick="minimizeJoinedRoom()" style="width:36px;padding:8px;margin:0;background:#342044;">←</button>
+
+  <div style="flex:1;min-width:0;">
+    <b id="joinedRoomName">JABZY Room</b>
+    <div style="font-size:12px;color:#ff70ae;">
+      🔴 LIVE · <span id="joinedRoomMemberCount">1</span> Members
     </div>
-    <button onclick="leaveJoinedRoom()" style="width:auto;padding:10px;margin:0;background:#a83245;">Leave</button>
   </div>
+
+  <button onclick="shareJoinedRoom()" style="width:36px;padding:8px;margin:0;background:#a45bea;">＋</button>
+  <button onclick="leaveJoinedRoom()" style="width:auto;padding:8px;margin:0;background:#a83245;">Leave</button>
+</div>
+  
 
   <!-- SPEAKERS -->
   <h3>🎤 Speakers</h3>
@@ -1432,6 +1437,7 @@ overflow-y:auto;
 
 </div>
 
+
 <!-- MINI ROOM BAR -->
 <div id="miniRoomBar" style="
 display:none;
@@ -1442,21 +1448,19 @@ width:100%;
 z-index:10002;
 background:#241632;
 border-bottom:2px solid #a45bea;
-padding:8px 10px;
+padding:6px 8px;
 color:white;
+box-sizing:border-box;
 ">
-  <div style="font-size:13px;font-weight:bold;margin-bottom:7px;">
-    🎮 <span id="miniRoomName">JABZY Room</span> · 🔴 LIVE ·
-    <span id="miniRoomMemberCount">1</span> Members
-  </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;">
-    <button onclick="toggleRoomMic()" style="width:auto;margin:0;padding:7px;background:#342044;font-size:11px;">🎤 Mic</button>
-    <button onclick="toggleRoomSpeaker()" style="width:auto;margin:0;padding:7px;background:#342044;font-size:11px;">🔊 Speaker</button>
-    <button onclick="openJoinedRoom()" style="width:auto;margin:0;padding:7px;background:#a45bea;font-size:11px;">↗ Open</button>
-    <button onclick="leaveJoinedRoom()" style="width:auto;margin:0;padding:7px;background:#a83245;font-size:11px;">✕ Leave</button>
+  <div style="display:flex;align-items:center;gap:7px;white-space:nowrap;">
+    <div onclick="openJoinedRoom()" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:bold;">
+      🎙️ <span id="miniRoomName">JABZY Room</span> · 🔴 LIVE · <span id="miniRoomMemberCount">1</span>
+    </div>
+    <button onclick="toggleRoomMic()" style="width:auto;margin:0;padding:6px 9px;font-size:11px;">🎤</button>
+    <button onclick="openJoinedRoom()" style="width:auto;margin:0;padding:6px 9px;font-size:11px;">↗</button>
+    <button onclick="leaveJoinedRoom()" style="width:auto;margin:0;padding:6px 9px;background:#a83245;font-size:11px;">×</button>
   </div>
 </div>
-  
   
 <div id="notificationsScreen" class="app-screen" style="display:none">
 
