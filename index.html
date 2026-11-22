@@ -2472,7 +2472,8 @@ ids.delete(me.id);
 return ids;
 }
 
-  async function updateOnlineStatus(){
+
+async function updateOnlineStatus(){
   if(!me)return;
 
   const {data,error}=await db
@@ -2491,11 +2492,11 @@ return ids;
   if(!data){
     console.error("Last Seen: Profile row not updated");
     appStatus("Last Seen: Profile not found or update blocked");
-    else{
-  appStatus("Last Seen Updated: "+data.last_seen);
+  }else{
+    appStatus("Last Seen Updated: "+data.last_seen);
   }
-  }
-  }
+}
+  
 
 async function loadPeople(){
 const box=document.getElementById("people");
