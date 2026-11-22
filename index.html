@@ -3855,6 +3855,7 @@ for(const m of (data||[])){
 const own=m.sender_id===me.id;
 
 const row=document.createElement("div");
+row.dataset.createdAt = m.created_at;
 row.style.position="relative";
 row.style.display="flex";
 row.style.flexDirection="column";
@@ -4174,6 +4175,7 @@ if(roomInviteError){
 } else {
   (roomInvites || []).forEach(invite=>{
     const card=document.createElement("div");
+    card.dataset.createdAt = invite.created_at;
     card.style.cssText=
       "background:#241632;padding:14px;margin:12px;border-radius:12px;text-align:center;";
 
@@ -4205,7 +4207,15 @@ if(roomInviteError){
     fragment.appendChild(card);
   });
 }
-  
+
+  const timelineItems=Array.from(fragment.children);
+
+timelineItems.sort((a,b)=>
+  new Date(a.dataset.createdAt).getTime() -
+  new Date(b.dataset.createdAt).getTime()
+);
+
+fragment.replaceChildren(...timelineItems);
   
   box.replaceChildren(fragment);
 
