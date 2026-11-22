@@ -2488,13 +2488,6 @@ async function updateOnlineStatus(){
     appStatus("Last Seen Error: "+error.message);
     return;
   }
-
-  if(!data){
-    console.error("Last Seen: Profile row not updated");
-    appStatus("Last Seen: Profile not found or update blocked");
-  }else{
-    appStatus("Last Seen Updated: "+data.last_seen);
-  }
 }
   
 
