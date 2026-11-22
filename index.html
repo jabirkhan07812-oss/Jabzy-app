@@ -811,24 +811,30 @@ body{
     <p id="storyUploadStatus" style="font-size:12px;color:#d9c4e8;"></p>
   </div>
 </div>
-<div id="storyViewerModal" style="display:none;position:fixed;inset:0;z-index:100002;background:#08060f;color:white;overflow:hidden;">
-  <div style="width:100%;height:100dvh;max-width:520px;margin:auto;display:flex;flex-direction:column;position:relative;background:linear-gradient(180deg,#171020,#08060f);">
+<div id="storyViewerModal" style="display:none;position:fixed;inset:0;z-index:100002;background:#08060f;color:white;overflow:hidden;touch-action:pan-y;">
+  <div style="width:100%;height:100dvh;max-width:520px;margin:auto;display:flex;flex-direction:column;position:relative;background:#08060f;">
     <div id="storyProgressBars" style="display:flex;gap:3px;padding:10px 9px 5px;position:absolute;top:0;left:0;right:0;z-index:4;"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:28px 13px 10px;position:absolute;top:0;left:0;right:0;z-index:5;background:linear-gradient(#0009,transparent);">
       <div style="display:flex;align-items:center;gap:9px;"><div id="storyViewerAvatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;">👤</div><b id="storyViewerUser" style="font-size:13px;">Story</b></div>
-      <div style="display:flex;gap:8px;align-items:center;"><button id="storyViewersBtn" onclick="toggleStoryViewers()" style="display:none;width:auto;margin:0;padding:6px 10px;border-radius:18px;">👀</button><button id="storyDeleteBtn" onclick="deleteJabzyStory()" style="display:none;width:auto;margin:0;padding:6px 10px;border-radius:18px;">🗑️</button><button onclick="closeJabzyStory()" style="width:auto;margin:0;padding:6px 11px;border-radius:18px;">✕</button></div>
+      <div style="display:flex;gap:8px;align-items:center;"><button id="storyDeleteBtn" onclick="deleteJabzyStory()" style="display:none;width:auto;margin:0;padding:6px 10px;border-radius:18px;">🗑️</button><button onclick="closeJabzyStory()" style="width:auto;margin:0;padding:6px 11px;border-radius:18px;">✕</button></div>
     </div>
     <div id="storyViewerMedia" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#08060f;overflow:hidden;"></div>
-    <div style="position:absolute;bottom:0;left:0;right:0;z-index:5;padding:45px 13px 12px;background:linear-gradient(transparent,#08060ff2 30%);">
-      <div id="storyViewerCaption" style="font-size:13px;padding:0 3px 9px;"></div>
-      <div id="storyViewersList" style="display:none;max-height:170px;overflow:auto;background:#21152d;border-radius:12px;padding:9px;font-size:12px;margin-bottom:8px;"></div>
-      <div id="storyCommentsList" style="max-height:105px;overflow:auto;background:#171020a8;border-radius:10px;padding:5px 9px;font-size:12px;margin-bottom:8px;"></div>
-      <div style="display:flex;align-items:center;gap:7px;">
-        <input id="storyCommentInput" placeholder="Reply to story..." maxlength="1000" style="flex:1;min-width:0;margin:0;border-radius:22px;background:#21172e;color:white;border:1px solid #76518b;">
-        <button id="storyLikeBtn" onclick="toggleJabzyStoryLike()" style="width:auto;margin:0;padding:9px 12px;border-radius:22px;">🤍</button>
-        <button onclick="sendJabzyStoryComment()" style="width:auto;margin:0;padding:9px 13px;border-radius:22px;">Send</button>
+    <div id="storyViewerCaption" style="position:absolute;bottom:76px;left:13px;right:13px;z-index:4;font-size:13px;text-shadow:0 1px 5px #000;padding:0 3px 8px;"></div>
+    <div id="storyOwnerPanel" style="display:none;position:absolute;left:0;right:0;bottom:0;z-index:8;height:58%;max-height:520px;background:linear-gradient(160deg,#281a38,#120d1c);border-radius:20px 20px 0 0;padding:10px 14px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px #0009;overflow:hidden;">
+      <div id="storyPanelHandle" style="width:42px;height:4px;border-radius:8px;background:#9b83aa;margin:0 auto 12px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="storyPanelViewersTab" onclick="openStoryOwnerPanel('viewers')" style="flex:1;margin:0;padding:9px 4px;font-size:12px;border-radius:12px;">Viewers</button>
+        <button id="storyPanelLikesTab" onclick="openStoryOwnerPanel('likes')" style="flex:1;margin:0;padding:9px 4px;font-size:12px;border-radius:12px;">❤️ Likes</button>
+        <button id="storyPanelCommentsTab" onclick="openStoryOwnerPanel('comments')" style="flex:1;margin:0;padding:9px 4px;font-size:12px;border-radius:12px;">💬 Comments</button>
       </div>
+      <div id="storyOwnerPanelList" style="height:calc(100% - 55px);overflow-y:auto;font-size:13px;"></div>
     </div>
+    <div id="storyViewerActions" style="position:absolute;bottom:0;left:0;right:0;z-index:5;padding:10px 13px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#08060ff2 25%);display:flex;align-items:center;gap:7px;">
+      <input id="storyCommentInput" placeholder="Reply to story..." maxlength="1000" style="flex:1;min-width:0;margin:0;border-radius:22px;background:#21172e;color:white;border:1px solid #76518b;">
+      <button id="storyLikeBtn" onclick="toggleJabzyStoryLike()" style="width:auto;margin:0;padding:9px 12px;border-radius:22px;">🤍</button>
+      <button id="storySendCommentBtn" onclick="sendJabzyStoryComment()" style="width:auto;margin:0;padding:9px 13px;border-radius:22px;">Send</button>
+    </div>
+    <div id="storyOwnerSwipeHint" style="display:none;position:absolute;bottom:12px;left:0;right:0;z-index:5;text-align:center;color:#fff;font-size:11px;text-shadow:0 1px 5px #000;">⌃ Swipe up for activity</div>
   </div>
 </div>
 
@@ -7137,9 +7143,14 @@ async function openJabzyStory(userId,index){
   activeJabzyStory=story;activeJabzyStoryOwner=story.user_id===me.id;
   document.getElementById("storyViewerModal").style.display="block";
   document.body.style.overflow="hidden";
-  document.getElementById("storyViewersList").style.display="none";
-  const {data:profile}=await db.from("profiles").select("username").eq("id",userId).maybeSingle();
+  document.getElementById("storyOwnerPanel").style.display="none";
+  document.getElementById("storyOwnerPanelList").replaceChildren();
+  document.getElementById("storyViewerActions").style.display=activeJabzyStoryOwner?"none":"flex";
+  document.getElementById("storyOwnerSwipeHint").style.display=activeJabzyStoryOwner?"block":"none";
+  const {data:profile}=await db.from("profiles").select("username,photo_url").eq("id",userId).maybeSingle();
   document.getElementById("storyViewerUser").textContent=userId===me.id?"Your Story":(profile?.username||"Story");
+  const avatar=document.getElementById("storyViewerAvatar");avatar.replaceChildren();
+  if(profile?.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;";avatar.appendChild(img);}else{avatar.textContent="👤";}
   document.getElementById("storyViewerCaption").textContent=story.caption||"";
   const progress=document.getElementById("storyProgressBars");progress.replaceChildren();
   list.forEach((item,i)=>{const bar=document.createElement("div");bar.style.cssText="height:3px;flex:1;border-radius:4px;background:"+(i<=index?"#fff":"#ffffff55")+";";progress.appendChild(bar);});
@@ -7149,14 +7160,13 @@ async function openJabzyStory(userId,index){
   if(story.media_type==="video"){el.controls=true;el.autoplay=true;el.playsInline=true;}
   media.appendChild(el);
   document.getElementById("storyDeleteBtn").style.display=activeJabzyStoryOwner?"block":"none";
-  document.getElementById("storyLikeBtn").style.display=activeJabzyStoryOwner?"none":"inline-block";
-  document.getElementById("storyViewersBtn").style.display=activeJabzyStoryOwner?"inline-block":"none";
   if(!activeJabzyStoryOwner){
     const {error}=await db.from("story_views").upsert({story_id:story.id,viewer_id:me.id,viewed_at:new Date().toISOString()},{onConflict:"story_id,viewer_id",ignoreDuplicates:true});
     if(error)console.warn("Story view:",error.message);
     await refreshStoryLikeButton();
+  }else{
+    await openStoryOwnerPanel("viewers",false);
   }
-  await loadStoryComments();
 }
 async function refreshStoryLikeButton(){
   const {data}=await db.from("story_views").select("liked_at").eq("story_id",activeJabzyStory.id).eq("viewer_id",me.id).maybeSingle();
@@ -7170,44 +7180,47 @@ async function toggleJabzyStoryLike(){
   if(error){alert(error.message);return;}
   await refreshStoryLikeButton();
 }
-async function toggleStoryViewers(){
-  const box=document.getElementById("storyViewersList");
-  box.style.display=box.style.display==="none"?"block":"none";
-  if(box.style.display==="none")return;
+async function openStoryOwnerPanel(mode,showPanel=true){
+  if(!activeJabzyStoryOwner || !activeJabzyStory)return;
+  const panel=document.getElementById("storyOwnerPanel");
+  if(showPanel)panel.style.display="block";
+  document.getElementById("storyOwnerSwipeHint").style.display="none";
+  const box=document.getElementById("storyOwnerPanelList");
   box.textContent="Loading...";
-  const {data,error}=await db.from("story_views").select("viewer_id,viewed_at,liked_at").eq("story_id",activeJabzyStory.id).order("liked_at",{ascending:false,nullsFirst:false}).order("viewed_at",{ascending:false});
+  ["viewers","likes","comments"].forEach(key=>{
+    const btn=document.getElementById("storyPanel"+key[0].toUpperCase()+key.slice(1)+"Tab");
+    btn.style.background=key===mode?"linear-gradient(90deg,#ff55a8,#9657e8)":"#352343";
+  });
+  if(mode==="comments"){
+    const {data,error}=await db.from("story_comments").select("id,user_id,comment,parent_comment_id,created_at").eq("story_id",activeJabzyStory.id).order("created_at",{ascending:false});
+    if(error){box.textContent=error.message;return;}
+    const ids=[...new Set((data||[]).map(x=>x.user_id))];
+    let profiles=[];if(ids.length){const p=await db.from("profiles").select("id,username,photo_url").in("id",ids);profiles=p.data||[];}
+    const map={};profiles.forEach(p=>map[p.id]=p);
+    box.replaceChildren();
+    (data||[]).forEach(item=>appendStoryActivityRow(box,map[item.user_id],item.comment));
+    if(!data?.length)box.textContent="No comments yet.";
+    return;
+  }
+  let query=db.from("story_views").select("viewer_id,viewed_at,liked_at").eq("story_id",activeJabzyStory.id);
+  if(mode==="likes")query=query.not("liked_at","is",null);
+  const {data,error}=await query.order("liked_at",{ascending:false,nullsFirst:false}).order("viewed_at",{ascending:false});
   if(error){box.textContent=error.message;return;}
   const ids=[...new Set((data||[]).map(v=>v.viewer_id))];
-  let profiles=[];
-  if(ids.length){const p=await db.from("profiles").select("id,username").in("id",ids);profiles=p.data||[];}
-  const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
+  let profiles=[];if(ids.length){const p=await db.from("profiles").select("id,username,photo_url").in("id",ids);profiles=p.data||[];}
+  const map={};profiles.forEach(p=>map[p.id]=p);
   box.replaceChildren();
-  (data||[]).forEach(v=>{
-    const line=document.createElement("div");line.style.cssText="padding:6px;border-bottom:1px solid #493454;";
-    line.textContent=(names[v.viewer_id]||"User")+(v.liked_at?"  ❤️":"  · Viewed");
-    box.appendChild(line);
-  });
-  if(!data?.length)box.textContent="No viewers yet.";
+  (data||[]).forEach(v=>appendStoryActivityRow(box,map[v.viewer_id],mode==="likes"?"❤️ Liked":(v.liked_at?"❤️ Liked · Viewed":"Viewed")));
+  if(!data?.length)box.textContent=mode==="likes"?"No likes yet.":"No viewers yet.";
 }
-async function loadStoryComments(){
-  const box=document.getElementById("storyCommentsList");box.textContent="Loading...";
-  const {data,error}=await db.from("story_comments").select("*").eq("story_id",activeJabzyStory.id).order("created_at",{ascending:true});
-  if(error){box.textContent=error.message;return;}
-  const ids=[...new Set((data||[]).map(x=>x.user_id))];
-  let profiles=[];if(ids.length){const p=await db.from("profiles").select("id,username").in("id",ids);profiles=p.data||[];}
-  const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
-  box.replaceChildren();
-  (data||[]).forEach(comment=>{
-    const line=document.createElement("div");line.style.cssText="padding:5px 2px;";
-    const strong=document.createElement("b");strong.textContent=names[comment.user_id]||"User";
-    const span=document.createElement("span");span.textContent=" "+comment.comment;
-    line.append(strong,span);
-    if(comment.parent_comment_id)line.style.paddingLeft="18px";
-    const reply=document.createElement("button");reply.textContent="Reply";reply.style.cssText="width:auto;padding:2px 7px;margin:0 0 0 6px;font-size:10px;";
-    reply.onclick=()=>{const input=document.getElementById("storyCommentInput");input.value="@"+(names[comment.user_id]||"User")+" ";input.dataset.parent=comment.id;input.focus();};
-    line.appendChild(reply);box.appendChild(line);
-  });
-  if(!data?.length)box.textContent="No comments yet. Be the first!";
+function appendStoryActivityRow(box,profile,detail){
+  const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;padding:9px 3px;border-bottom:1px solid #493454;";
+  const avatar=document.createElement("div");avatar.style.cssText="width:38px;height:38px;flex:0 0 38px;border-radius:50%;overflow:hidden;background:#493454;display:flex;align-items:center;justify-content:center;";
+  if(profile?.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else{avatar.textContent="👤";}
+  const info=document.createElement("div");info.style.cssText="min-width:0;flex:1;";
+  const name=document.createElement("div");name.textContent=profile?.username||"User";name.style.cssText="font-weight:700;color:#fff;";
+  const text=document.createElement("div");text.textContent=detail;text.style.cssText="color:#cbb8df;font-size:12px;margin-top:3px;overflow-wrap:anywhere;";
+  info.append(name,text);row.append(avatar,info);box.appendChild(row);
 }
 async function sendJabzyStoryComment(){
   const input=document.getElementById("storyCommentInput");const comment=input.value.trim();
@@ -7215,7 +7228,7 @@ async function sendJabzyStoryComment(){
   const parent=input.dataset.parent||null;
   const {error}=await db.from("story_comments").insert({story_id:activeJabzyStory.id,user_id:me.id,parent_comment_id:parent,comment});
   if(error){alert(error.message);return;}
-  input.value="";delete input.dataset.parent;await loadStoryComments();
+  input.value="";delete input.dataset.parent;
 }
 async function deleteJabzyStory(){
   if(!activeJabzyStoryOwner || !activeJabzyStory)return;
@@ -7228,10 +7241,30 @@ async function deleteJabzyStory(){
   closeJabzyStory();await loadJabzyStories();
 }
 function closeJabzyStory(){
+  const panel=document.getElementById("storyOwnerPanel");if(panel)panel.style.display="none";
   const media=document.getElementById("storyViewerMedia");media.querySelectorAll("video").forEach(v=>v.pause());media.replaceChildren();
   document.getElementById("storyViewerModal").style.display="none";document.body.style.overflow="";activeJabzyStory=null;
 }
 
+let storyTouchStartY=0;
+(function attachStorySwipeGestures(){
+  const viewer=document.getElementById("storyViewerModal");
+  if(!viewer || viewer.dataset.swipeReady==="1")return;
+  viewer.dataset.swipeReady="1";
+  viewer.addEventListener("touchstart",event=>{storyTouchStartY=event.touches[0].clientY;},{passive:true});
+  viewer.addEventListener("touchend",event=>{
+    if(!activeJabzyStory)return;
+    const delta=event.changedTouches[0].clientY-storyTouchStartY;
+    const panel=document.getElementById("storyOwnerPanel");
+    if(activeJabzyStoryOwner){
+      if(delta < -65){openStoryOwnerPanel("viewers",true);}
+      else if(delta > 65 && panel.style.display==="block"){panel.style.display="none";document.getElementById("storyOwnerSwipeHint").style.display="block";}
+    }else if(delta > 75){
+      closeJabzyStory();
+      showTab("home");
+    }
+  },{passive:true});
+})();
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
