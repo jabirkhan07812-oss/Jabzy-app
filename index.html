@@ -3856,6 +3856,7 @@ const own=m.sender_id===me.id;
 
 const row=document.createElement("div");
 row.dataset.createdAt = m.created_at;
+row.dataset.messageId = String(m.id);
 row.style.position="relative";
 row.style.display="flex";
 row.style.flexDirection="column";
@@ -4176,6 +4177,7 @@ if(roomInviteError){
   (roomInvites || []).forEach(invite=>{
     const card=document.createElement("div");
     card.dataset.createdAt = invite.created_at;
+    card.dataset.inviteId = String(invite.room_id);
     card.style.cssText=
       "background:#241632;padding:14px;margin:12px;border-radius:12px;text-align:center;";
 
