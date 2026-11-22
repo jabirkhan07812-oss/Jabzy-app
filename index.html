@@ -5034,7 +5034,7 @@ if(error){box.innerText=error.message;return;}
 
 const {data:profiles,error:profileError}=await db
 .from("profiles")
-.select("id,username");
+.select("id,username,age,bio,photo_url");
 
 if(profileError){box.innerText=profileError.message;return;}
 
@@ -5053,22 +5053,44 @@ const receiver=profiles.find(p=>p.id===msg.receiver_id);
 const item=document.createElement("div");
 item.style.cssText="padding:10px;margin:8px 0;border:1px solid #888;border-radius:8px;";
 
-const from=document.createElement("p");
-from.textContent="From: ";
-const senderBtn=document.createElement("button");
-senderBtn.textContent=sender?.username||"Unknown";
-senderBtn.onclick=()=>openAdminUserProfile(msg.sender_id);
-from.appendChild(senderBtn);
-const to=document.createElement("p");
-to.textContent="To: ";
-const receiverBtn=document.createElement("button");
-receiverBtn.textContent=receiver?.username||"Unknown";
-receiverBtn.onclick=()=>openAdminUserProfile(msg.receiver_id);
-to.appendChild(receiverBtn);
+const profileRow=document.createElement("div");
+profileRow.style.cssText="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:9px;";
+
+function makeMiniChatProfile(profile,userId,label){
+  const card=document.createElement("div");
+  card.style.cssText="min-width:0;display:flex;align-items:center;gap:6px;padding:7px;background:#211a30;border:1px solid #49375c;border-radius:10px;cursor:pointer;";
+  card.onclick=()=>openAdminUserProfile(userId);
+
+  const avatar=document.createElement("img");
+  avatar.src=profile?.photo_url||"";
+  avatar.alt="";
+  avatar.style.cssText="width:30px;height:30px;flex:0 0 30px;object-fit:cover;border-radius:50%;background:#3b2d4b;";
+  card.appendChild(avatar);
+
+  const details=document.createElement("div");
+  details.style.cssText="min-width:0;overflow:hidden;";
+  const name=document.createElement("b");
+  name.textContent=profile?.username||"Unknown";
+  name.style.cssText="display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f2e8ff;";
+  const info=document.createElement("small");
+  info.textContent=[profile?.age?profile.age+" yrs":null,profile?.bio||null].filter(Boolean).join(" · ")||"No bio";
+  info.style.cssText="display:block;font-size:9px;line-height:1.3;color:#bcaecc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+  const tag=document.createElement("small");
+  tag.textContent=label;
+  tag.style.cssText="display:block;font-size:8px;color:#bd8ce8;";
+  details.append(tag,name,info);
+  card.appendChild(details);
+  return card;
+}
+
+profileRow.append(
+  makeMiniChatProfile(sender,msg.sender_id,"FROM"),
+  makeMiniChatProfile(receiver,msg.receiver_id,"TO")
+);
 
 const message=document.createElement("p");
 
-item.append(from,to);
+item.appendChild(profileRow);
 
 if(msg.message.startsWith("PHOTO:")){
 
