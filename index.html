@@ -5343,7 +5343,17 @@ let currentJoinedRoom = null;
 let roomChatChannel = null;
 let roomMembersChannel = null;
 
+
 async function joinLiveRoom(room){
+  if(currentJoinedRoom){
+    if(currentJoinedRoom.id === room.id){
+      await openJoinedRoom();
+    } else {
+      alert("Pehle apna current Room leave karo.");
+    }
+    return;
+  }
+
   let error;
 
   if(room.visibility === "public"){
@@ -5366,7 +5376,7 @@ async function joinLiveRoom(room){
   }
 
   currentJoinedRoom = room;
-  openJoinedRoom();
+  await openJoinedRoom();
 
   const {count} = await db
     .from("live_room_members")
@@ -5378,6 +5388,7 @@ async function joinLiveRoom(room){
     document.getElementById("miniRoomMemberCount").textContent = count;
   }
 }
+  
 
 async function openJoinedRoom(){
   if(!currentJoinedRoom) return;
@@ -6216,7 +6227,18 @@ async function loadMyPrivateRooms(){
   }
   }
 
- async function acceptPrivateRoomInvite(roomId){
+  
+async function acceptPrivateRoomInvite(roomId){
+  if(currentJoinedRoom){
+    if(currentJoinedRoom.id === roomId){
+      await openJoinedRoom();
+      return;
+    }
+
+    alert("Pehle current Room leave karo.");
+    return;
+  }
+
   const {data,error} = await db.rpc("join_invited_room", {
     p_room_id: roomId
   });
@@ -6231,11 +6253,24 @@ async function loadMyPrivateRooms(){
     return;
   }
 
-  alert("Room successfully joined!");
+  const {data:roomData,error:roomError} = await db
+    .from("live_rooms")
+    .select("*")
+    .eq("id",roomId)
+    .single();
+
+  if(roomError){
+    alert(roomError.message);
+    return;
+  }
+
+  currentJoinedRoom = roomData;
 
   await loadMyPrivateRooms();
   await loadMessages();
-}
+  await openJoinedRoom();
+  }
+  
 
 async function loadActiveRooms(){
   const box = document.getElementById("activeRoomsList");
@@ -6260,35 +6295,36 @@ async function loadActiveRooms(){
 
   box.innerHTML = "";
 
-  data.forEach(room => {
-    const card = document.createElement("div");
-    card.style.cssText =
-      "background:#241632;padding:12px;margin:10px 0;border-radius:12px;";
+ 
+data.forEach(room => {
+  const card = document.createElement("div");
+  card.style.cssText =
+    "background:#241632;padding:12px;margin:10px 0;border-radius:12px;cursor:pointer;";
 
-    const title = document.createElement("b");
-    title.textContent = room.name;
+  card.onclick = () => joinLiveRoom(room);
 
-    const info = document.createElement("p");
-    info.textContent =
-      room.category + " • " + room.room_type + " • " + room.visibility;
+  const title = document.createElement("b");
+  title.textContent = room.name;
 
-    card.append(title, info);
+  const info = document.createElement("p");
+  info.textContent =
+    room.category + " • " + room.room_type + " • " + room.visibility;
 
-    if(room.created_by === me.id){
-      const endBtn = document.createElement("button");
-      endBtn.textContent = "End Room";
-      endBtn.onclick = () => endLiveRoom(room.id);
-      card.appendChild(endBtn);
-    } else {
-      const joinBtn = document.createElement("button");
-      joinBtn.textContent = "Join Room";
-      joinBtn.onclick = () => joinLiveRoom(room);
-      card.appendChild(joinBtn);
-    }
+  card.append(title, info);
 
-    box.appendChild(card);
-  });
+  if(room.created_by === me.id){
+    const endBtn = document.createElement("button");
+    endBtn.textContent = "End Room";
+    endBtn.onclick = (event) => {
+      event.stopPropagation();
+      endLiveRoom(room.id);
+    };
+    card.appendChild(endBtn);
   }
+
+  box.appendChild(card);
+});
+  
     
 function showRoomsSection(section){
   const sections = {
