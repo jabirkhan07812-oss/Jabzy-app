@@ -2471,16 +2471,28 @@ ids.add(b.blocked_id);
 ids.delete(me.id);
 return ids;
 }
-async function updateOnlineStatus(){
-if(!me)return;
 
-const {error}=await db.from("profiles").update({
-last_seen:new Date().toISOString()
-}).eq("id",me.id);
+  async function updateOnlineStatus(){
+  if(!me)return;
 
-if(error)appStatus(error.message);
+  const {data,error}=await db
+    .from("profiles")
+    .update({last_seen:new Date().toISOString()})
+    .eq("id",me.id)
+    .select("id,last_seen")
+    .maybeSingle();
+
+  if(error){
+    console.error("Last Seen Error:",error);
+    appStatus("Last Seen Error: "+error.message);
+    return;
   }
-  
+
+  if(!data){
+    console.error("Last Seen: Profile row not updated");
+    appStatus("Last Seen: Profile not found or update blocked");
+  }
+  }
 
 async function loadPeople(){
 const box=document.getElementById("people");
