@@ -5552,11 +5552,13 @@ function toggleRoomSpeaker(){
   if(!currentJoinedRoom) return;
 
   const speakersBox = document.getElementById("roomSpeakers");
+  const ownerSeat = document.getElementById("roomOwnerSeat");
+  const memberSeatsBox = document.getElementById("roomMemberSeats");
   const listenersBox = document.getElementById("roomListeners");
 
   const {data:members, error} = await db
     .from("live_room_members")
-    .select("user_id,role,audio_role")
+    .select("user_id,role,audio_role,removed_from_stage")
     .eq("room_id", currentJoinedRoom.id);
 
   if(error){
@@ -5564,7 +5566,10 @@ function toggleRoomSpeaker(){
     return;
   }
 
-  const ids = (members || []).map(m => m.user_id);
+  const ids = [...new Set([
+    ...(members || []).map(m => m.user_id),
+    currentJoinedRoom.created_by
+  ])];
 
   const {data:profiles, error:profileError} = await db
     .from("profiles")
@@ -5576,120 +5581,225 @@ function toggleRoomSpeaker(){
     return;
   }
 
-  speakersBox.replaceChildren();
-  listenersBox.replaceChildren();
+  const getProfile = userId =>
+    (profiles || []).find(p => p.id === userId);
 
-  (members || []).forEach(member => {
-    const profile = (profiles || []).find(p => p.id === member.user_id);
-
-        const card = document.createElement("div");
-    card.style.cssText =
-      "text-align:center;padding:8px 3px;min-width:0;";
-
-    const isSpeaker = member.audio_role === "speaker";
-    const avatarSize = isSpeaker ? "68px" : "48px";
+  const createAvatar = (profile, size, borderColor) => {
+    let avatar;
 
     if(profile?.photo_url){
-      const img = document.createElement("img");
-      img.src = profile.photo_url;
-      img.style.cssText =
-        "width:" + avatarSize +
-        ";height:" + avatarSize +
-        ";border-radius:50%;object-fit:cover;" +
-        (isSpeaker
-          ? "border:3px solid #c16aff;box-shadow:0 0 12px #a45bea;"
-          : "border:2px solid #68447d;");
-      card.appendChild(img);
+      avatar = document.createElement("img");
+      avatar.src = profile.photo_url;
+      avatar.alt = profile.username || "Member";
     } else {
-      const avatar = document.createElement("div");
+      avatar = document.createElement("div");
       avatar.textContent = "👤";
-      avatar.style.cssText =
-        "width:" + avatarSize +
-        ";height:" + avatarSize +
-        ";border-radius:50%;margin:auto;" +
-        "display:flex;align-items:center;justify-content:center;" +
-        "background:#392448;font-size:28px;" +
-        (isSpeaker ? "border:3px solid #c16aff;" : "");
-      card.appendChild(avatar);
-  }
+      avatar.style.display = "flex";
+      avatar.style.alignItems = "center";
+      avatar.style.justifyContent = "center";
+      avatar.style.background = "#392448";
+      avatar.style.fontSize = "24px";
+    }
 
-    const name = document.createElement("div");
+    avatar.style.cssText +=
+      ";width:" + size + "px;height:" + size +
+      "px;min-width:" + size + "px;border-radius:50%;" +
+      "object-fit:cover;border:2px solid " + borderColor +
+      ";box-sizing:border-box;";
+
+    return avatar;
+  };
+
+  const createStageCard = (member, profile) => {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "width:68px;display:flex;flex-direction:column;" +
+      "align-items:center;gap:4px;text-align:center;";
+
+    card.appendChild(createAvatar(profile, 52, "#c16aff"));
+
+    const name = document.createElement("small");
     name.textContent = profile?.username || "Member";
+    name.style.cssText =
+      "max-width:72px;overflow:hidden;text-overflow:ellipsis;" +
+      "white-space:nowrap;font-size:9px;color:#fff;";
     card.appendChild(name);
 
-    const label = document.createElement("small");
-    label.textContent = member.role === "owner" ? "Owner" : "";
-    card.appendChild(label);
-   if(
-  currentJoinedRoom.created_by === me.id &&
-  member.user_id !== currentJoinedRoom.created_by
-){
-  const roleBtn = document.createElement("button");
+    if(currentJoinedRoom.created_by === me.id){
+      const roleBtn = document.createElement("button");
+      roleBtn.textContent = "Remove";
+      roleBtn.style.cssText =
+        "font-size:9px;padding:4px 9px;margin:2px 0 0;" +
+        "border-radius:16px;background:#a83245;color:white;width:auto;";
 
-  roleBtn.textContent =
+      roleBtn.onclick = async event => {
+        event.stopPropagation();
+
+        const {error} = await db.rpc("set_room_audio_role", {
+          p_room_id: currentJoinedRoom.id,
+          p_user_id: member.user_id,
+          p_audio_role: "listener"
+        });
+
+        if(error){
+          alert(error.message);
+          return;
+        }
+
+        await loadRoomParticipants();
+      };
+
+      card.appendChild(roleBtn);
+    }
+
+    return card;
+  };
+
+  const ownerProfile = getProfile(currentJoinedRoom.created_by);
+  ownerSeat.replaceChildren();
+  ownerSeat.style.cssText =
+    "width:auto;height:auto;min-width:90px;border:0;background:transparent;" +
+    "box-shadow:none;display:flex;flex-direction:column;align-items:center;" +
+    "justify-content:center;gap:4px;font-size:12px;";
+
+  ownerSeat.appendChild(createAvatar(ownerProfile, 62, "#ffc45c"));
+
+  const ownerName = document.createElement("small");
+  ownerName.textContent = (ownerProfile?.username || "Room Owner") + " 👑";
+  ownerName.style.cssText = "font-size:10px;color:#ffc45c;max-width:110px;";
+  ownerSeat.appendChild(ownerName);
+
+  const memberSpeakers = (members || []).filter(member =>
+    member.user_id !== currentJoinedRoom.created_by &&
     member.audio_role === "speaker"
-      ? "Remove"
-      : "Make Speaker";
+  );
 
-  roleBtn.style.cssText =
-    "display:none;font-size:10px;padding:5px 12px;margin-top:6px;border-radius:20px;background:#a83245;color:white;width:auto;";
+  const listeners = (members || []).filter(member =>
+    member.user_id !== currentJoinedRoom.created_by &&
+    member.audio_role !== "speaker"
+  );
 
-  card.style.cursor = "pointer";
+  memberSeatsBox.replaceChildren();
 
-  card.onclick = () => {
-    roleBtn.style.display =
-      roleBtn.style.display === "none"
-        ? "inline-block"
-        : "none";
-  };
+  const myMember = (members || []).find(member => member.user_id === me.id);
+  const canJoinStage = !!myMember &&
+    myMember.audio_role !== "speaker" &&
+    myMember.removed_from_stage !== true;
 
-  roleBtn.onclick = async (event) => {
-    event.stopPropagation();
+  for(let seatIndex = 0; seatIndex < 6; seatIndex++){
+    const member = memberSpeakers[seatIndex];
 
-    const newRole =
-      member.audio_role === "speaker"
-        ? "listener"
-        : "speaker";
-
-    const {error} = await db.rpc("set_room_audio_role", {
-      p_room_id: currentJoinedRoom.id,
-      p_user_id: member.user_id,
-      p_audio_role: newRole
-    });
-
-    if(error){
-      alert(error.message);
-      return;
+    if(member){
+      memberSeatsBox.appendChild(
+        createStageCard(member, getProfile(member.user_id))
+      );
+      continue;
     }
 
-    await loadRoomParticipants();
-  };
+    const emptySeat = document.createElement("button");
+    emptySeat.type = "button";
+    emptySeat.textContent = "+";
+    emptySeat.title = canJoinStage
+      ? "Tap to join the Stage"
+      : "Empty Stage seat";
+    emptySeat.style.cssText =
+      "width:58px;height:58px;border-radius:50%;" +
+      "border:2px dashed #9166ad;background:#21152f;color:#d9b8f4;" +
+      "font-size:25px;display:flex;align-items:center;" +
+      "justify-content:center;padding:0;margin:0;" +
+      (canJoinStage ? "cursor:pointer;" : "opacity:.65;");
 
-  card.appendChild(roleBtn);
-   }
+    emptySeat.disabled = !canJoinStage;
+    emptySeat.onclick = async () => {
+      if(!canJoinStage || !currentJoinedRoom) return;
 
-    if(member.audio_role === "speaker"){
-      speakersBox.appendChild(card);
-    } else {
-      listenersBox.appendChild(card);
-    }
-  });
+      if(memberSpeakers.length >= 6){
+        alert("Stage is full. Please wait for an empty seat.");
+        return;
+      }
 
-  if(!speakersBox.children.length){
-    speakersBox.textContent = "No speakers yet.";
+      emptySeat.disabled = true;
+      emptySeat.textContent = "…";
+
+      const {error} = await db.rpc("set_room_audio_role", {
+        p_room_id: currentJoinedRoom.id,
+        p_user_id: me.id,
+        p_audio_role: "speaker"
+      });
+
+      if(error){
+        alert(error.message);
+        await loadRoomParticipants();
+        return;
+      }
+
+      await loadRoomParticipants();
+    };
+
+    memberSeatsBox.appendChild(emptySeat);
   }
 
-  if(!listenersBox.children.length){
+  listenersBox.replaceChildren();
+
+  listeners.forEach(member => {
+    const profile = getProfile(member.user_id);
+    const card = document.createElement("div");
+    card.style.cssText =
+      "flex:0 0 62px;width:62px;display:flex;flex-direction:column;" +
+      "align-items:center;gap:4px;text-align:center;";
+
+    card.appendChild(createAvatar(profile, 44, "#68447d"));
+
+    const name = document.createElement("small");
+    name.textContent = profile?.username || "Member";
+    name.style.cssText =
+      "max-width:62px;overflow:hidden;text-overflow:ellipsis;" +
+      "white-space:nowrap;font-size:9px;color:#fff;";
+    card.appendChild(name);
+
+    if(currentJoinedRoom.created_by === me.id){
+      const roleBtn = document.createElement("button");
+      roleBtn.textContent = "Make Speaker";
+      roleBtn.style.cssText =
+        "font-size:9px;padding:4px 7px;margin:2px 0 0;" +
+        "border-radius:16px;background:#6f3b91;color:white;width:auto;";
+
+      roleBtn.onclick = async () => {
+        if(memberSpeakers.length >= 6){
+          alert("All 6 Stage seats are occupied. Remove a speaker first.");
+          return;
+        }
+
+        const {error} = await db.rpc("set_room_audio_role", {
+          p_room_id: currentJoinedRoom.id,
+          p_user_id: member.user_id,
+          p_audio_role: "speaker"
+        });
+
+        if(error){
+          alert(error.message);
+          return;
+        }
+
+        await loadRoomParticipants();
+      };
+
+      card.appendChild(roleBtn);
+    }
+
+    listenersBox.appendChild(card);
+  });
+
+  if(!listeners.length){
     listenersBox.textContent = "No listeners yet.";
   }
 
   document.getElementById("joinedRoomMemberCount").textContent =
-    members.length;
+    (members || []).length;
 
   document.getElementById("miniRoomMemberCount").textContent =
-    members.length;
+    (members || []).length;
 }
-
   async function loadRoomChatMessages(){
   if(!currentJoinedRoom) return;
 
