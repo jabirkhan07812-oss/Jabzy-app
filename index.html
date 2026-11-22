@@ -4709,6 +4709,11 @@ await loadAdminAds();
 function showAdminSection(section){
   const sections={reports:"adminSectionReports",users:"adminSectionUsers",chats:"adminSectionChats",ads:"adminAdsManager"};
   Object.keys(sections).forEach(key=>{const panel=document.getElementById(sections[key]);if(panel)panel.style.display=key===section?"block":"none";});
+
+  // Full user profile belongs only to the All Users section.
+  const profileBox=document.getElementById("adminUserProfile");
+  if(profileBox && section!=="users") profileBox.style.display="none";
+
   document.querySelectorAll("#adminDashboard .admin-nav button").forEach(btn=>btn.classList.toggle("active",btn.dataset.adminSection===section));
 }
 function closeAdminDashboard(){document.getElementById("adminDashboard").style.display="none";}
