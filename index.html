@@ -805,7 +805,11 @@ body{
 <div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711ed;padding:24px;overflow:auto;">
   <div style="max-width:430px;margin:45px auto;background:#21152d;border:1px solid #634477;border-radius:18px;padding:18px;color:white;">
     <div style="display:flex;justify-content:space-between;align-items:center;"><b>＋ Add Story</b><button onclick="closeStoryUpload()" style="width:auto;margin:0;padding:5px 10px;">✕</button></div>
-    <input id="storyMediaFile" type="file" accept="image/*,video/*" style="margin-top:18px;">
+    <input id="storyMediaFile" type="file" accept="image/*,video/*" onchange="previewJabzyStoryMedia(event)" style="margin-top:18px;">
+    <div id="storyMediaPreview" style="display:none;margin-top:12px;text-align:center;background:#120d1b;border-radius:12px;padding:8px;">
+      <img id="storyPreviewImage" style="display:none;max-width:100%;max-height:280px;object-fit:contain;border-radius:9px;">
+      <video id="storyPreviewVideo" controls playsinline style="display:none;max-width:100%;max-height:280px;border-radius:9px;"></video>
+    </div>
     <input id="storyCaption" type="text" maxlength="180" placeholder="Add a caption..." style="margin-top:10px;">
     <button id="storyUploadBtn" onclick="uploadJabzyStory()" style="margin-top:12px;">Share Story</button>
     <p id="storyUploadStatus" style="font-size:12px;color:#d9c4e8;"></p>
@@ -7077,6 +7081,20 @@ function openStoryUpload(){
 }
 function closeStoryUpload(){
   document.getElementById("storyUploadModal").style.display="none";
+}
+function previewJabzyStoryMedia(event){
+  const file=event.target.files && event.target.files[0];
+  const wrap=document.getElementById("storyMediaPreview");
+  const img=document.getElementById("storyPreviewImage");
+  const video=document.getElementById("storyPreviewVideo");
+  img.style.display="none";video.style.display="none";
+  img.removeAttribute("src");video.pause();video.removeAttribute("src");video.load();
+  if(!file){wrap.style.display="none";return;}
+  const url=URL.createObjectURL(file);
+  wrap.style.display="block";
+  if(file.type.startsWith("image/")){img.src=url;img.style.display="block";}
+  else if(file.type.startsWith("video/")){video.src=url;video.style.display="block";}
+  else{wrap.style.display="none";}
 }
 async function uploadJabzyStory(){
   const file=document.getElementById("storyMediaFile").files[0];
