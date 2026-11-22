@@ -1376,34 +1376,69 @@ overflow-y:auto;
   <button onclick="leaveJoinedRoom()" style="width:auto;padding:8px;margin:0;background:#a83245;">Leave</button>
 </div>
   
-
-  <!-- SPEAKERS -->
+    <!-- SPEAKERS -->
   <h3 style="margin-top:22px;">🎤 On Stage</h3>
+
   <div id="roomSpeakers" style="
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:14px 8px;
-    text-align:center;
-    padding:20px 8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    padding:18px 8px;
     background:linear-gradient(145deg,#281638,#160e22);
     border:1px solid #58366f;
     border-radius:20px;
-    min-height:125px;
-    align-items:center;
+    min-height:180px;
   ">
-    <div>🎙️<br><small>Room Owner</small></div>
-  </div>
-  
 
-  <!-- LISTENERS -->
+    <!-- OWNER SEAT -->
+    <div id="roomOwnerSeat" style="
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      border:3px solid #ffc45c;
+      background:#392448;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      font-size:24px;
+      box-shadow:0 0 12px #ffc45c;
+    ">
+      👑
+      <small style="font-size:9px;">Owner</small>
+    </div>
+
+    <!-- 6 MEMBER SEATS -->
+    <div id="roomMemberSeats" style="
+      display:grid;
+      grid-template-columns:repeat(3,58px);
+      justify-content:center;
+      gap:14px 20px;
+    ">
+      <div class="room-stage-seat"></div>
+      <div class="room-stage-seat"></div>
+      <div class="room-stage-seat"></div>
+      <div class="room-stage-seat"></div>
+      <div class="room-stage-seat"></div>
+      <div class="room-stage-seat"></div>
+    </div>
+
+  </div>
+
+    <!-- LISTENERS -->
   <h3>👥 Listeners</h3>
   <div id="roomListeners" style="
     display:flex;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
     gap:12px;
     padding:12px;
     background:#21152f;
     border-radius:16px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
   ">No listeners yet.</div>
 
   <!-- ROOM CHAT -->
