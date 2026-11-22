@@ -7270,10 +7270,25 @@ async function deleteJabzyStory(){
 }
 function changeJabzyStory(direction){
   if(!activeJabzyStoryUserId)return;
-  const list=jabzyStoryRows.filter(s=>s.user_id===activeJabzyStoryUserId);
-  const next=activeJabzyStoryIndex+direction;
-  if(next<0 || next>=list.length)return;
-  openJabzyStory(activeJabzyStoryUserId,next);
+  const groups=new Map();
+  jabzyStoryRows.forEach(story=>{
+    if(!groups.has(story.user_id))groups.set(story.user_id,[]);
+    groups.get(story.user_id).push(story);
+  });
+  const userIds=[...groups.keys()];
+  let userIndex=userIds.indexOf(activeJabzyStoryUserId);
+  if(userIndex<0)return;
+  let nextStoryIndex=activeJabzyStoryIndex+direction;
+  if(nextStoryIndex<0){
+    if(userIndex===0)return;
+    userIndex--;
+    nextStoryIndex=groups.get(userIds[userIndex]).length-1;
+  }else if(nextStoryIndex>=groups.get(userIds[userIndex]).length){
+    if(userIndex>=userIds.length-1)return;
+    userIndex++;
+    nextStoryIndex=0;
+  }
+  openJabzyStory(userIds[userIndex],nextStoryIndex);
 }
 function closeJabzyStory(){
   const panel=document.getElementById("storyOwnerPanel");if(panel)panel.style.display="none";
