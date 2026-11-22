@@ -5629,10 +5629,17 @@ function toggleRoomSpeaker(){
       const roleBtn = document.createElement("button");
       roleBtn.textContent = "Remove";
       roleBtn.style.cssText =
-        "font-size:9px;padding:4px 9px;margin:2px 0 0;" +
+        "display:none;font-size:9px;padding:4px 9px;margin:2px 0 0;" +
         "border-radius:16px;background:#a83245;color:white;width:auto;";
 
+      card.style.cursor = "pointer";
+      card.onclick = () => {
+        roleBtn.style.display =
+          roleBtn.style.display === "none" ? "inline-block" : "none";
+      };
+
       roleBtn.onclick = async event => {
+        event.stopPropagation();
         event.stopPropagation();
 
         const {error} = await db.rpc("set_room_audio_role", {
@@ -5761,10 +5768,17 @@ function toggleRoomSpeaker(){
       const roleBtn = document.createElement("button");
       roleBtn.textContent = "Make Speaker";
       roleBtn.style.cssText =
-        "font-size:9px;padding:4px 7px;margin:2px 0 0;" +
+        "display:none;font-size:9px;padding:4px 7px;margin:2px 0 0;" +
         "border-radius:16px;background:#6f3b91;color:white;width:auto;";
 
-      roleBtn.onclick = async () => {
+      card.style.cursor = "pointer";
+      card.onclick = () => {
+        roleBtn.style.display =
+          roleBtn.style.display === "none" ? "inline-block" : "none";
+      };
+
+      roleBtn.onclick = async event => {
+        event.stopPropagation();
         if(memberSpeakers.length >= 6){
           alert("All 6 Stage seats are occupied. Remove a speaker first.");
           return;
