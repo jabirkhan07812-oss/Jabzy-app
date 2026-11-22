@@ -1441,6 +1441,17 @@ overflow-y:auto;
     -webkit-overflow-scrolling:touch;
   ">No listeners yet.</div>
 
+  <!-- ALL MEMBERS -->
+  <h3>👥 All Members (<span id="roomAllMemberCount">0</span>)</h3>
+  <div id="roomAllMembers" style="
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    padding:12px;
+    background:#21152f;
+    border-radius:16px;
+  ">No members yet.</div>
+
   <!-- ROOM CHAT -->
   <h3>💬 Room Chat</h3>
   <div id="roomChatMessages" style="
@@ -5746,6 +5757,49 @@ function toggleRoomSpeaker(){
     memberSeatsBox.appendChild(emptySeat);
   }
 
+  // Render every room member, including Owner and Listeners
+  const allMembersBox = document.getElementById("roomAllMembers");
+  const allMemberCount = document.getElementById("roomAllMemberCount");
+  allMembersBox.replaceChildren();
+
+  const allRoomMembers = [
+    {user_id: currentJoinedRoom.created_by, role:"owner"},
+    ...(members || []).filter(member =>
+      member.user_id !== currentJoinedRoom.created_by
+    )
+  ];
+
+  allMemberCount.textContent = allRoomMembers.length;
+
+  allRoomMembers.forEach(member => {
+    const profile = getProfile(member.user_id);
+    const card = document.createElement("div");
+    card.style.cssText =
+      "width:66px;display:flex;flex-direction:column;" +
+      "align-items:center;gap:4px;text-align:center;";
+
+    card.appendChild(createAvatar(
+      profile, 44,
+      member.user_id === currentJoinedRoom.created_by ? "#ffc45c" : "#68447d"
+    ));
+
+    const name = document.createElement("small");
+    name.textContent = profile?.username || "Member";
+    name.style.cssText =
+      "max-width:66px;overflow:hidden;text-overflow:ellipsis;" +
+      "white-space:nowrap;font-size:9px;color:#fff;";
+    card.appendChild(name);
+
+    const role = document.createElement("small");
+    role.textContent =
+      member.user_id === currentJoinedRoom.created_by
+        ? "Owner"
+        : member.audio_role === "speaker" ? "On Stage" : "Listener";
+    role.style.cssText = "font-size:8px;color:#c9a8df;";
+    card.appendChild(role);
+    allMembersBox.appendChild(card);
+  });
+
   listenersBox.replaceChildren();
 
   listeners.forEach(member => {
@@ -5830,6 +5884,34 @@ function toggleRoomSpeaker(){
     return;
   }
 
+  const senderIds = [...new Set([
+    ...(data || []).map(msg => msg.user_id),
+    currentJoinedRoom.created_by
+  ])];
+
+  const {data:senderProfiles, error:senderProfileError} = await db
+    .from("profiles")
+    .select("id,username")
+    .in("id", senderIds);
+
+  if(senderProfileError){
+    box.textContent = senderProfileError.message;
+    return;
+  }
+
+  const senderName = userId => {
+    if(userId === currentJoinedRoom.created_by){
+      const owner = (senderProfiles || []).find(p => p.id === userId);
+      return (owner?.username || "Room Owner") + " 👑 (Owner)";
+    }
+    if(userId === me.id){
+      const own = (senderProfiles || []).find(p => p.id === userId);
+      return (own?.username || "You") + " (You)";
+    }
+    const profile = (senderProfiles || []).find(p => p.id === userId);
+    return profile?.username || "Member";
+  };
+
   box.replaceChildren();
 
   (data || []).forEach(msg => {
@@ -5837,7 +5919,7 @@ function toggleRoomSpeaker(){
     item.style.marginBottom = "10px";
 
     const sender = document.createElement("b");
-    sender.textContent = msg.user_id === me.id ? "You: " : "Member: ";
+    sender.textContent = senderName(msg.user_id) + ": ";
 
     const content = document.createElement("span");
     content.textContent = msg.message;
@@ -6452,6 +6534,23 @@ async function loadActiveRooms(){
     return;
   }
 
+  const roomIds = data.map(room => room.id);
+  const {data:roomMembers, error:roomMembersError} = await db
+    .from("live_room_members")
+    .select("room_id,user_id")
+    .in("room_id", roomIds);
+
+  if(roomMembersError){
+    box.innerText = roomMembersError.message;
+    return;
+  }
+
+  const roomMemberCounts = {};
+  (roomMembers || []).forEach(member => {
+    roomMemberCounts[member.room_id] =
+      (roomMemberCounts[member.room_id] || 0) + 1;
+  });
+
   box.innerHTML = "";
 
  
@@ -6467,7 +6566,8 @@ data.forEach(room => {
 
   const info = document.createElement("p");
   info.textContent =
-    room.category + " • " + room.room_type + " • " + room.visibility;
+    room.category + " • " + room.room_type + " • " + room.visibility +
+    " • " + (roomMemberCounts[room.id] || 0) + " Members";
 
   card.append(title, info);
 
