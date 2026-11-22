@@ -5597,6 +5597,9 @@ function minimizeJoinedRoom(){
   }
 
   currentJoinedRoom = null;
+  roomMicOn = false;
+  roomMicPermissionAllowed = false;
+  updateRoomMicButtonState();
 
   document.getElementById("joinedRoomScreen").style.display = "none";
   document.getElementById("miniRoomBar").style.display = "none";
@@ -5607,14 +5610,30 @@ function minimizeJoinedRoom(){
 }
 
   let roomMicOn = false;
+let roomMicPermissionAllowed = false;
 let roomSpeakerOn = true;
 
-function toggleRoomMic(){
-  roomMicOn = !roomMicOn;
-
+function updateRoomMicButtonState(){
   document.querySelectorAll('[onclick="toggleRoomMic()"]').forEach(btn => {
-    btn.textContent = roomMicOn ? "🎤 Mic ON" : "🎤 Mic OFF";
+    btn.disabled = !roomMicPermissionAllowed;
+    btn.textContent = roomMicPermissionAllowed
+      ? (roomMicOn ? "🎤 Mic ON" : "🎤 Mic OFF")
+      : "🔒 Mic Locked";
+    btn.title = roomMicPermissionAllowed
+      ? "Turn your microphone on or off"
+      : "Room Owner se Mic permission maangein";
+    btn.style.opacity = roomMicPermissionAllowed ? "1" : ".6";
   });
+}
+
+function toggleRoomMic(){
+  if(!roomMicPermissionAllowed){
+    alert("Mic permission Room Owner se leni hogi.");
+    return;
+  }
+
+  roomMicOn = !roomMicOn;
+  updateRoomMicButtonState();
 }
 
 function toggleRoomSpeaker(){
@@ -5768,6 +5787,16 @@ function toggleRoomSpeaker(){
   memberSeatsBox.replaceChildren();
 
   const myMember = (members || []).find(member => member.user_id === me.id);
+
+  // Owner and Stage speakers can speak; Listeners need Owner approval.
+  roomMicPermissionAllowed =
+    currentJoinedRoom.created_by === me.id ||
+    myMember?.audio_role === "speaker" ||
+    myMember?.mic_allowed === true;
+
+  if(!roomMicPermissionAllowed) roomMicOn = false;
+  updateRoomMicButtonState();
+
   const canJoinStage = !!myMember &&
     myMember.audio_role !== "speaker" &&
     myMember.removed_from_stage !== true;
