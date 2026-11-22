@@ -4164,8 +4164,8 @@ row.addEventListener("contextmenu",e=>{
 fragment.appendChild(row);
       }
 
-    const {data:roomInvites,error:roomInviteError}=await db.rpc(
-  "get_chat_room_invites",
+  const {data:roomInvites,error:roomInviteError}=await db.rpc(
+  "get_chat_room_invites_with_time",
   {p_other_user:selected}
 );
 
