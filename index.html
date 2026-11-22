@@ -5490,19 +5490,32 @@ function toggleRoomSpeaker(){
     const label = document.createElement("small");
     label.textContent = member.role === "owner" ? "Owner" : "";
     card.appendChild(label);
-    if(currentJoinedRoom.created_by === me.id){
+   if(
+  currentJoinedRoom.created_by === me.id &&
+  member.user_id !== currentJoinedRoom.created_by
+){
   const roleBtn = document.createElement("button");
 
   roleBtn.textContent =
     member.audio_role === "speaker"
-      ? "Make Listener"
+      ? "Remove"
       : "Make Speaker";
 
-  roleBtn.style.fontSize = "10px";
-  roleBtn.style.padding = "6px";
-  roleBtn.style.marginTop = "5px";
+  roleBtn.style.cssText =
+    "display:none;font-size:10px;padding:5px 12px;margin-top:6px;border-radius:20px;background:#a83245;color:white;width:auto;";
 
-  roleBtn.onclick = async () => {
+  card.style.cursor = "pointer";
+
+  card.onclick = () => {
+    roleBtn.style.display =
+      roleBtn.style.display === "none"
+        ? "inline-block"
+        : "none";
+  };
+
+  roleBtn.onclick = async (event) => {
+    event.stopPropagation();
+
     const newRole =
       member.audio_role === "speaker"
         ? "listener"
@@ -5523,7 +5536,7 @@ function toggleRoomSpeaker(){
   };
 
   card.appendChild(roleBtn);
-  }
+   }
 
     if(member.audio_role === "speaker"){
       speakersBox.appendChild(card);
