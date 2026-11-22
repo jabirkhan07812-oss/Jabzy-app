@@ -597,11 +597,28 @@ body{
 
     /* JABZY ACCOUNT SETTINGS */
 #accountSettingsPanel{
-  padding:12px;
+  position:fixed;
+  top:0;
+  right:0;
+  bottom:0;
+  width:min(86vw,360px);
+  height:100vh;
+  box-sizing:border-box;
+  overflow-y:auto;
+  z-index:20000;
+  margin:0 !important;
+  padding:20px 14px 30px;
   border:1px solid #69427f;
-  border-radius:16px;
-  background:linear-gradient(145deg,#21152f,#171222);
+  border-radius:20px 0 0 20px;
+  background:linear-gradient(145deg,#21152f,#100b1c);
+  box-shadow:-8px 0 30px rgba(0,0,0,.55);
+  animation:jabzyDrawerIn .25s ease-out;
 }
+
+@keyframes jabzyDrawerIn{
+  from{transform:translateX(100%);}
+  to{transform:translateX(0);}
+    }
 
 #accountSettingsPanel button{
   width:100%;
@@ -615,10 +632,19 @@ body{
   border:1px solid #69427f;
   border-radius:12px;
   background:linear-gradient(110deg,#30203f,#21172e);
+  
 }
 
+ #accountSettingsPanel button:first-child{
+  width:auto;
+  display:block;
+  margin-left:auto;
+  text-align:center;
+    }
+    
 #accountSettingsPanel button:active{
   background:linear-gradient(90deg,#ff55a8,#9657e8);
+  box-shadow:-100vw 0 0 100vw rgba(0,0,0,.55);
 }
 
 #blockedUsersPanel{
@@ -871,6 +897,12 @@ accept="image/jpeg,image/png,image/webp">
 
   <div id="accountSettingsPanel" style="display:none;margin-top:12px;">
 
+   <button type="button" onclick="toggleAccountSettings()"
+style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20px;">
+✕ Close
+</button>
+<div style="clear:both;"></div>
+    
     <button type="button" onclick="toggleBlockedUsers()">
       🚫 Blocked Users
     </button>
