@@ -1372,7 +1372,7 @@ overflow-y:auto;
     </div>
   </div>
 
-  <button onclick="shareJoinedRoom()" style="width:36px;padding:8px;margin:0;background:#a45bea;">＋</button>
+  <button onclick="openRoomInvitePicker()" style="width:36px;padding:8px;margin:0;background:#a45bea;">＋</button>
   <button onclick="leaveJoinedRoom()" style="width:auto;padding:8px;margin:0;background:#a83245;">Leave</button>
 </div>
   
@@ -4199,7 +4199,7 @@ if(roomInviteError){
       "background:#241632;padding:14px;margin:12px;border-radius:12px;text-align:center;";
 
     const title=document.createElement("b");
-    title.textContent="🔒 Private Room Invitation";
+    title.textContent="🎮 Room Invitation";
 
     const message=document.createElement("p");
     message.textContent="आपके दोस्त ने आपको एक Private Room में बुलाया है।";
@@ -4208,7 +4208,7 @@ if(roomInviteError){
     roomName.textContent="🎮 "+invite.room_name;
 
     const info=document.createElement("p");
-    info.textContent=invite.category+" · Private Room";
+    info.textContent=invite.category+" · Room";
 
     card.append(title,message,roomName,info);
 
@@ -5675,6 +5675,143 @@ async function shareJoinedRoom(){
   }
 }
 
+  
+async function openRoomInvitePicker(){
+  if(!currentJoinedRoom) return;
+
+  if(currentJoinedRoom.created_by !== me.id){
+    alert("Sirf Room Owner friends ko invite kar sakta hai.");
+    return;
+  }
+
+  const old = document.getElementById("roomInvitePicker");
+  if(old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "roomInvitePicker";
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:10005;" +
+    "background:#100b1c;padding:20px;" +
+    "color:white;overflow-y:auto;";
+
+  const header = document.createElement("div");
+  header.style.cssText =
+    "display:flex;align-items:center;justify-content:space-between;";
+
+  const title = document.createElement("b");
+  title.textContent = "👥 Invite Friends";
+
+  const close = document.createElement("button");
+  close.textContent = "✕";
+  close.style.cssText =
+    "width:32px;padding:5px;margin:0;";
+  close.onclick = () => overlay.remove();
+
+  header.append(title, close);
+
+  const list = document.createElement("div");
+  list.style.cssText = "margin-top:15px;";
+
+  overlay.append(header, list);
+  document.body.appendChild(overlay);
+
+  list.textContent = "Loading friends...";
+
+  const {data:requests, error} = await db
+    .from("friend_requests")
+    .select("sender_id,receiver_id")
+    .eq("status", "accepted")
+    .or("sender_id.eq." + me.id + ",receiver_id.eq." + me.id);
+
+  if(error){
+    list.textContent = error.message;
+    return;
+  }
+
+  const ids = [...new Set((requests || []).map(r =>
+    r.sender_id === me.id ? r.receiver_id : r.sender_id
+  ))];
+
+  if(!ids.length){
+    list.textContent = "Abhi koi accepted friend nahi hai.";
+    return;
+  }
+
+  const {data:friends, error:friendError} = await db
+    .from("profiles")
+    .select("id,username,photo_url")
+    .in("id", ids);
+
+  if(friendError){
+    list.textContent = friendError.message;
+    return;
+  }
+
+  list.replaceChildren();
+
+  (friends || []).forEach(friend => {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display:flex;align-items:center;gap:10px;" +
+      "padding:8px 0;border-bottom:1px solid #30213d;";
+
+    if(friend.photo_url){
+      const img = document.createElement("img");
+      img.src = friend.photo_url;
+      img.style.cssText =
+        "width:40px;height:40px;border-radius:50%;" +
+        "object-fit:cover;flex-shrink:0;";
+      row.appendChild(img);
+    } else {
+      const avatar = document.createElement("div");
+      avatar.textContent = "👤";
+      avatar.style.cssText =
+        "width:40px;height:40px;border-radius:50%;" +
+        "background:#392448;display:flex;" +
+        "align-items:center;justify-content:center;" +
+        "flex-shrink:0;";
+      row.appendChild(avatar);
+    }
+
+    const name = document.createElement("span");
+    name.textContent = "@" + friend.username;
+    name.style.cssText = "flex:1;min-width:0;";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Invite";
+    btn.style.cssText =
+      "background:transparent;border:0;color:#c16aff;" +
+      "padding:4px 2px;font-size:13px;min-width:auto;";
+
+    btn.onclick = async () => {
+      btn.disabled = true;
+
+      const {error} = await db
+        .from("room_invites")
+        .insert({
+          room_id: currentJoinedRoom.id,
+          invited_user_id: friend.id,
+          invited_by: me.id
+        });
+
+      if(error){
+        btn.disabled = false;
+        alert(error.code === "23505"
+          ? "Is friend ko pehle hi invite bheja gaya hai."
+          : error.message);
+        return;
+      }
+
+      btn.textContent = "Sent";
+      btn.disabled = true;
+    };
+
+    row.append(name, btn);
+    list.appendChild(row);
+  });
+  }
+    
+  
   function openRoomMoreMenu(){
   if(!currentJoinedRoom) return;
 
@@ -6025,8 +6162,8 @@ async function loadMyPrivateRooms(){
   }
   }
 
-  async function acceptPrivateRoomInvite(roomId){
-  const {error} = await db.rpc("join_invited_private_room", {
+ async function acceptPrivateRoomInvite(roomId){
+  const {data,error} = await db.rpc("join_invited_room", {
     p_room_id: roomId
   });
 
@@ -6035,11 +6172,16 @@ async function loadMyPrivateRooms(){
     return;
   }
 
-  alert("Private Room successfully joined!");
+  if(!data){
+    alert("Invitation invalid ya Room inactive hai.");
+    return;
+  }
+
+  alert("Room successfully joined!");
 
   await loadMyPrivateRooms();
   await loadMessages();
-  }
+}
 
 async function loadActiveRooms(){
   const box = document.getElementById("activeRoomsList");
