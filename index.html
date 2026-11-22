@@ -970,7 +970,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Language Settings coming soon ❤️')">🌐 Language</button>
     <button type="button" onclick="appStatus('Appearance Settings coming soon ❤️')">🎨 Appearance</button>
     <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
-    <button type="button" onclick="appStatus('Privacy Policy coming soon ❤️')">📜 Privacy Policy</button>
+    <button type="button" onclick="openPrivacyPolicy()">📜 Privacy Policy</button>
     <button type="button" onclick="openTermsConditions()">📄 Terms & Conditions</button>
     <button type="button" onclick="openAboutApp()">ℹ️ About App</button>
     <button type="button" onclick="openUserSupport('feedback')">💬 Feedback</button>
@@ -988,6 +988,38 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <p id="userSupportHint" style="font-size:13px;color:#d4c8df;">Apna feedback likhein.</p>
     <textarea id="userSupportMessage" rows="5" maxlength="3000" placeholder="Yahan apni baat likhein..." style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;background:#130f1d;color:white;border:1px solid #665276;resize:vertical;"></textarea>
     <button id="userSupportSubmit" type="button" onclick="submitUserSupport()" style="margin-top:12px;">Submit</button>
+  </div>
+</div>
+
+<div id="privacyPolicyModal" style="display:none;position:fixed;inset:0;z-index:100080;background:#090711ee;padding:16px;box-sizing:border-box;overflow-y:auto;">
+  <div style="width:100%;max-width:600px;margin:18px auto;background:linear-gradient(145deg,#30203f,#171222);border:1px solid #8154a7;border-radius:20px;padding:20px;box-sizing:border-box;color:white;">
+    <h2 style="margin:4px 0 8px;color:#ff80bd;">JABZY Privacy Policy</h2>
+    <p style="font-size:12px;color:#bfaed0;">Last updated: 23 November 2026</p>
+    <p>This Privacy Policy explains how JABZY collects, uses, and shares information when you use the app.</p>
+    <h3>1. Information we collect</h3>
+    <p>Depending on how you use JABZY, information may include your account details and authentication information; username, age, bio, and profile photo; messages and photos you send; stories, captions, comments, and story interactions; likes, follows, matches, and other app activity; and reports, feedback, and help requests you submit.</p>
+    <h3>2. How we use information</h3>
+    <p>We use information to create and manage accounts, show profiles and app features, deliver messages and stories, operate social interactions, respond to support requests, investigate reports, enforce our rules, and maintain the safety and operation of JABZY.</p>
+    <h3>3. What other users can see</h3>
+    <p>Your username, profile details, profile photo, and content you choose to post may be visible to other users according to the app's features and settings. Stories are currently stored using publicly accessible media URLs; anyone who obtains a story media URL may be able to view that media. Do not post anything you want to keep private. Messages are intended for the people in the conversation, but do not treat online communications as a guarantee of absolute confidentiality.</p>
+    <h3>4. Service providers</h3>
+    <p>JABZY uses Supabase for services such as authentication, database, and file storage. These providers process information as needed to provide their services and are subject to their own terms and privacy practices. If you choose a third-party sign-in option, that provider may also process information under its own policy.</p>
+    <h3>5. Safety, reports, and administrators</h3>
+    <p>Authorised JABZY administrators may access information needed to review user reports, feedback, help requests, and moderation or safety concerns. Please do not include passwords or highly sensitive personal information in messages or support requests.</p>
+    <h3>6. Storage and security</h3>
+    <p>We use the app's service providers and available access controls to store and protect information. No online service can guarantee perfect security. Keep your password private and tell us if you believe your account has been compromised.</p>
+    <h3>7. Retention and deletion requests</h3>
+    <p>Information is kept while needed to operate the app, meet safety and legal needs, and resolve disputes. Some content, backups, or records may remain for a period after a deletion request where technically or legally necessary. To ask about access, correction, or deletion of your information, contact us at <a href="mailto:jabzyofficial@gmail.com" style="color:#ff80bd;">jabzyofficial@gmail.com</a>.</p>
+    <h3>8. Age restriction</h3>
+    <p>JABZY is intended for people aged 18 or older. We do not knowingly intend to provide the service to anyone under 18. If you believe an underage person has created an account, contact us.</p>
+    <h3>9. Your choices</h3>
+    <p>You can choose what information and content you post. You may contact us to ask questions or make a privacy-related request. App features and settings may vary as JABZY develops.</p>
+    <h3>10. Changes to this policy</h3>
+    <p>We may update this policy as the app changes. The latest version and its update date will be shown here.</p>
+    <h3>11. Contact us</h3>
+    <p>For privacy questions or requests, email <a href="mailto:jabzyofficial@gmail.com" style="color:#ff80bd;">jabzyofficial@gmail.com</a>.</p>
+    <p style="font-size:12px;color:#bfaed0;">This is a draft policy based on the app's current features. Review it for legal compliance and update it whenever data practices or providers change.</p>
+    <button type="button" onclick="closePrivacyPolicy()" style="margin-top:12px;">Close</button>
   </div>
 </div>
 
@@ -1777,7 +1809,9 @@ loadMessages(true);
 .subscribe();
 }
 
-  function openTermsConditions(){const modal=document.getElementById("termsConditionsModal");if(modal)modal.style.display="block";}
+  function openPrivacyPolicy(){const modal=document.getElementById("privacyPolicyModal");if(modal)modal.style.display="block";}
+function closePrivacyPolicy(){const modal=document.getElementById("privacyPolicyModal");if(modal)modal.style.display="none";}
+function openTermsConditions(){const modal=document.getElementById("termsConditionsModal");if(modal)modal.style.display="block";}
 function closeTermsConditions(){const modal=document.getElementById("termsConditionsModal");if(modal)modal.style.display="none";}
 function openAboutApp(){const modal=document.getElementById("aboutAppModal");if(modal)modal.style.display="flex";}
 function closeAboutApp(){const modal=document.getElementById("aboutAppModal");if(modal)modal.style.display="none";}
