@@ -973,7 +973,21 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Privacy Policy coming soon ❤️')">📜 Privacy Policy</button>
     <button type="button" onclick="appStatus('Terms & Conditions coming soon ❤️')">📄 Terms & Conditions</button>
     <button type="button" onclick="appStatus('About JABZY coming soon ❤️')">ℹ️ About JABZY</button>
+    <button type="button" onclick="openUserSupport('feedback')">💬 Feedback</button>
+    <button type="button" onclick="openUserSupport('help')">❓ Help &amp; Support</button>
 
+  </div>
+</div>
+
+<div id="userSupportModal" style="display:none;position:fixed;inset:0;z-index:100050;background:#090711ee;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;">
+  <div style="width:100%;max-width:440px;background:#211a30;border:1px solid #684b80;border-radius:18px;padding:18px;box-sizing:border-box;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <h3 id="userSupportTitle" style="margin:0;color:#ff80bd;">Feedback</h3>
+      <button type="button" onclick="closeUserSupport()" style="width:auto;margin:0;padding:6px 11px;">✕</button>
+    </div>
+    <p id="userSupportHint" style="font-size:13px;color:#d4c8df;">Apna feedback likhein.</p>
+    <textarea id="userSupportMessage" rows="5" maxlength="3000" placeholder="Yahan apni baat likhein..." style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;background:#130f1d;color:white;border:1px solid #665276;resize:vertical;"></textarea>
+    <button id="userSupportSubmit" type="button" onclick="submitUserSupport()" style="margin-top:12px;">Submit</button>
   </div>
 </div>
 
@@ -993,7 +1007,9 @@ onclick="openAdminDashboard()">
     <button type="button" data-admin-section="users" onclick="showAdminSection('users')"><span>👥</span>All Users</button>
     <button type="button" data-admin-section="chats" onclick="showAdminSection('chats')"><span>💬</span>All Chats</button>
     <button type="button" data-admin-section="ads" onclick="showAdminSection('ads')"><span>📢</span>Ads Manager</button>
+    <button type="button" data-admin-section="feedback" onclick="showAdminSection('feedback')"><span>✉️</span>Feedback &amp; Help</button>
   </div>
+  <section id="adminSectionFeedback" class="admin-section" style="display:none"><h3>✉️ Feedback &amp; Help</h3><div id="adminFeedback">Loading...</div></section>
   <section id="adminSectionReports" class="admin-section"><h3>🚩 User Reports</h3><div id="adminReports">Loading...</div></section>
   <section id="adminSectionUsers" class="admin-section" style="display:none"><h3>👥 All Users</h3><div id="adminUsers">Loading...</div></section>
   <section id="adminSectionChats" class="admin-section" style="display:none"><h3>💬 All User Chats</h3><div id="adminAllChats">Loading...</div></section>
@@ -1712,6 +1728,49 @@ loadMessages(true);
 }
 })
 .subscribe();
+}
+
+  let activeUserSupportCategory="feedback";
+
+function openUserSupport(category){
+  activeUserSupportCategory=category==="help"?"help":"feedback";
+  const modal=document.getElementById("userSupportModal");
+  const title=document.getElementById("userSupportTitle");
+  const hint=document.getElementById("userSupportHint");
+  const message=document.getElementById("userSupportMessage");
+  if(!modal||!title||!hint||!message)return;
+  title.textContent=activeUserSupportCategory==="help"?"❓ Help & Support":"💬 Feedback";
+  hint.textContent=activeUserSupportCategory==="help"?"Apni problem likhein. JABZY team aapki request dekhegi.":"JABZY ke baare mein apna suggestion ya feedback likhein.";
+  message.value="";
+  modal.style.display="flex";
+  message.focus();
+}
+
+function closeUserSupport(){
+  const modal=document.getElementById("userSupportModal");
+  if(modal)modal.style.display="none";
+}
+
+async function submitUserSupport(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const input=document.getElementById("userSupportMessage");
+  const button=document.getElementById("userSupportSubmit");
+  const message=input?input.value.trim():"";
+  if(!message){appStatus("Pehle apna message likhein.");return;}
+  if(message.length>3000){appStatus("Message 3000 characters se chhota rakhein.");return;}
+  button.disabled=true;
+  button.textContent="Submitting...";
+  try{
+    const {error}=await db.from("user_feedback").insert({user_id:me.id,category:activeUserSupportCategory,message});
+    if(error)throw error;
+    closeUserSupport();
+    appStatus(activeUserSupportCategory==="help"?"Help request submit ho gayi. Shukriya!":"Feedback submit ho gaya. Shukriya!");
+  }catch(error){
+    appStatus("Submit nahi hua: "+(error.message||error));
+  }finally{
+    button.disabled=false;
+    button.textContent="Submit";
+  }
 }
 
   function toggleAccountSettings(){
@@ -4730,15 +4789,17 @@ return;
 document.getElementById("adminDashboard").style.display="block";
 document.getElementById("adminReports").innerText="Loading...";
 document.getElementById("adminUsers").innerText="Loading...";
+document.getElementById("adminFeedback").innerText="Loading feedback...";
 
 await loadAdminReports();
 await loadAdminUsers();
 await loadAdminAllChats();
 await loadAdminAds();
+await loadAdminFeedback();
 }
 
 function showAdminSection(section){
-  const sections={reports:"adminSectionReports",users:"adminSectionUsers",chats:"adminSectionChats",ads:"adminAdsManager"};
+  const sections={reports:"adminSectionReports",users:"adminSectionUsers",chats:"adminSectionChats",ads:"adminAdsManager",feedback:"adminSectionFeedback"};
   Object.keys(sections).forEach(key=>{const panel=document.getElementById(sections[key]);if(panel)panel.style.display=key===section?"block":"none";});
 
   // Full user profile belongs only to the All Users section.
@@ -4865,6 +4926,37 @@ async function loadAdminAds(){
   });
     }
            
+
+async function loadAdminFeedback(){
+  const box=document.getElementById("adminFeedback");
+  if(!box)return;
+  box.textContent="Loading feedback...";
+  const {data:items,error}=await db.from("user_feedback").select("*").order("created_at",{ascending:false});
+  if(error){box.textContent="Error: "+error.message;return;}
+  if(!items||items.length===0){box.textContent="Abhi koi feedback ya help request nahi hai.";return;}
+  const ids=[...new Set(items.map(item=>item.user_id))];
+  const {data:profiles,error:profileError}=await db.from("profiles").select("id,username").in("id",ids);
+  if(profileError){box.textContent="Profile load error: "+profileError.message;return;}
+  const names={};
+  (profiles||[]).forEach(profile=>{names[profile.id]=profile.username||"Unknown";});
+  box.innerHTML="";
+  items.forEach(item=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.style.margin="10px 0";
+    const heading=document.createElement("h4");
+    heading.textContent=(item.category==="help"?"❓ Help & Support":"💬 Feedback")+" · "+(names[item.user_id]||"Unknown");
+    const message=document.createElement("p");
+    message.textContent=item.message;
+    message.style.whiteSpace="pre-wrap";
+    const date=document.createElement("small");
+    date.textContent=new Date(item.created_at).toLocaleString();
+    const status=document.createElement("small");
+    status.textContent="Status: "+(item.status||"new");
+    card.append(heading,message,date,status);
+    box.appendChild(card);
+  });
+}
 
 async function loadAdminReports(){
 
