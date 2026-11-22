@@ -802,17 +802,24 @@ body{
     <div id="jabzyStoryFriends" style="display:flex;gap:14px;"></div>
   </div>
 </div>
-<div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711ed;padding:24px;overflow:auto;">
-  <div style="max-width:430px;margin:45px auto;background:#21152d;border:1px solid #634477;border-radius:18px;padding:18px;color:white;">
-    <div style="display:flex;justify-content:space-between;align-items:center;"><b>＋ Add Story</b><button onclick="closeStoryUpload()" style="width:auto;margin:0;padding:5px 10px;">✕</button></div>
-    <input id="storyMediaFile" type="file" accept="image/*,video/*" onchange="previewJabzyStoryMedia(event)" style="margin-top:18px;">
-    <div id="storyMediaPreview" style="display:none;margin-top:12px;text-align:center;background:#120d1b;border-radius:12px;padding:8px;">
-      <img id="storyPreviewImage" style="display:none;max-width:100%;max-height:280px;object-fit:contain;border-radius:9px;">
-      <video id="storyPreviewVideo" controls playsinline style="display:none;max-width:100%;max-height:280px;border-radius:9px;"></video>
+<div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711;padding:0;overflow:hidden;">
+  <div style="width:100%;height:100dvh;max-width:520px;margin:auto;background:#090711;color:white;display:flex;flex-direction:column;position:relative;">
+    <div style="height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #30243b;">
+      <b style="font-size:17px;">Create Story</b>
+      <button onclick="closeStoryUpload()" style="width:36px;height:36px;padding:0;margin:0;border-radius:50%;background:#241a30;color:white;border:1px solid #594267;font-size:18px;">✕</button>
     </div>
-    <input id="storyCaption" type="text" maxlength="180" placeholder="Add a caption..." style="margin-top:10px;">
-    <button id="storyUploadBtn" onclick="uploadJabzyStory()" style="margin-top:12px;">Share Story</button>
-    <p id="storyUploadStatus" style="font-size:12px;color:#d9c4e8;"></p>
+    <div style="padding:12px 16px;flex:0 0 auto;">
+      <input id="storyMediaFile" type="file" accept="image/*,video/*" onchange="previewJabzyStoryMedia(event)" style="width:100%;margin:0;color:white;">
+    </div>
+    <div id="storyMediaPreview" style="display:none;flex:1;min-height:0;margin:0 12px 10px;background:#120d1b;border-radius:14px;align-items:center;justify-content:center;overflow:hidden;">
+      <img id="storyPreviewImage" style="display:none;width:100%;height:100%;max-height:100%;object-fit:contain;">
+      <video id="storyPreviewVideo" controls playsinline style="display:none;width:100%;height:100%;max-height:100%;object-fit:contain;"></video>
+    </div>
+    <div style="margin-top:auto;padding:12px 16px max(16px,env(safe-area-inset-bottom));background:#130d1c;border-top:1px solid #30243b;">
+      <input id="storyCaption" type="text" maxlength="180" placeholder="Add a caption..." style="width:100%;box-sizing:border-box;margin:0 0 10px;padding:13px 14px;border-radius:12px;background:#241a30;color:white;border:1px solid #594267;">
+      <button id="storyUploadBtn" onclick="uploadJabzyStory()" style="width:100%;margin:0;padding:14px;border-radius:12px;background:linear-gradient(90deg,#a855f7,#ec4899);color:white;font-size:16px;font-weight:700;">Share Story</button>
+      <p id="storyUploadStatus" style="font-size:12px;color:#d9c4e8;margin:7px 0 0;text-align:center;"></p>
+    </div>
   </div>
 </div>
 <div id="storyViewerModal" style="display:none;position:fixed;inset:0;z-index:100002;background:#08060f;color:white;overflow:hidden;touch-action:pan-y;">
@@ -7091,7 +7098,7 @@ function previewJabzyStoryMedia(event){
   img.removeAttribute("src");video.pause();video.removeAttribute("src");video.load();
   if(!file){wrap.style.display="none";return;}
   const url=URL.createObjectURL(file);
-  wrap.style.display="block";
+  wrap.style.display="flex";
   if(file.type.startsWith("image/")){img.src=url;img.style.display="block";}
   else if(file.type.startsWith("video/")){video.src=url;video.style.display="block";}
   else{wrap.style.display="none";}
