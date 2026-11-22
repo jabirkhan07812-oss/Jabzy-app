@@ -5637,7 +5637,7 @@ function toggleRoomSpeaker(){
 
   const {data:members, error} = await db
     .from("live_room_members")
-    .select("user_id,role,audio_role,removed_from_stage")
+    .select("user_id,role,audio_role,removed_from_stage,mic_allowed")
     .eq("room_id", currentJoinedRoom.id);
 
   if(error){
@@ -5921,6 +5921,36 @@ function toggleRoomSpeaker(){
       };
 
       card.appendChild(roleBtn);
+
+      const micPermissionBtn = document.createElement("button");
+      micPermissionBtn.textContent = member.mic_allowed
+        ? "Revoke Mic" : "Allow Mic";
+      micPermissionBtn.style.cssText =
+        "font-size:9px;padding:4px 7px;margin:2px 0 0;" +
+        "border-radius:16px;background:" +
+        (member.mic_allowed ? "#a83245" : "#287a55") +
+        ";color:white;width:auto;";
+
+      micPermissionBtn.onclick = async event => {
+        event.stopPropagation();
+        micPermissionBtn.disabled = true;
+
+        const {error} = await db.rpc("set_room_mic_permission", {
+          p_room_id: currentJoinedRoom.id,
+          p_user_id: member.user_id,
+          p_allowed: !member.mic_allowed
+        });
+
+        if(error){
+          alert(error.message);
+          micPermissionBtn.disabled = false;
+          return;
+        }
+
+        await loadRoomParticipants();
+      };
+
+      card.appendChild(micPermissionBtn);
     }
 
     listenersBox.appendChild(card);
