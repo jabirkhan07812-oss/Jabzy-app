@@ -7081,6 +7081,8 @@ async function loadJabzyAds(placement){
 let activeJabzyStory = null;
 let activeJabzyStoryOwner = false;
 let jabzyStoryRows = [];
+let activeJabzyStoryUserId = null;
+let activeJabzyStoryIndex = 0;
 
 function openStoryUpload(){
   if(!me){alert("Please login first.");return;}
@@ -7164,6 +7166,7 @@ async function loadJabzyStories(){
 }
 async function openJabzyStory(userId,index){
   const list=jabzyStoryRows.filter(s=>s.user_id===userId);
+  activeJabzyStoryUserId=userId;activeJabzyStoryIndex=index;
   const story=list[index];if(!story)return;
   activeJabzyStory=story;activeJabzyStoryOwner=story.user_id===me.id;
   document.getElementById("storyViewerModal").style.display="block";
@@ -7265,6 +7268,13 @@ async function deleteJabzyStory(){
   if(path)await db.storage.from("stories").remove([decodeURIComponent(path)]);
   closeJabzyStory();await loadJabzyStories();
 }
+function changeJabzyStory(direction){
+  if(!activeJabzyStoryUserId)return;
+  const list=jabzyStoryRows.filter(s=>s.user_id===activeJabzyStoryUserId);
+  const next=activeJabzyStoryIndex+direction;
+  if(next<0 || next>=list.length)return;
+  openJabzyStory(activeJabzyStoryUserId,next);
+}
 function closeJabzyStory(){
   const panel=document.getElementById("storyOwnerPanel");if(panel)panel.style.display="none";
   const media=document.getElementById("storyViewerMedia");media.querySelectorAll("video").forEach(v=>v.pause());media.replaceChildren();
@@ -7277,14 +7287,19 @@ let storyTouchStartY=0;
   if(!viewer || viewer.dataset.swipeReady==="1")return;
   viewer.dataset.swipeReady="1";
   const storyMediaArea=document.getElementById("storyViewerMedia");
-  storyMediaArea.addEventListener("click",()=>{
+  storyMediaArea.addEventListener("click",event=>{
+    if(event.target && event.target.tagName==="VIDEO")return;
     if(activeJabzyStoryOwner){
       const panel=document.getElementById("storyOwnerPanel");
       if(panel && panel.style.display==="block"){
         panel.style.display="none";
         document.getElementById("storyOwnerSwipeHint").style.display="block";
+        return;
       }
     }
+    const x=event.clientX || (event.changedTouches && event.changedTouches[0]?.clientX) || 0;
+    if(x>window.innerWidth/2)changeJabzyStory(1);
+    else changeJabzyStory(-1);
   });
   viewer.addEventListener("touchstart",event=>{storyTouchStartY=event.touches[0].clientY;},{passive:true});
   viewer.addEventListener("touchend",event=>{
