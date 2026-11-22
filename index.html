@@ -5216,58 +5216,112 @@ async function createGroup(){
   alert("Group successfully created!");
 }
   
+
 async function createLiveRoom(){
-  const name = prompt("Room ka naam likho:");
-  if(!name || !name.trim()) return;
+  const overlay = document.createElement("div");
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:10010;" +
+    "background:#100b1c;display:flex;" +
+    "align-items:center;justify-content:center;padding:20px;";
 
-  const category = prompt("Category likho: Gaming ya Social");
-  if(!category) return;
+  const box = document.createElement("div");
+  box.style.cssText =
+    "width:100%;max-width:400px;background:#241632;" +
+    "padding:20px;border-radius:16px;color:white;";
 
-  const roomType = "audio";
+  box.innerHTML = `
+    <h3>Create JABZY Room 🎙️</h3>
+    <input id="newRoomName" placeholder="Room ka naam"
+      style="width:100%;padding:12px;margin:10px 0;">
 
-  const visibility = prompt("Public ya Private?");
-  if(!visibility) return;
+    <label>Category</label>
+    <select id="newRoomCategory"
+      style="width:100%;padding:12px;margin:8px 0 15px;">
+      <option value="Gaming">🎮 Gaming</option>
+      <option value="Social">💬 Social</option>
+    </select>
 
-  const {data, error} = await db.rpc("create_live_room", {
-    p_name: name.trim(),
-    p_category: category.trim(),
-    p_room_type: roomType,
-    p_visibility: visibility.trim().toLowerCase(),
-    p_code: null
-  });
+    <label>Room Type</label>
+    <select id="newRoomVisibility"
+      style="width:100%;padding:12px;margin:8px 0 15px;">
+      <option value="public">🌍 Public</option>
+      <option value="private">🔒 Private</option>
+    </select>
 
-  if(error){
-    alert(error.message);
-    return;
+    <button id="createRoomNow" style="width:100%;">
+      Create Room
+    </button>
+    <button id="cancelRoomCreate"
+      style="width:100%;background:#555;">
+      Cancel
+    </button>
+  `;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  box.querySelector("#cancelRoomCreate").onclick =
+    () => overlay.remove();
+
+  box.querySelector("#createRoomNow").onclick = async () => {
+    const name = box.querySelector("#newRoomName").value.trim();
+    const category = box.querySelector("#newRoomCategory").value;
+    const visibility = box.querySelector("#newRoomVisibility").value;
+    const btn = box.querySelector("#createRoomNow");
+
+    if(!name){
+      alert("Room ka naam likho.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Creating...";
+
+    const {data,error} = await db.rpc("create_live_room", {
+      p_name: name,
+      p_category: category,
+      p_room_type: "audio",
+      p_visibility: visibility,
+      p_code: null
+    });
+
+    if(error){
+      alert(error.message);
+      btn.disabled = false;
+      btn.textContent = "Create Room";
+      return;
+    }
+
+    overlay.remove();
+
+    if(data && data.password){
+      alert(
+        "Private Room Created!\n\n" +
+        "Room ID: " + data.room_code +
+        "\nPassword: " + data.password +
+        "\n\nYe details save kar lein."
+      );
+    }
+
+    const {data:roomData,error:roomError} = await db
+      .from("live_rooms")
+      .select("*")
+      .eq("id",data.room_id)
+      .single();
+
+    if(roomError){
+      alert(roomError.message);
+      return;
+    }
+
+    currentJoinedRoom = roomData;
+
+    await loadActiveRooms();
+    await loadMyPrivateRooms();
+    await openJoinedRoom();
+  };
   }
-
-  if(data && data.password){
-    alert(
-      "Private Room Created!\n\n" +
-      "Room ID: " + data.room_code +
-      "\nPassword: " + data.password +
-      "\n\nYe details save kar lein."
-    );
-  }
-
-  const {data: roomData, error: roomError} = await db
-    .from("live_rooms")
-    .select("*")
-    .eq("id", data.room_id)
-    .single();
-
-  if(roomError){
-    alert(roomError.message);
-    return;
-  }
-
-  currentJoinedRoom = roomData;
-
-  await loadActiveRooms();
-  await loadMyPrivateRooms();
-  await openJoinedRoom();
-  }
-
+  
 
 async function endLiveRoom(roomId){
   if(!confirm("Kya aap is Room ko end karna chahte hain?")) return;
