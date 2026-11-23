@@ -2873,9 +2873,14 @@ document.getElementById("login").classList.add("hidden");
 document.getElementById("signup").classList.add("hidden");
 
 showTab("home");
-await restoreJoinedRoom();
-await setupGlobalRoomRealtime();
 document.getElementById("app").classList.remove("hidden");
+
+Promise.resolve().then(async()=>{
+  await restoreJoinedRoom();
+  await setupGlobalRoomRealtime();
+}).catch(error=>{
+  console.error("Background Room Setup Error:",error);
+});
 
 Promise.all([
   loadProfile(),
@@ -5052,7 +5057,7 @@ async function forwardChatMessage(message){
   }
                   
 
-async function loadMessages(incremental=false){
+async function loadMessages(incremental=false,olderBatch=false){
 if(!selected)return;
 
 let blocked;
@@ -5073,6 +5078,7 @@ const {data:clearData,error:clearError}=await db
 
 if(clearError){appStatus(clearError.message);return}
 
+const box=document.getElementById("messages");
 let messageQuery=db.from("messages").select("*")
 .or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")");
 
@@ -5080,12 +5086,24 @@ if(clearData?.cleared_at){
   messageQuery=messageQuery.gt("created_at",clearData.cleared_at);
 }
 
-const {data,error}=await messageQuery
-.order("created_at",{ascending:true});
+if(olderBatch){
+  const oldestRow=Array.from(box.children)
+    .filter(x=>x.dataset.messageId && x.dataset.createdAt)
+    .sort((a,b)=>new Date(a.dataset.createdAt)-new Date(b.dataset.createdAt))[0];
+  if(!oldestRow)return 0;
+  messageQuery=messageQuery.lt("created_at",oldestRow.dataset.createdAt);
+}
 
-const box=document.getElementById("messages");
+const {data,error}=await messageQuery
+.order("created_at",{ascending:false})
+.limit(50);
+
+if(data)data.reverse();
+
 const fragment=document.createDocumentFragment();
 const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+const previousScrollHeight=box.scrollHeight;
+const previousScrollTop=box.scrollTop;
 const existingMessageIds = new Set(Array.from(box.children).map(x=>x.dataset.messageId).filter(Boolean));
 const existingInviteIds = new Set(Array.from(box.children).map(x=>x.dataset.inviteId).filter(Boolean));
 if(error){box.innerText=error.message;return}
@@ -5538,7 +5556,9 @@ fragment.replaceChildren(...timelineItems);
     box.insertBefore(item,nextItem||null);
   }
 
-  if(wasAtBottom){
+  if(olderBatch){
+    box.scrollTop=previousScrollTop+(box.scrollHeight-previousScrollHeight);
+  }else if(wasAtBottom){
     box.scrollTop=box.scrollHeight;
   }
 
@@ -5550,7 +5570,21 @@ fragment.replaceChildren(...timelineItems);
 }
 
 box.style.visibility="visible";
+
+if(!incremental && !olderBatch){
+  const chatUserId=selected;
+  Promise.resolve().then(()=>loadOlderChatHistory(chatUserId));
+}
+return (data||[]).length;
  }
+
+async function loadOlderChatHistory(chatUserId){
+  if(!chatUserId)return;
+  while(selected===chatUserId){
+    const loaded=await loadMessages(true,true);
+    if(!loaded || loaded<50 || selected!==chatUserId)break;
+  }
+}
 
 async function toggleChatStar(messageId){
   const {data:existing,error:findError}=await db
