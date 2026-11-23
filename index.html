@@ -4980,25 +4980,28 @@ const info=document.getElementById("chatProfileInfo");
 photo.classList.add("hidden");
 info.textContent="";
 
-const {data:profile,error:profileError}=await db
-.from("profiles")
-.select("username,age,bio,photo_url")
-.eq("id",id)
-.maybeSingle();
+const [profileResult]=await Promise.all([
+  db.from("profiles")
+    .select("username,age,bio,photo_url")
+    .eq("id",id)
+    .maybeSingle(),
+  loadMessages()
+]);
 
+if(selected!==id)return;
+
+const {data:profile,error:profileError}=profileResult;
 if(profileError){
-appStatus(profileError.message);
+  appStatus(profileError.message);
 }else if(profile){
-document.getElementById("chatTitle").innerText=profile.username||name;
-info.textContent=profile.age ? profile.age+" years" : "";
+  document.getElementById("chatTitle").innerText=profile.username||name;
+  info.textContent=profile.age ? profile.age+" years" : "";
 
-if(profile.photo_url){
-photo.src=profile.photo_url;
-photo.classList.remove("hidden");
+  if(profile.photo_url){
+    photo.src=profile.photo_url;
+    photo.classList.remove("hidden");
+  }
 }
-}
-
-await loadMessages();
 }
   
 async function checkTypingStatus(){
