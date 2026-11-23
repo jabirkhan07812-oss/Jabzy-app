@@ -5149,13 +5149,14 @@ async function forwardChatMessage(message){
                   
 
 async function loadMessages(incremental=false,olderBatch=false){
-if(!selected)return;
+if(!chatUserId)return;
 
 let blocked;
 try{blocked=await getBlockedIds()}
 catch(e){appStatus(e.message);return}
+if(chatUserId!==selected)return;
 
-if(blocked.has(selected)){
+if(blocked.has(chatUserId)){
 appStatus("Blocked user ke saath chat nahi ho sakti.");
 return;
 }
@@ -5164,14 +5165,15 @@ const {data:clearData,error:clearError}=await db
 .from("user_chat_clears_per_chat")
 .select("cleared_at")
 .eq("user_id",me.id)
-.eq("other_user_id",selected)
+.eq("other_user_id",chatUserId)
 .maybeSingle();
 
+if(chatUserId!==selected)return;
 if(clearError){appStatus(clearError.message);return}
 
 const box=document.getElementById("messages");
 let messageQuery=db.from("messages").select("*")
-.or("and(sender_id.eq."+me.id+",receiver_id.eq."+selected+"),and(sender_id.eq."+selected+",receiver_id.eq."+me.id+")");
+.or("and(sender_id.eq."+me.id+",receiver_id.eq."+chatUserId+"),and(sender_id.eq."+chatUserId+",receiver_id.eq."+me.id+")");
 
 if(clearData?.cleared_at){
   messageQuery=messageQuery.gt("created_at",clearData.cleared_at);
@@ -5197,6 +5199,7 @@ const previousScrollHeight=box.scrollHeight;
 const previousScrollTop=box.scrollTop;
 const existingMessageIds = new Set(Array.from(box.children).map(x=>x.dataset.messageId).filter(Boolean));
 const existingInviteIds = new Set(Array.from(box.children).map(x=>x.dataset.inviteId).filter(Boolean));
+if(chatUserId!==selected)return;
 if(error){box.innerText=error.message;return}
 
 const messageMap=new Map(
@@ -5210,8 +5213,9 @@ const [reactionResult,starResult,pinResult,inviteResult]=await Promise.all([
     : Promise.resolve({data:[],error:null}),
   db.from("chat_message_stars").select("message_id").eq("user_id",me.id),
   db.from("chat_message_pins").select("message_id"),
-  db.rpc("get_chat_room_invites_with_time",{p_other_user:selected})
+  db.rpc("get_chat_room_invites_with_time",{p_other_user:chatUserId})
 ]);
+if(chatUserId!==selected)return;
 
 if(reactionResult.error){appStatus(reactionResult.error.message);return;}
 if(starResult.error){appStatus(starResult.error.message);return;}
