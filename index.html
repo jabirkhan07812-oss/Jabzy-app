@@ -6786,19 +6786,21 @@ async function setupGlobalRoomRealtime(){
         await loadActiveRooms();
         await loadMyPrivateRooms();
       }
-      if(currentJoinedRoom && payload?.new?.room_id===currentJoinedRoom.id ||
-         currentJoinedRoom && payload?.old?.room_id===currentJoinedRoom.id){
+      // Refresh the current room count on every membership change.
+      // DELETE payloads may not contain old.room_id when replica identity is limited.
+      if(currentJoinedRoom){
+        const roomId=currentJoinedRoom.id;
         const {count,error}=await db.from("live_room_members")
           .select("user_id",{count:"exact",head:true})
-          .eq("room_id",currentJoinedRoom.id);
-        if(!error && count!==null){
+          .eq("room_id",roomId);
+        if(!error && count!==null && currentJoinedRoom?.id===roomId){
           const miniCount=document.getElementById("miniRoomMemberCount");
           const joinedCount=document.getElementById("joinedRoomMemberCount");
           if(miniCount) miniCount.textContent=count;
           if(joinedCount) joinedCount.textContent=count;
         }
         const joinedScreen=document.getElementById("joinedRoomScreen");
-        if(joinedScreen && joinedScreen.style.display==="block"){
+        if(joinedScreen && joinedScreen.style.display==="block" && currentJoinedRoom?.id===roomId){
           await loadRoomParticipants();
           await syncRoomVoicePeers();
         }
