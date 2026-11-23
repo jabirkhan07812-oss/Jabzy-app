@@ -1792,7 +1792,7 @@ box-sizing:border-box;
 
     <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">
 /* JABZY DAILY REWARDS */
-#dailyRewardsModal{display:none;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:100200;background:linear-gradient(155deg,#21152f,#100b1c 78%);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden;overflow-y:auto;color:#fff}
+#dailyRewardsModal{display:none!important;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:100200;background:linear-gradient(155deg,#21152f,#100b1c 78%);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden;overflow-y:auto;color:#fff}
 #dailyRewardsModal .daily-rewards-shell{width:100%;max-width:none;min-height:100vh;min-height:100dvh;margin:0;border:0;border-radius:0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));background:transparent;box-shadow:none}
 #dailyRewardsModal .daily-rewards-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 #dailyRewardsModal .daily-rewards-kicker{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#d7b5ff}
@@ -9334,19 +9334,27 @@ async function loadDailyRewardsWallet(){
   if(streakEl)streakEl.textContent=String(data?.streak_days ?? 0);
 }
 
+window.__jabzyDailyRewardsOpen=false;
+window.addEventListener("pageshow",()=>{
+  const modal=document.getElementById("dailyRewardsModal");
+  if(modal && !window.__jabzyDailyRewardsOpen)modal.style.setProperty("display","none","important");
+});
+
 async function openDailyRewards(){
   const modal=document.getElementById("dailyRewardsModal");
   if(!modal)return;
   // Keep this screen outside app containers so it fills the entire device viewport.
   if(modal.parentElement!==document.body)document.body.appendChild(modal);
+  window.__jabzyDailyRewardsOpen=true;
   const status=document.getElementById("dailyRewardsStatus");
   if(status)status.textContent="Loading your rewards…";
-  modal.style.display="block";
+  modal.style.setProperty("display","block","important");
   await loadDailyRewardsWallet();
 }
 function closeDailyRewards(){
   const modal=document.getElementById("dailyRewardsModal");
-  if(modal)modal.style.display="none";
+  window.__jabzyDailyRewardsOpen=false;
+  if(modal)modal.style.setProperty("display","none","important");
 }
 function showDailyRewardsStatus(message){
   const status=document.getElementById("dailyRewardsStatus");
