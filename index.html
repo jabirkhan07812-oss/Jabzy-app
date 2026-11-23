@@ -9091,7 +9091,15 @@ function loadSavedAppearance(){
 }
 loadSavedAppearance();
 
-function showTab(tab){
+let jabzyTabHistory=[];
+let jabzyBackPressAt=0;
+
+function showTab(tab,fromBack=false){
+  const previousTab=localStorage.getItem("jabzyLastTab")||"home";
+  if(!fromBack && previousTab!==tab){
+    jabzyTabHistory.push(previousTab);
+    if(jabzyTabHistory.length>30) jabzyTabHistory.shift();
+  }
   localStorage.setItem("jabzyLastTab",tab);
 
   const screens=[
@@ -9169,59 +9177,42 @@ function handleJabzyAndroidBack(){
     const el=document.getElementById(id);
     return !!el && getComputedStyle(el).display!=="none";
   };
-
-  if(visible("chatWindow")){
-    backToChatList();
-    return true;
-  }
-  if(visible("publicProfileView")){
-    closePublicProfile();
-    return true;
-  }
-  if(visible("joinedRoomScreen")){
-    minimizeJoinedRoom();
-    return true;
-  }
-  if(visible("notificationsScreen")){
-    closeNotifications();
-    return true;
-  }
-  if(visible("adminDashboard")){
-    closeAdminDashboard();
-    return true;
-  }
+  if(visible("chatWindow")){ backToChatList(); return true; }
+  if(visible("publicProfileView")){ closePublicProfile(); return true; }
+  if(visible("joinedRoomScreen")){ minimizeJoinedRoom(); return true; }
+  if(visible("notificationsScreen")){ closeNotifications(); return true; }
+  if(visible("adminDashboard")){ closeAdminDashboard(); return true; }
   if(visible("profileEdit")){
     document.getElementById("profileEdit").style.display="none";
     document.getElementById("profileView").style.display="block";
     return true;
   }
-  return false;
+  const currentTab=localStorage.getItem("jabzyLastTab")||"home";
+  while(jabzyTabHistory.length){
+    const previousTab=jabzyTabHistory.pop();
+    if(previousTab && previousTab!==currentTab){ showTab(previousTab,true); return true; }
+  }
+  if(currentTab!=="home"){ showTab("home",true); return true; }
+  const now=Date.now();
+  if(now-jabzyBackPressAt<2000){
+    jabzyBackPressAt=0;
+    try{ window.close(); }catch(error){}
+    window.dispatchEvent(new CustomEvent("jabzy-exit-request"));
+  }else{
+    jabzyBackPressAt=now;
+    alert("JABZY se bahar nikalne ke liye dobara Back dabayein.");
+  }
+  return true;
 }
-
 (function setupJabzyBackButton(){
   if(window.__jabzyBackHandlerReady) return;
   window.__jabzyBackHandlerReady=true;
-
-  try{
-    history.pushState({jabzyBackGuard:true},"",location.href);
-  }catch(error){
-    console.warn("JABZY back navigation setup:",error);
-  }
-
+  try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
   window.addEventListener("popstate",()=>{
-    const handled=handleJabzyAndroidBack();
-    if(handled){
-      try{history.pushState({jabzyBackGuard:true},"",location.href);}catch(error){}
-      return;
-    }
-
-    const shouldExit=window.confirm("Kya aap JABZY se bahar nikalna chahte hain?");
-    if(!shouldExit){
-      try{history.pushState({jabzyBackGuard:true},"",location.href);}catch(error){}
-    }
+    handleJabzyAndroidBack();
+    try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
   });
 })();
-
 </script>
 </body>
   </html>
