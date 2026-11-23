@@ -762,6 +762,20 @@ body.light-theme #notificationsScreen #notificationsList > div{
 body.light-theme #notificationsScreen #notificationsList > p{
   color:#342640!important;
 }
+
+/* Consistent compact close-style back controls across JABZY */
+.jabzy-back-button{
+  width:36px!important;height:36px!important;min-width:36px!important;
+  flex:0 0 36px!important;margin:0!important;padding:0!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border:1px solid #ffffff22!important;border-radius:12px!important;
+  background:#ffffff10!important;color:inherit!important;
+  font-size:19px!important;font-weight:500!important;line-height:1!important;
+  box-shadow:none!important;cursor:pointer;
+}
+body.light-theme .jabzy-back-button{
+  color:#30233b!important;border-color:#e1d5e9!important;background:#fff!important;
+}
 body.light-theme #homeScreen .card,
 body.light-theme #homeScreen .user,
 body.light-theme #homeScreen [class*="card"],
@@ -977,7 +991,7 @@ body.light-theme #discoverScreen #swipeCard img{
   <button onclick="forgotPassword()">Forgot Password?</button>
   <button onclick="signin()">Login</button>
   <button onclick="showAuthScreen('signup')">Create New Account</button>
-  <button onclick="showAuthScreen('welcome')">← Back</button>
+  <button type="button" class="jabzy-back-button" onclick="showAuthScreen('welcome')" aria-label="Back" title="Back">✕</button>
 </div>
 
 
@@ -1016,7 +1030,7 @@ body.light-theme #discoverScreen #swipeCard img{
     </label>
 
     <button onclick="createJabzyAccount()">Create Account</button>
-    <button onclick="backSignupStep1()">← Back</button>
+    <button type="button" class="jabzy-back-button" onclick="backSignupStep1()" aria-label="Back" title="Back">✕</button>
   </div>
 </div>
   
@@ -1508,7 +1522,7 @@ border-radius:12px;
 <!-- END JABZY ADS MANAGER -->
   
 
-<button class="admin-back" onclick="closeAdminDashboard()">← Back to Profile</button>
+<button type="button" class="admin-back jabzy-back-button" onclick="closeAdminDashboard()" aria-label="Back to Profile" title="Back to Profile">✕</button>
 </div>
 
 <button onclick="logout()">Logout 🚪</button>
@@ -1542,8 +1556,8 @@ box-sizing:border-box;
 
   <button type="button"
   onclick="closePublicProfile()"
-  style="width:auto;padding:6px 12px;font-size:13px">
-  ← Back
+  class="jabzy-back-button" aria-label="Back" title="Back">
+  ✕
   </button>
 
   <div class="admin-profile-hero" style="text-align:center;margin-top:25px">
@@ -2031,7 +2045,7 @@ box-sizing:border-box;
 
   <div style="display:flex;justify-content:space-between;align-items:center">
     <h2>🔔 Notifications</h2>
-    <button onclick="showTab('home')">← Back</button>
+    <button type="button" class="jabzy-back-button" onclick="showTab('home')" aria-label="Back" title="Back">✕</button>
   </div>
 
   <div id="notificationsList">
