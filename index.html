@@ -4081,7 +4081,7 @@ function backToChatList(){
 document.getElementById("chatWindow").style.display="none";
 document.getElementById("chatList").style.display="block";
 const nav=document.querySelector(".bottom-nav");
-if(nav) nav.style.display="flex";
+if(nav) nav.style.setProperty("display","flex","important");
 selected=null;
 loadChatList();
 }
@@ -4122,7 +4122,7 @@ document.getElementById("chatList").style.display="none";
 document.getElementById("chatWindow").style.display="flex";
 document.getElementById("messages").style.visibility="hidden";
 const nav=document.querySelector(".bottom-nav");
-if(nav) nav.style.display="none";
+if(nav) nav.style.setProperty("display","none","important");
 document.getElementById("chatTitle").innerText=name;
 
 const photo=document.getElementById("chatProfilePhoto");
