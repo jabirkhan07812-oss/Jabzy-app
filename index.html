@@ -7115,23 +7115,13 @@ async function ensureRoomVoicePeer(remoteClient){
     if(track) await transceiver.sender.replaceTrack(track);
   }
   pc.ontrack = event => {
-    audio.srcObject = event.streams[0];
+    const incomingStream = event.streams?.[0] || new MediaStream([event.track]);
+    audio.srcObject = incomingStream;
     audio.volume = roomSpeakerOn ? 1 : 0;
-    audio.play().catch(() => {});
+    audio.play().catch(error => console.warn("Room audio playback blocked:",error));
   };
   pc.onicecandidate = event => {
     if(event.candidate) sendRoomVoiceSignal(remoteClient,{candidate:event.candidate});
-  };
-  pc.onnegotiationneeded = async () => {
-    try{
-      peer.makingOffer = true;
-      await pc.setLocalDescription();
-      await sendRoomVoiceSignal(remoteClient,{description:pc.localDescription});
-    }catch(error){
-      console.error("Voice negotiation error:",error);
-    }finally{
-      peer.makingOffer = false;
-    }
   };
   return peer;
 }
@@ -7227,6 +7217,36 @@ async function handleRoomVoiceSignal(message){
     }
   }catch(error){
     console.error("Voice signal error:",error);
+  }
+}
+
+async function checkJoinedRoomStillActive(){
+  if(!currentJoinedRoom) return;
+  const roomId = currentJoinedRoom.id;
+  const {data,error} = await db.from("live_rooms")
+    .select("status")
+    .eq("id",roomId)
+    .maybeSingle();
+  if(error){
+    console.warn("Room status check failed:",error.message);
+    return;
+  }
+  if(!data || data.status !== "active"){
+    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
+    if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
+    if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
+    await stopRoomVoice();
+    currentJoinedRoom=null;
+    roomMicPermissionAllowed=false;
+    updateRoomMicButtonState();
+    const joinedScreen=document.getElementById("joinedRoomScreen");
+    const miniBar=document.getElementById("miniRoomBar");
+    if(joinedScreen) joinedScreen.style.display="none";
+    if(miniBar) miniBar.style.display="none";
+    showTab("rooms");
+    await loadActiveRooms();
+    await loadMyPrivateRooms();
+    alert("Host ne ye room close kar diya hai.");
   }
 }
 
