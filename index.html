@@ -7027,14 +7027,25 @@ async function ensureRoomVoicePeer(remoteClient){
   };
   roomVoicePeers.set(remoteClient,peer);
   const transceiver = pc.addTransceiver("audio",{direction:"sendrecv"});
+  try{
+    const audioCodecs = window.RTCRtpSender?.getCapabilities?.("audio")?.codecs || [];
+    const opusCodecs = audioCodecs.filter(codec => codec.mimeType?.toLowerCase() === "audio/opus");
+    const otherCodecs = audioCodecs.filter(codec => codec.mimeType?.toLowerCase() !== "audio/opus");
+    if(opusCodecs.length && typeof transceiver.setCodecPreferences === "function"){
+      transceiver.setCodecPreferences([...opusCodecs,...otherCodecs]);
+    }
+  }catch(error){
+    console.warn("Opus preference unavailable; browser default audio codec will be used:",error);
+  }
   if(roomLocalStream){
     const track = roomLocalStream.getAudioTracks()[0];
     if(track) await transceiver.sender.replaceTrack(track);
   }
   pc.ontrack = event => {
-    audio.srcObject = event.streams[0];
+    const incomingStream = event.streams?.[0] || new MediaStream([event.track]);
+    audio.srcObject = incomingStream;
     audio.volume = roomSpeakerOn ? 1 : 0;
-    audio.play().catch(() => {});
+    audio.play().catch(error => console.warn("Room audio playback blocked:",error));
   };
   pc.onicecandidate = event => {
     if(event.candidate) sendRoomVoiceSignal(remoteClient,{candidate:event.candidate});
