@@ -2845,8 +2845,127 @@ async function loadHomePosts(){
       else media.alt="JABZY post image";
       card.appendChild(media);
     }
+    // Post actions are rendered BELOW the post media/content.
+    const actions=document.createElement("div");
+    actions.style.cssText="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:10px;border-top:1px solid #49315d;";
+    const likeButton=document.createElement("button");
+    likeButton.type="button";likeButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    const commentButton=document.createElement("button");
+    commentButton.type="button";commentButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    const shareButton=document.createElement("button");
+    shareButton.type="button";shareButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    const {data:likes,error:likesError}=await db.from("post_likes").select("user_id").eq("post_id",post.id);
+    if(likesError)console.warn("Post likes:",likesError.message);
+    const likeRows=likes||[];
+    const liked=likeRows.some(row=>row.user_id===me.id);
+    likeButton.textContent=(liked?"❤️":"🤍")+" Like "+likeRows.length;
+    likeButton.onclick=async()=>{
+      likeButton.disabled=true;
+      const result=liked
+        ? await db.from("post_likes").delete().eq("post_id",post.id).eq("user_id",me.id)
+        : await db.from("post_likes").insert({post_id:post.id,user_id:me.id});
+      likeButton.disabled=false;
+      if(result.error){appStatus(result.error.message);return;}
+      await loadHomePosts();
+    };
+    const {count:commentCount,error:commentCountError}=await db.from("post_comments").select("id",{count:"exact",head:true}).eq("post_id",post.id);
+    if(commentCountError)console.warn("Post comments:",commentCountError.message);
+    commentButton.textContent="💬 Comment "+(commentCount||0);
+    commentButton.onclick=()=>{const area=card.querySelector(".post-comment-area");if(area){area.style.display=area.style.display==="none"?"block":"none";const input=area.querySelector("input");if(input)input.focus();}};
+    shareButton.textContent="↗ Share";
+    shareButton.onclick=()=>openPostShare(post);
+    actions.append(likeButton,commentButton,shareButton);
+    card.appendChild(actions);
+
+    const commentArea=document.createElement("div");
+    commentArea.className="post-comment-area";
+    commentArea.style.cssText="display:none;margin-top:10px;";
+    const commentInput=document.createElement("input");
+    commentInput.type="text";commentInput.maxLength=1000;commentInput.placeholder="Write a comment...";
+    commentInput.style.cssText="width:100%;margin:5px 0;padding:10px 12px;border-radius:18px;background:#171222;color:white;border:1px solid #69427f;font-size:13px;";
+    const commentSend=document.createElement("button");
+    commentSend.type="button";commentSend.textContent="Send";commentSend.style.cssText="width:auto;margin:4px 0;padding:8px 16px;border-radius:18px;font-size:12px;";
+    const commentsList=document.createElement("div");
+    commentsList.style.cssText="margin-top:8px;";
+    commentSend.onclick=async()=>{
+      const value=commentInput.value.trim();if(!value)return;
+      commentSend.disabled=true;
+      const {error}=await db.from("post_comments").insert({post_id:post.id,user_id:me.id,comment:value});
+      commentSend.disabled=false;
+      if(error){appStatus(error.message);return;}
+      commentInput.value="";
+      await loadHomePosts();
+      const reopened=document.querySelector('[data-post-id="'+post.id+'"] .post-comment-area');
+      if(reopened)reopened.style.display="block";
+    };
+    commentInput.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();commentSend.click();}});
+    const {data:comments,error:commentsError}=await db.from("post_comments").select("id,user_id,comment,created_at").eq("post_id",post.id).order("created_at",{ascending:true}).limit(30);
+    if(commentsError)console.warn("Post comments list:",commentsError.message);
+    const commentRows=comments||[];
+    if(commentRows.length){
+      const {data:commentProfiles}=await db.from("profiles").select("id,username").in("id",[...new Set(commentRows.map(row=>row.user_id))]);
+      const commentNames=new Map((commentProfiles||[]).map(row=>[row.id,row.username||"JABZY User"]));
+      commentRows.forEach(row=>{
+        const item=document.createElement("div");item.style.cssText="padding:8px 10px;margin:5px 0;border-radius:10px;background:#171222;font-size:12px;";
+        const author=document.createElement("strong");author.textContent=commentNames.get(row.user_id)||"JABZY User";
+        const message=document.createElement("span");message.textContent=" "+row.comment;message.style.cssText="color:#e8dcef;overflow-wrap:anywhere;";
+        const stamp=document.createElement("small");stamp.textContent=" · "+new Date(row.created_at).toLocaleString();stamp.style.cssText="display:block;color:#a997b8;font-size:10px;margin-top:3px;";
+        item.append(author,message,stamp);commentsList.appendChild(item);
+      });
+    }else{
+      const emptyComments=document.createElement("small");emptyComments.textContent="No comments yet.";emptyComments.style.color="#bba9ca";commentsList.appendChild(emptyComments);
+    }
+    commentArea.append(commentInput,commentSend,commentsList);
+    card.dataset.postId=post.id;
+    card.appendChild(commentArea);
     box.appendChild(card);
   }
+}
+function buildPostShareText(post){
+  const link=window.location.origin+window.location.pathname+"#post-"+post.id;
+  return ["JABZY Post",post.content||"",post.media_url||"",link].filter(Boolean).join("\n");
+}
+async function openPostShare(post){
+  const modal=document.createElement("div");
+  modal.style.cssText="position:fixed;inset:0;z-index:100200;background:#080611d9;display:flex;align-items:flex-end;justify-content:center;padding:14px;";
+  const panel=document.createElement("div");
+  panel.style.cssText="width:100%;max-width:480px;max-height:75vh;overflow:auto;padding:16px;border:1px solid #69427f;border-radius:20px;background:#21152f;color:white;";
+  const heading=document.createElement("h3");heading.textContent="Share post";heading.style.cssText="margin:4px 0 12px;";
+  const close=document.createElement("button");close.type="button";close.textContent="✕";close.style.cssText="float:right;width:auto;margin:0;padding:6px 10px;background:#30203f;";
+  close.onclick=()=>modal.remove();
+  const friendsHeading=document.createElement("strong");friendsHeading.textContent="Share with Friends";friendsHeading.style.cssText="display:block;margin:12px 0 8px;";
+  const list=document.createElement("div");list.textContent="Loading friends...";
+  const external=document.createElement("button");external.type="button";external.textContent="↗ Share to other apps";external.style.cssText="width:100%;margin:8px 0;background:linear-gradient(90deg,#286bd1,#7548c9);";
+  external.onclick=async()=>{
+    const text=buildPostShareText(post);
+    try{
+      if(navigator.share)await navigator.share({title:"JABZY Post",text});
+      else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);appStatus("Post link copied. Ab kisi app mein paste karein.");}
+      else appStatus("Is device par sharing supported nahi hai.");
+    }catch(error){if(error.name!=="AbortError")appStatus("Share nahi ho paya: "+error.message);}
+  };
+  panel.append(close,heading,external,friendsHeading,list);modal.appendChild(panel);
+  modal.addEventListener("click",event=>{if(event.target===modal)modal.remove();});
+  document.body.appendChild(modal);
+  const {data:requests,error}=await db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+  if(error){list.textContent=error.message;return;}
+  const ids=[...new Set((requests||[]).map(row=>row.sender_id===me.id?row.receiver_id:row.sender_id))];
+  if(!ids.length){list.textContent="No friends yet.";return;}
+  const {data:friends,error:friendError}=await db.from("profiles").select("id,username,photo_url").in("id",ids);
+  if(friendError){list.textContent=friendError.message;return;}
+  list.replaceChildren();
+  (friends||[]).forEach(friend=>{
+    const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #49315d;";
+    const label=document.createElement("span");label.textContent=friend.username||"JABZY Friend";label.style.cssText="flex:1;font-size:13px;";
+    const send=document.createElement("button");send.type="button";send.textContent="Send";send.style.cssText="width:auto;margin:0;padding:8px 15px;border-radius:16px;font-size:12px;";
+    send.onclick=async()=>{
+      send.disabled=true;send.textContent="Sending...";
+      const {error:sendError}=await db.from("messages").insert({sender_id:me.id,receiver_id:friend.id,message:buildPostShareText(post),reply_to:null});
+      if(sendError){send.disabled=false;send.textContent="Send";appStatus(sendError.message);return;}
+      send.textContent="Sent ✓";appStatus("Post friend ko send ho gayi ❤️");
+    };
+    row.append(label,send);list.appendChild(row);
+  });
 }
 async function loadNotificationCount(){
 
