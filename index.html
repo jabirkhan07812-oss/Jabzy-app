@@ -3547,6 +3547,18 @@ function closePublicProfile(){
 }
 
 async function openPublicProfile(userId){
+  const sourceTabs=["home","discover","likes","matches","friends","chats","rooms","notifications"];
+  publicProfileReturnTab=sourceTabs.find(tab=>{
+    const screen=document.getElementById(tab+"Screen");
+    return screen && getComputedStyle(screen).display!=="none";
+  })||"discover";
+  if(publicProfileReturnTab==="friends"){
+    const friendsPanel=document.getElementById("myFriendsPanel");
+    const requestsPanel=document.getElementById("friendRequestsPanel");
+    const discoverPanel=document.getElementById("findFriendsPanel");
+    publicProfileReturnFriendsSection=friendsPanel&&getComputedStyle(friendsPanel).display!=="none"?"friends":(discoverPanel&&getComputedStyle(discoverPanel).display!=="none"?"discover":"requests");
+  }
+
 
   const {data:p,error}=await db.from("profiles")
     .select("*").eq("id",userId).maybeSingle();
