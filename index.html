@@ -5096,7 +5096,7 @@ if(olderBatch){
 
 const {data,error}=await messageQuery
 .order("created_at",{ascending:false})
-.limit(50);
+.limit(olderBatch?100:20);
 
 if(data)data.reverse();
 
@@ -5113,48 +5113,24 @@ const messageMap=new Map(
 );
 
 const messageIds=(data||[]).map(x=>x.id);
-let allReactions=[];
+const [reactionResult,starResult,pinResult,inviteResult]=await Promise.all([
+  messageIds.length
+    ? db.from("chat_message_reactions").select("*").in("message_id",messageIds)
+    : Promise.resolve({data:[],error:null}),
+  db.from("chat_message_stars").select("message_id").eq("user_id",me.id),
+  db.from("chat_message_pins").select("message_id"),
+  db.rpc("get_chat_room_invites_with_time",{p_other_user:selected})
+]);
 
-if(messageIds.length){
-  const {data:reactionData,error:reactionError}=await db
-    .from("chat_message_reactions")
-    .select("*")
-    .in("message_id",messageIds);
+if(reactionResult.error){appStatus(reactionResult.error.message);return;}
+if(starResult.error){appStatus(starResult.error.message);return;}
+if(pinResult.error){appStatus(pinResult.error.message);return;}
 
-  if(reactionError){
-    appStatus(reactionError.message);
-    return;
-  }
-
-  allReactions=reactionData||[];
-                                                    }
-
-  const {data:starData,error:starError}=await db
-  .from("chat_message_stars")
-  .select("message_id")
-  .eq("user_id",me.id);
-
-if(starError){
-  appStatus(starError.message);
-  return;
-}
-
-const starredIds=new Set(
-  (starData||[]).map(x=>String(x.message_id))
-);
-
-const {data:pinData,error:pinError}=await db
-  .from("chat_message_pins")
-  .select("message_id");
-
-if(pinError){
-  appStatus(pinError.message);
-  return;
-}
-
-const pinnedIds=new Set(
-  (pinData||[]).map(x=>String(x.message_id))
-);
+const allReactions=reactionResult.data||[];
+const starredIds=new Set((starResult.data||[]).map(x=>String(x.message_id)));
+const pinnedIds=new Set((pinResult.data||[]).map(x=>String(x.message_id)));
+const roomInvites=inviteResult.data||[];
+const roomInviteError=inviteResult.error;
 
 for(const m of (data||[])){
 
@@ -5489,11 +5465,6 @@ row.addEventListener("contextmenu",e=>{
 fragment.appendChild(row);
       }
 
-  const {data:roomInvites,error:roomInviteError}=await db.rpc(
-  "get_chat_room_invites_with_time",
-  {p_other_user:selected}
-);
-
 if(roomInviteError){
   appStatus(roomInviteError.message);
 } else {
@@ -5582,7 +5553,7 @@ async function loadOlderChatHistory(chatUserId){
   if(!chatUserId)return;
   while(selected===chatUserId){
     const loaded=await loadMessages(true,true);
-    if(!loaded || loaded<50 || selected!==chatUserId)break;
+    if(!loaded || loaded<100 || selected!==chatUserId)break;
   }
 }
 
