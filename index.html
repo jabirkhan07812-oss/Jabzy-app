@@ -1251,20 +1251,29 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
   </div>
 </div>
 
-<div id="accountInformationModal" style="display:none;position:fixed;inset:0;z-index:100090;background:#080611eF;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto;">
-  <div class="appearance-card" style="width:100%;max-width:430px;max-height:92vh;overflow-y:auto;padding:20px;background:#21152f;border:1px solid #69427f;border-radius:20px;color:white;box-sizing:border-box;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-      <h3 style="margin:0;color:#ff70ae;">📱 Account Information</h3>
-      <button type="button" onclick="closeAccountInformation()" style="width:auto;margin:0;padding:7px 12px;">✕</button>
+<div id="accountInformationModal" style="display:none;position:fixed;inset:0;z-index:100090;background:rgba(7,5,16,.88);backdrop-filter:blur(9px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto;">
+  <div style="width:100%;max-width:440px;max-height:92vh;overflow-y:auto;padding:20px;background:linear-gradient(155deg,#241632,#110d1d 78%);border:1px solid #76519a;border-radius:24px;color:#fff;box-sizing:border-box;box-shadow:0 22px 70px #0009;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#ff55a8,#8954e8);font-size:23px;">👤</div>
+        <div><div style="font-size:18px;font-weight:850;letter-spacing:.2px;">Account Information</div><div style="font-size:11px;color:#c8b6dc;margin-top:3px;">Your JABZY account details</div></div>
+      </div>
+      <button type="button" onclick="closeAccountInformation()" aria-label="Close" style="width:36px;height:36px;flex:0 0 36px;margin:0;padding:0;border:1px solid #ffffff22;border-radius:12px;background:#ffffff10;color:white;font-size:17px;">✕</button>
     </div>
-    <div style="margin-top:16px;padding:13px;border:1px solid #69427f;border-radius:14px;background:#30203f;">
-      <div style="font-size:12px;opacity:.75;">Email Address · Tap to change</div>
-      <button type="button" onclick="openAccountEmailChange()" style="width:100%;text-align:left;margin:4px 0 14px;padding:10px;background:#21152f;border:1px solid #8054a0;border-radius:10px;color:#fff;"><span id="accountInfoEmail">Loading...</span> <span style="float:right;">✏️</span></button>
-      <div style="font-size:12px;opacity:.75;">Username</div><div id="accountInfoUsername" style="font-size:14px;margin:4px 0 14px;">Loading...</div>
-      <div style="font-size:12px;opacity:.75;">User ID</div><div id="accountInfoUserId" style="font-size:12px;overflow-wrap:anywhere;margin:4px 0 14px;"></div>
-      <div style="font-size:12px;opacity:.75;">Account Created</div><div id="accountInfoCreated" style="font-size:14px;margin-top:4px;"></div>
+    <div style="padding:15px;border:1px solid #ffffff18;border-radius:18px;background:linear-gradient(135deg,#ffffff0d,#ffffff04);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;color:#e7d6f7;font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;"><span>📋</span> Account details</div>
+      <div style="padding:12px;margin-bottom:10px;border-radius:13px;background:#0d0a17;border:1px solid #ffffff12;">
+        <div style="font-size:11px;color:#bba9ce;margin-bottom:6px;">Email address</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span id="accountInfoEmail" style="min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:700;">Loading...</span><button type="button" onclick="openAccountEmailChange()" style="width:auto;flex:0 0 auto;margin:0;padding:7px 10px;border:1px solid #a45bd0;border-radius:10px;background:#4a2864;color:white;font-size:11px;font-weight:800;">✏️ Change</button></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+        <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Username</div><div id="accountInfoUsername" style="font-size:14px;font-weight:700;overflow-wrap:anywhere;">Loading...</div></div>
+        <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Account ID</div><div id="accountInfoUserId" style="font-size:11px;color:#e4d7ef;overflow-wrap:anywhere;line-height:1.5;"></div></div>
+        <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Member since</div><div id="accountInfoCreated" style="font-size:13px;font-weight:650;">Loading...</div></div>
+      </div>
     </div>
-    <button type="button" onclick="openAccountPasswordChange()" style="margin-top:16px;text-align:center;">🔒 Change Password</button>
+    <div style="margin-top:14px;padding:13px 14px;border:1px solid #3d8e7055;border-radius:14px;background:#12332655;color:#c8f5df;font-size:12px;line-height:1.5;">🛡️ Your account details are private. Never share your password or verification links with anyone.</div>
+    <button type="button" onclick="openAccountPasswordChange()" style="width:100%;margin:15px 0 0;padding:13px;border:0;border-radius:14px;background:linear-gradient(100deg,#ff55a8,#8954e8);color:white;font-size:14px;font-weight:850;">🔒 Change Password</button>
   </div>
 </div>
 
@@ -2341,7 +2350,7 @@ function closeJabzySettings(){
   if(modal)modal.style.display="none";
 }
 
-async function openAccountInformation(){
+async async function openAccountInformation(){
   if(!me){appStatus("Pehle login karein.");return;}
   const modal=document.getElementById("accountInformationModal");
   if(!modal)return;
