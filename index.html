@@ -7935,15 +7935,49 @@ let storyTouchStartY=0;
   },{passive:true});
 })();
 
+const JABZY_TRANSLATIONS = {
+"Welcome Back 👋":"वापसी पर स्वागत है 👋","Forgot Password?":"पासवर्ड भूल गए?","Login":"लॉगिन","Create New Account":"नया अकाउंट बनाएँ","← Back":"← वापस","Create Your JABZY Account ❤️":"अपना JABZY अकाउंट बनाएँ ❤️","Step 1 – Account Details":"चरण 1 – अकाउंट की जानकारी","Next →":"आगे →","Already have an account? Login":"पहले से अकाउंट है? लॉगिन करें","Step 2 – Complete Your Profile":"चरण 2 – अपनी प्रोफ़ाइल पूरी करें","I agree to the JABZY Privacy Notice.":"मैं JABZY की गोपनीयता सूचना से सहमत हूँ।","Create Account":"अकाउंट बनाएँ","Set New Password 🔐":"नया पासवर्ड सेट करें 🔐","Update Password":"पासवर्ड अपडेट करें","Discover ✨":"खोजें ✨","✕ Skip":"✕ छोड़ें","💬 Message":"💬 मैसेज","Your Name":"आपका नाम","✏️ Edit Profile":"✏️ प्रोफ़ाइल एडिट करें","Edit Profile ✏️":"प्रोफ़ाइल एडिट करें ✏️","Upload Photo":"फोटो अपलोड करें","Save Profile":"प्रोफ़ाइल सेव करें","Cancel":"रद्द करें","No blocked users.":"कोई ब्लॉक किया हुआ यूज़र नहीं है।","🔒 Privacy":"🔒 गोपनीयता","🔔 Notifications":"🔔 नोटिफिकेशन","🔑 Security":"🔑 सुरक्षा","📱 Account Information":"📱 अकाउंट की जानकारी","🌐 Language":"🌐 भाषा","🎨 Appearance":"🎨 दिखावट","🗑️ Delete Account":"🗑️ अकाउंट हटाएँ","📜 Privacy Policy":"📜 गोपनीयता नीति","📄 Terms & Conditions":"📄 नियम और शर्तें","ℹ️ About App":"ℹ️ ऐप के बारे में","💬 Feedback":"💬 सुझाव","❓ Help & Support":"❓ मदद और सपोर्ट","🌙 Dark Mode":"🌙 डार्क मोड","☀️ Light Mode":"☀️ लाइट मोड","Select":"चुनें","Privacy Policy":"गोपनीयता नीति","Terms & Conditions":"नियम और शर्तें","JABZY Admin":"JABZY एडमिन","Control Center · Manage your community":"कंट्रोल सेंटर · अपनी कम्युनिटी मैनेज करें","Reports":"रिपोर्ट","All Users":"सभी यूज़र","All Chats":"सभी चैट","Ads Manager":"विज्ञापन मैनेजर","Feedback & Help":"सुझाव और मदद","🚩 User Reports":"🚩 यूज़र रिपोर्ट","Loading...":"लोड हो रहा है...","📢 JABZY Ads Manager":"📢 JABZY विज्ञापन मैनेजर","📊 Ads Overview":"📊 विज्ञापन की जानकारी","Total Ads":"कुल विज्ञापन","Active Ads":"चालू विज्ञापन","Clicks":"क्लिक","＋ Create New Ad":"＋ नया विज्ञापन बनाएँ","Banner Ad":"बैनर विज्ञापन","Sponsored Post":"प्रायोजित पोस्ट","Video Ad":"वीडियो विज्ञापन","Home":"होम","Reels":"रील्स","Rooms":"रूम्स","＋ Save Ad":"＋ विज्ञापन सेव करें","📋 Manage Advertisements":"📋 विज्ञापन मैनेज करें","No advertisements yet.":"अभी कोई विज्ञापन नहीं है।","← Back to Profile":"← प्रोफ़ाइल पर वापस","Logout 🚪":"लॉगआउट 🚪","User":"यूज़र","People Who Liked You ❤️":"जिन्हें आपकी प्रोफ़ाइल पसंद आई ❤️","Loading likes...":"लाइक्स लोड हो रहे हैं...","Loading your friends...":"आपके दोस्त लोड हो रहे हैं...","Loading connections...":"कनेक्शन लोड हो रहे हैं...","Loading chats...":"चैट लोड हो रही हैं...","Loading requests...":"रिक्वेस्ट लोड हो रही हैं...","🔍 Search in Chat":"🔍 चैट में खोजें","🖼️ Media, Links & Photos":"🖼️ मीडिया, लिंक और फोटो","🔕 Mute Notifications":"🔕 नोटिफिकेशन म्यूट करें","🚫 Block User":"🚫 यूज़र को ब्लॉक करें","🚩 Report User":"🚩 यूज़र की रिपोर्ट करें","🗑️ Clear All Chats":"🗑️ सभी चैट हटाएँ","👑 JABZY ROOMS":"👑 JABZY रूम्स","🔥 Live Rooms":"🔥 लाइव रूम्स","No live rooms yet.":"अभी कोई लाइव रूम नहीं है।","🔒 My Private Rooms":"🔒 मेरे प्राइवेट रूम्स","🔑 Join Private Room":"🔑 प्राइवेट रूम में जुड़ें","JABZY Room":"JABZY रूम","👥 Listeners":"👥 सुनने वाले","No listeners yet.":"अभी कोई सुनने वाला नहीं है।","👥 All Members (":"👥 सभी सदस्य (","No members yet.":"अभी कोई सदस्य नहीं है।","💬 Room Chat":"💬 रूम चैट","Welcome to JABZY Room!":"JABZY रूम में आपका स्वागत है!","🔔 Notifications":"🔔 नोटिफिकेशन","No notifications yet.":"अभी कोई नोटिफिकेशन नहीं है।","Friends":"दोस्त","Chats":"चैट","Profile":"प्रोफ़ाइल","Create JABZY Room 🎙️":"JABZY रूम बनाएँ 🎙️","Category":"श्रेणी","🎮 Gaming":"🎮 गेमिंग","💬 Social":"💬 सोशल","Room Type":"रूम का प्रकार","🌍 Public":"🌍 पब्लिक","🔒 Private":"🔒 प्राइवेट","Close":"बंद करें","Your choice is saved on this device.":"आपकी पसंद इस डिवाइस में सेव रहती है।","JABZY ka look apni pasand se chunein.":"JABZY का लुक अपनी पसंद से चुनें।","Choose your app language / अपनी ऐप की भाषा चुनें।":"अपनी ऐप की भाषा चुनें।"};
+let languageObserver=null;
+const languageTextNodes=new WeakMap();
+function translateJabzyElement(root,lang){
+  const hindi=lang==="hi";
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const nodes=[];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    if(!languageTextNodes.has(node)) languageTextNodes.set(node,node.nodeValue);
+    const original=languageTextNodes.get(node);
+    const trimmed=original.trim();
+    if(!trimmed)return;
+    const translated=JABZY_TRANSLATIONS[trimmed];
+    if(hindi && translated) node.nodeValue=original.replace(trimmed,translated);
+    else if(!hindi && node.nodeValue!==original) node.nodeValue=original;
+  });
+  const attrs=["placeholder","title","aria-label"];
+  root.querySelectorAll?.("*").forEach(el=>attrs.forEach(attr=>{
+    if(!el.hasAttribute(attr))return;
+    const key="data-jabzy-original-"+attr;
+    if(!el.hasAttribute(key))el.setAttribute(key,el.getAttribute(attr));
+    const original=el.getAttribute(key);
+    el.setAttribute(attr,hindi?(JABZY_TRANSLATIONS[original]||original):original);
+  }));
+}
 function setAppLanguage(lang){
-  const hi=lang==="hi";
+  lang=lang==="hi"?"hi":"en";
   try{localStorage.setItem("jabzyLanguage",lang);}catch(e){}
-  const labels={home:hi?"होम":"Home",friends:hi?"दोस्त":"Friends",chats:hi?"चैट":"Chats",rooms:hi?"रूम्स":"Rooms",profile:hi?"प्रोफ़ाइल":"Profile"};
-  document.querySelectorAll("[data-lang-nav]").forEach(btn=>{const key=btn.getAttribute("data-lang-nav");const emoji=({home:"🏠",friends:"👥",chats:"💬",rooms:"🎮",profile:"👤"})[key];btn.innerHTML=emoji+"<br>"+labels[key];});
-  const pairs={languageHiBtn:hi,languageEnBtn:!hi};
-  Object.entries(pairs).forEach(([id,selected])=>{const el=document.getElementById(id);if(el)el.textContent=selected?"✓ Selected":"Select";});
-  const status=document.getElementById("languageStatus");if(status)status.textContent=hi?"भाषा हिंदी में सेट है।":"Language is set to English.";
   document.documentElement.lang=lang;
+  translateJabzyElement(document.body,lang);
+  const navLabels={home:lang==="hi"?"होम":"Home",friends:lang==="hi"?"दोस्त":"Friends",chats:lang==="hi"?"चैट":"Chats",rooms:lang==="hi"?"रूम्स":"Rooms",profile:lang==="hi"?"प्रोफ़ाइल":"Profile"};
+  document.querySelectorAll("[data-lang-nav]").forEach(btn=>{const key=btn.getAttribute("data-lang-nav");const emoji=({home:"🏠",friends:"👥",chats:"💬",rooms:"🎮",profile:"👤"})[key];btn.innerHTML=emoji+"<br>"+navLabels[key];});
+  const hiBtn=document.getElementById("languageHiBtn"),enBtn=document.getElementById("languageEnBtn");
+  if(hiBtn)hiBtn.textContent=lang==="hi"?"✓ चुनी गई":"Select";
+  if(enBtn)enBtn.textContent=lang==="en"?"✓ Selected":"चुनें";
+  const status=document.getElementById("languageStatus");
+  if(status)status.textContent=lang==="hi"?"ऐप की भाषा हिंदी है।":"App language is English.";
+  if(!languageObserver){
+    languageObserver=new MutationObserver(()=>{let current="en";try{current=localStorage.getItem("jabzyLanguage")||"en";}catch(e){}translateJabzyElement(document.body,current);});
+    languageObserver.observe(document.body,{childList:true,subtree:true});
+  }
 }
 function openLanguageSettings(){const modal=document.getElementById("languageModal");if(modal)modal.style.display="flex";let lang="en";try{lang=localStorage.getItem("jabzyLanguage")||"en";}catch(e){}setAppLanguage(lang);}
 function closeLanguageSettings(){const modal=document.getElementById("languageModal");if(modal)modal.style.display="none";}
