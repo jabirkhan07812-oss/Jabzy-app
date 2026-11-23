@@ -1488,6 +1488,20 @@ border-radius:12px;
   
   </div>
 
+<style>
+#publicProfileView.official-admin-profile{background:radial-gradient(circle at 50% 18%,#303b70 0,#202033 42%,#171727 100%)!important;color:#fff}
+#publicProfileView.official-admin-profile .admin-profile-hero{max-width:520px;margin:24px auto 0;padding:25px 16px 22px;border:1px solid rgba(105,177,255,.42);border-radius:26px;background:linear-gradient(145deg,rgba(55,69,116,.78),rgba(32,32,51,.92));box-shadow:0 12px 38px rgba(0,0,0,.28),0 0 25px rgba(55,145,255,.13)}
+#publicProfileView.official-admin-profile #publicPhoto{width:158px!important;height:158px!important;border:5px solid transparent;outline:3px solid #4ba5ff;box-shadow:0 0 0 7px rgba(255,72,168,.24),0 0 28px rgba(65,155,255,.38)}
+#publicProfileView.official-admin-profile #publicUsername{display:inline-block;color:#fff!important;font-size:27px;font-weight:850;margin:18px 0 7px;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+#publicProfileView.official-admin-profile #publicAge{color:#c9d9ff!important;margin:13px 0 8px;font-size:14px}
+#publicProfileView.official-admin-profile #publicBio{color:#f2f4ff!important;margin:8px 0 0;font-size:15px}
+#publicProfileView.official-admin-profile .profile-stats{max-width:520px;margin:18px auto 0;padding:15px;border:1px solid rgba(111,164,255,.25);border-radius:18px;background:rgba(255,255,255,.07);color:#fff}
+#publicProfileView.official-admin-profile .profile-stats strong{color:#fff}
+#publicProfileView.official-admin-profile .admin-verified-tick{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:5px;border-radius:50%;background:#168cff;color:#fff;font-size:14px;font-weight:900;vertical-align:middle;box-shadow:0 0 12px rgba(22,140,255,.55)}
+#publicProfileView.official-admin-profile #officialAdminBadge{margin:8px auto 0;padding:7px 13px;border:1px solid rgba(255,220,130,.65);box-shadow:0 3px 14px rgba(255,196,72,.13)}
+#publicProfileView.official-admin-profile .admin-profile-topline{display:none;color:#9ccaff;font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:13px}
+#publicProfileView.official-admin-profile #publicFollowBtn,#publicProfileView.official-admin-profile #publicFriendBtn,#publicProfileView.official-admin-profile #publicMessageBtn{box-shadow:0 5px 18px rgba(0,0,0,.2)}
+</style>
 <div id="publicProfileView" style="
 display:none;
 position:fixed;
@@ -1505,17 +1519,18 @@ box-sizing:border-box;
   ← Back
   </button>
 
-  <div style="text-align:center;margin-top:25px">
+  <div class="admin-profile-hero" style="text-align:center;margin-top:25px">
 
+    <div class="admin-profile-topline">JABZY • OFFICIAL ACCOUNT</div>
     <img id="publicPhoto" class="photo hidden"
     alt="Profile photo"
     style="width:150px;height:150px;object-fit:cover;border-radius:50%">
     <button id="adminDeleteProfilePhotoBtn" type="button" onclick="adminDeleteProfilePhoto()" style="display:none;width:auto;margin:8px auto;padding:6px 12px;border-radius:18px;background:#a83245;font-size:12px;">🗑️ Remove Photo</button>
 
-    <h2 id="publicUsername">User</h2>
-    <span id="officialAdminBadge" style="display:none;align-items:center;gap:4px;margin-top:4px;padding:4px 10px;border-radius:14px;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;letter-spacing:.3px;">✓ OFFICIAL ADMIN</span>
-    <p id="publicAge"></p>
-    <p id="publicBio"></p>
+    <h2 id="publicUsername" style="color:#fff">User</h2><span id="adminVerifiedTick" class="admin-verified-tick" style="display:none" aria-label="Verified official admin">✓</span>
+    <div><span id="officialAdminBadge" style="display:none;align-items:center;gap:4px;margin-top:4px;padding:4px 10px;border-radius:14px;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;letter-spacing:.3px;">✓ OFFICIAL ADMIN</span></div>
+    <p id="publicAge" style="color:#c9d9ff"></p>
+    <p id="publicBio" style="color:#f2f4ff"></p>
 
   </div>
 
@@ -3124,9 +3139,17 @@ async function openPublicProfile(userId){
 
   document.getElementById("publicUsername").innerText=p.username||"User";
   const officialAdminBadge=document.getElementById("officialAdminBadge");
+  const adminVerifiedTick=document.getElementById("adminVerifiedTick");
+  const publicProfileView=document.getElementById("publicProfileView");
   if(officialAdminBadge)officialAdminBadge.style.display="none";
+  if(adminVerifiedTick)adminVerifiedTick.style.display="none";
+  if(publicProfileView)publicProfileView.classList.remove("official-admin-profile");
   const {data:isOfficialAdmin,error:officialAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
-  if(officialAdminBadge&&!officialAdminError&&isOfficialAdmin===true)officialAdminBadge.style.display="inline-flex";
+  if(!officialAdminError&&isOfficialAdmin===true){
+    if(officialAdminBadge)officialAdminBadge.style.display="inline-flex";
+    if(adminVerifiedTick)adminVerifiedTick.style.display="inline-flex";
+    if(publicProfileView)publicProfileView.classList.add("official-admin-profile");
+  }
   document.getElementById("publicAge").innerText=(p.age||"")+" years";
   document.getElementById("publicBio").innerText=p.bio||"";
   window.currentPublicProfileId=userId;
