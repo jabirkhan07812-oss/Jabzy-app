@@ -1792,28 +1792,28 @@ box-sizing:border-box;
 
     <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">
 /* JABZY DAILY REWARDS */
-#dailyRewardsModal{display:none!important;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:100200;background:linear-gradient(155deg,#21152f,#100b1c 78%);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden;overflow-y:auto;color:#fff}
-#dailyRewardsModal .daily-rewards-shell{width:100%;max-width:none;min-height:100vh;min-height:100dvh;margin:0;border:0;border-radius:0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));background:transparent;box-shadow:none}
-#dailyRewardsModal .daily-rewards-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
-#dailyRewardsModal .daily-rewards-kicker{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#d7b5ff}
-#dailyRewardsModal .daily-rewards-title{font-size:25px;font-weight:900;margin:4px 0;color:#fff}
-#dailyRewardsModal .daily-rewards-close{width:36px;height:36px;flex:0 0 36px;padding:0;margin:0;border-radius:50%;background:#382547;border:1px solid #77568d;color:#fff;font-size:18px}
-#dailyRewardsModal .daily-balance-card{padding:17px;border-radius:18px;background:linear-gradient(120deg,#49305f,#30203f);border:1px solid #76558e;margin-bottom:12px}
-#dailyRewardsModal .daily-balance-label{font-size:11px;letter-spacing:1px;color:#e5d5f3;font-weight:800}
-#dailyRewardsModal .daily-balance-value{font-size:27px;font-weight:900;color:#fff;margin-top:7px}
-#dailyRewardsModal .daily-rewards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-#dailyRewardsModal .daily-reward-tile{min-width:0;min-height:145px;padding:14px 12px;border-radius:17px;border:1px solid #9363a7;background:linear-gradient(145deg,#59366d,#382547);color:#fff;text-align:left}
-#dailyRewardsModal .daily-reward-tile.exchange{background:linear-gradient(145deg,#743d79,#43244e)}
-#dailyRewardsModal .daily-reward-icon{font-size:25px;margin-bottom:9px}
-#dailyRewardsModal .daily-reward-name{font-size:15px;font-weight:900;margin-bottom:7px}
-#dailyRewardsModal .daily-reward-detail{font-size:11px;line-height:1.45;color:#eadcf2}
-#dailyRewardsModal .daily-bonus-card{padding:15px;border-radius:17px;background:#382547;border:1px solid #68477d}
-#dailyRewardsModal .daily-bonus-head{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
-#dailyRewardsModal .daily-bonus-pill{font-size:10px;font-weight:800;padding:5px 9px;border-radius:20px;background:#1f6547;color:#c5ffe0}
-#dailyRewardsModal .daily-bonus-copy{font-size:12px;color:#e6d4f2;line-height:1.5;margin-bottom:12px}
-#dailyRewardsModal .daily-bonus-button{width:100%;margin:0;padding:13px;border:0;border-radius:13px;background:linear-gradient(90deg,#ffd36b,#ffb84d);color:#26192e;font-weight:900;font-size:14px}
-#dailyRewardsModal .daily-rewards-status{min-height:18px;margin-top:10px;font-size:11px;line-height:1.4;color:#e8cfff;text-align:center}
-@media(max-width:360px){#dailyRewardsModal{padding:12px 10px}#dailyRewardsModal .daily-reward-tile{padding:11px 9px;min-height:138px}#dailyRewardsModal .daily-reward-name{font-size:13px}}
+#dailyRewardsScreen{display:none;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:100200;background:linear-gradient(155deg,#21152f,#100b1c 78%);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden;overflow-y:auto;color:#fff}
+#dailyRewardsScreen .daily-rewards-shell{width:100%;max-width:none;min-height:100vh;min-height:100dvh;margin:0;border:0;border-radius:0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));background:transparent;box-shadow:none}
+#dailyRewardsScreen .daily-rewards-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+#dailyRewardsScreen .daily-rewards-kicker{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#d7b5ff}
+#dailyRewardsScreen .daily-rewards-title{font-size:25px;font-weight:900;margin:4px 0;color:#fff}
+#dailyRewardsScreen .daily-rewards-close{width:36px;height:36px;flex:0 0 36px;padding:0;margin:0;border-radius:50%;background:#382547;border:1px solid #77568d;color:#fff;font-size:18px}
+#dailyRewardsScreen .daily-balance-card{padding:17px;border-radius:18px;background:linear-gradient(120deg,#49305f,#30203f);border:1px solid #76558e;margin-bottom:12px}
+#dailyRewardsScreen .daily-balance-label{font-size:11px;letter-spacing:1px;color:#e5d5f3;font-weight:800}
+#dailyRewardsScreen .daily-balance-value{font-size:27px;font-weight:900;color:#fff;margin-top:7px}
+#dailyRewardsScreen .daily-rewards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+#dailyRewardsScreen .daily-reward-tile{min-width:0;min-height:145px;padding:14px 12px;border-radius:17px;border:1px solid #9363a7;background:linear-gradient(145deg,#59366d,#382547);color:#fff;text-align:left}
+#dailyRewardsScreen .daily-reward-tile.exchange{background:linear-gradient(145deg,#743d79,#43244e)}
+#dailyRewardsScreen .daily-reward-icon{font-size:25px;margin-bottom:9px}
+#dailyRewardsScreen .daily-reward-name{font-size:15px;font-weight:900;margin-bottom:7px}
+#dailyRewardsScreen .daily-reward-detail{font-size:11px;line-height:1.45;color:#eadcf2}
+#dailyRewardsScreen .daily-bonus-card{padding:15px;border-radius:17px;background:#382547;border:1px solid #68477d}
+#dailyRewardsScreen .daily-bonus-head{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
+#dailyRewardsScreen .daily-bonus-pill{font-size:10px;font-weight:800;padding:5px 9px;border-radius:20px;background:#1f6547;color:#c5ffe0}
+#dailyRewardsScreen .daily-bonus-copy{font-size:12px;color:#e6d4f2;line-height:1.5;margin-bottom:12px}
+#dailyRewardsScreen .daily-bonus-button{width:100%;margin:0;padding:13px;border:0;border-radius:13px;background:linear-gradient(90deg,#ffd36b,#ffb84d);color:#26192e;font-weight:900;font-size:14px}
+#dailyRewardsScreen .daily-rewards-status{min-height:18px;margin-top:10px;font-size:11px;line-height:1.4;color:#e8cfff;text-align:center}
+@media(max-width:360px){#dailyRewardsScreen{padding:12px 10px}#dailyRewardsScreen .daily-reward-tile{padding:11px 9px;min-height:138px}#dailyRewardsScreen .daily-reward-name{font-size:13px}}
 
 ➤</button>
   </div>
@@ -2083,7 +2083,7 @@ box-sizing:border-box;
 
 
 
-<div id="dailyRewardsModal" role="dialog" aria-modal="true" aria-label="Daily Rewards">
+<div id="dailyRewardsScreen" role="dialog" aria-modal="true" aria-label="Daily Rewards">
   <div class="daily-rewards-shell">
     <div class="daily-rewards-top">
       <button type="button" class="daily-rewards-close" onclick="closeDailyRewards()" aria-label="Back and close Daily Rewards" style="flex:0 0 36px;">←</button>
@@ -9171,7 +9171,7 @@ function showTab(tab,fromBack=false){
 
   const screens=[
   "home","discover","likes","matches","friends",
-  "chats","rooms","profile","notifications"
+  "chats","rooms","profile","notifications","dailyRewards"
 ];
 
   screens.forEach(name=>{
@@ -9203,8 +9203,9 @@ function showTab(tab,fromBack=false){
   const nav=document.querySelector(".bottom-nav");
   const joinedRoom=document.getElementById("joinedRoomScreen");
   const roomIsFullScreen=joinedRoom && joinedRoom.style.display==="block";
+  const rewardsIsFullScreen=tab==="dailyRewards";
   if(nav){
-    nav.style.display=roomIsFullScreen ? "none" : "flex";
+    nav.style.display=(roomIsFullScreen || rewardsIsFullScreen) ? "none" : "flex";
     nav.querySelectorAll("button[data-tab]").forEach(button=>{
       button.classList.toggle("active",button.dataset.tab===tab);
     });
@@ -9245,7 +9246,7 @@ function handleJabzyAndroidBack(){
     return !!el && getComputedStyle(el).display!=="none";
   };
   // Close the most recently opened app overlay/sub-screen before changing tabs.
-  if(visible("dailyRewardsModal")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
+  if(visible("dailyRewardsScreen")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
   if(visible("storyViewerModal")){ jabzyBackPressAt=0; closeJabzyStory(); return true; }
   if(visible("storyUploadModal")){ jabzyBackPressAt=0; closeStoryUpload(); return true; }
   if(visible("chatPhotoPreview")){ jabzyBackPressAt=0; cancelChatPhotoPreview(); return true; }
@@ -9334,27 +9335,16 @@ async function loadDailyRewardsWallet(){
   if(streakEl)streakEl.textContent=String(data?.streak_days ?? 0);
 }
 
-window.__jabzyDailyRewardsOpen=false;
-window.addEventListener("pageshow",()=>{
-  const modal=document.getElementById("dailyRewardsModal");
-  if(modal && !window.__jabzyDailyRewardsOpen)modal.style.setProperty("display","none","important");
-});
-
 async function openDailyRewards(){
-  const modal=document.getElementById("dailyRewardsModal");
-  if(!modal)return;
-  // Keep this screen outside app containers so it fills the entire device viewport.
-  if(modal.parentElement!==document.body)document.body.appendChild(modal);
-  window.__jabzyDailyRewardsOpen=true;
+  const screen=document.getElementById("dailyRewardsScreen");
+  if(!screen)return;
   const status=document.getElementById("dailyRewardsStatus");
   if(status)status.textContent="Loading your rewards…";
-  modal.style.setProperty("display","block","important");
+  showTab("dailyRewards");
   await loadDailyRewardsWallet();
 }
 function closeDailyRewards(){
-  const modal=document.getElementById("dailyRewardsModal");
-  window.__jabzyDailyRewardsOpen=false;
-  if(modal)modal.style.setProperty("display","none","important");
+  showTab("home");
 }
 function showDailyRewardsStatus(message){
   const status=document.getElementById("dailyRewardsStatus");
