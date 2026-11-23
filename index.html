@@ -6635,10 +6635,10 @@ async function createLiveRoom(){
 
     if(data && data.password){
       const detailsOverlay = document.createElement("div");
-      detailsOverlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;";
+      detailsOverlay.style.cssText = "position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(100% - 32px);max-width:300px;z-index:100000;pointer-events:none;";
       
       const detailsCard = document.createElement("div");
-      detailsCard.style.cssText = "width:100%;max-width:300px;background:#21132f;border:1px solid #a45bea;border-radius:16px;padding:14px;color:white;box-shadow:0 12px 36px rgba(0,0,0,.4);";
+      detailsCard.style.cssText = "width:100%;box-sizing:border-box;background:#21132f;border:1px solid #a45bea;border-radius:16px;padding:14px;color:white;box-shadow:0 12px 36px rgba(0,0,0,.4);pointer-events:auto;";
       
       const detailsTitle = document.createElement("h3");
       detailsTitle.textContent = "🔒 Private Room Created";
