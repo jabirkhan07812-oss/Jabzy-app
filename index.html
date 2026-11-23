@@ -2824,17 +2824,19 @@ return ids;
 async function updateOnlineStatus(){
   if(!me)return;
 
-  const {data,error}=await db
-    .from("profiles")
-    .update({last_seen:new Date().toISOString()})
-    .eq("id",me.id)
-    .select("id,last_seen")
-    .maybeSingle();
+  for(let attempt=1;attempt<=2;attempt++){
+    const {error}=await db
+      .from("profiles")
+      .update({last_seen:new Date().toISOString()})
+      .eq("id",me.id);
 
-  if(error){
-    console.error("Last Seen Error:",error);
-    appStatus("Last Seen Error: "+error.message);
-    return;
+    if(!error)return;
+
+    console.warn("Last Seen update attempt "+attempt+" failed:",error.message);
+
+    if(attempt===1){
+      await new Promise(resolve=>setTimeout(resolve,1200));
+    }
   }
 }
   
