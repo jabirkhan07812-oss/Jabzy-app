@@ -1250,9 +1250,11 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" id="accountEmailSave" onclick="changeAccountEmail()">Send Email Verification</button>
     <p style="font-size:12px;opacity:.75;margin:6px 0;">Email tabhi update hoga jab aap naye email par confirmation complete karenge.</p>
     <h4 style="margin:18px 0 8px;color:#ff9bc5;">🔒 Change Password</h4>
+    <input id="accountCurrentPassword" type="password" autocomplete="current-password" placeholder="Old password" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
     <input id="accountNewPassword" type="password" autocomplete="new-password" placeholder="New password (minimum 6 characters)" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
     <input id="accountConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
     <button type="button" id="accountPasswordSave" onclick="changeAccountPassword()">Update Password</button>
+    <button type="button" id="accountForgotPassword" onclick="sendAccountPasswordReset()" style="margin-top:8px;background:transparent;border:1px solid #a879c9;">Forgot Password?</button>
     <p style="font-size:12px;opacity:.75;margin:8px 0 0;">User ID aur account creation date system details hain; inhe change nahi kiya ja sakta.</p>
   </div>
 </div>
@@ -2168,6 +2170,7 @@ async function openAccountInformation(){
   document.getElementById("accountInfoUsername").textContent="Loading...";
   document.getElementById("accountNewUsername").value="";
   document.getElementById("accountNewEmail").value="";
+  document.getElementById("accountCurrentPassword").value="";
   document.getElementById("accountNewPassword").value="";
   document.getElementById("accountConfirmPassword").value="";
   const {data,error}=await db.from("profiles").select("username").eq("id",me.id).maybeSingle();
@@ -2220,19 +2223,42 @@ async function changeAccountEmail(){
 
 async function changeAccountPassword(){
   if(!me){appStatus("Pehle login karein.");return;}
+  const currentPassword=document.getElementById("accountCurrentPassword").value;
   const password=document.getElementById("accountNewPassword").value;
   const confirm=document.getElementById("accountConfirmPassword").value;
+  if(!currentPassword){appStatus("Pehle purana password dalein.");return;}
   if(password.length<6){appStatus("Password kam se kam 6 characters ka rakhein.");return;}
-  if(password!==confirm){appStatus("Dono password match nahi karte.");return;}
+  if(password!==confirm){appStatus("Dono new password match nahi karte.");return;}
+  if(password===currentPassword){appStatus("Naya password purane password se alag rakhein.");return;}
+  if(!me.email){appStatus("Is account ke liye email password login available nahi hai. Forgot Password use karein.");return;}
   const button=document.getElementById("accountPasswordSave");
   button.disabled=true;
   try{
-    const {error}=await db.auth.updateUser({password});
+    const {data,error:verifyError}=await db.auth.signInWithPassword({email:me.email,password:currentPassword});
+    if(verifyError)throw new Error("Purana password galat hai. Dobara check karein ya Forgot Password use karein.");
+    if(data&&data.user)me=data.user;
+    const {data:updated,error}=await db.auth.updateUser({password});
     if(error)throw error;
+    if(updated&&updated.user)me=updated.user;
+    document.getElementById("accountCurrentPassword").value="";
     document.getElementById("accountNewPassword").value="";
     document.getElementById("accountConfirmPassword").value="";
     appStatus("Password successfully update ho gaya.");
   }catch(error){appStatus("Password update nahi hua: "+(error.message||error));}
+  finally{button.disabled=false;}
+}
+
+async function sendAccountPasswordReset(){
+  if(!me||!me.email){appStatus("Account email available nahi hai.");return;}
+  const button=document.getElementById("accountForgotPassword");
+  button.disabled=true;
+  try{
+    const {error}=await db.auth.resetPasswordForEmail(me.email,{
+      redirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
+    });
+    if(error)throw error;
+    appStatus("Password reset link registered email par bhej diya. Inbox check karein.");
+  }catch(error){appStatus("Reset email nahi bheja gaya: "+(error.message||error));}
   finally{button.disabled=false;}
 }
 
