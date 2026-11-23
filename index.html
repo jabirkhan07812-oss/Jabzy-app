@@ -681,6 +681,36 @@ body{
 #adminDashboard .admin-section button{border-radius:11px}
 @media(max-width:380px){#adminDashboard{padding:12px;border-radius:18px}.admin-nav{gap:5px}.admin-nav button{font-size:10px;min-height:70px}}
 
+
+/* JABZY APPEARANCE: LIGHT MODE */
+body.light-theme{background:#f4f1f8!important;color:#241b30!important;}
+body.light-theme #discoverScreen{background:linear-gradient(160deg,#fff 0%,#f3eafa 100%)!important;color:#241b30!important;}
+body.light-theme #profileScreen{background:linear-gradient(155deg,#fff,#f4eafa)!important;color:#241b30!important;}
+body.light-theme .bottom-nav{background:#fff!important;border-top:1px solid #ded3e8!important;}
+body.light-theme .bottom-nav button{color:#39264a!important;}
+body.light-theme .card,body.light-theme .user,body.light-theme #messages,
+body.light-theme #swipeCard,body.light-theme #profileView>div,
+body.light-theme #accountSettingsPanel,body.light-theme #blockedUsersPanel{
+  background:#fff!important;color:#241b30!important;border-color:#dfd2e9!important;
+  box-shadow:0 5px 18px rgba(50,25,70,.08)!important;
+}
+body.light-theme #discoverScreen #swipeCard{background:#fff!important;}
+body.light-theme #profileView h3,body.light-theme #profileView p,
+body.light-theme #profileView>div,body.light-theme #profileView .profile-stats div{color:#39264a!important;}
+body.light-theme #profileView .profile-stats div{background:#f6effb!important;border-color:#dfd2e9!important;}
+body.light-theme #accountSettingsPanel button{background:#f7f1fb!important;color:#39264a!important;border-color:#dfd2e9!important;}
+body.light-theme #accountSettingsPanel button:first-child{background:#eee5f5!important;}
+body.light-theme #discoverScreen #swipeCard h2{color:#8b3475!important;}
+body.light-theme #discoverScreen #swipeCard p{color:#554563!important;}
+body.light-theme #appStatus,body.light-theme #typingStatus{color:#8b3475!important;}
+body.light-theme .light-surface{background:#fff!important;color:#241b30!important;}
+#appearanceModal{display:none;position:fixed;inset:0;z-index:100060;background:#080611cc;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;}
+#appearanceModal .appearance-card{width:100%;max-width:390px;padding:20px;background:#21152f;border:1px solid #69427f;border-radius:20px;color:white;box-shadow:0 12px 35px #0008;}
+#appearanceModal .appearance-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;padding:14px;border:1px solid #69427f;border-radius:14px;background:#30203f;color:white;}
+#appearanceModal .appearance-choice button{width:auto;min-width:92px;margin:0;padding:9px 14px;font-size:13px;}
+body.light-theme #appearanceModal .appearance-card{background:#fff;color:#241b30;border-color:#dfd2e9;}
+body.light-theme #appearanceModal .appearance-choice{background:#f7f1fb;color:#39264a;border-color:#dfd2e9;}
+
 </style>
 </head>
 <body>
@@ -968,7 +998,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Security Settings coming soon ❤️')">🔑 Security</button>
     <button type="button" onclick="appStatus('Account Information coming soon ❤️')">📱 Account Information</button>
     <button type="button" onclick="appStatus('Language Settings coming soon ❤️')">🌐 Language</button>
-    <button type="button" onclick="appStatus('Appearance Settings coming soon ❤️')">🎨 Appearance</button>
+    <button type="button" onclick="openAppearanceSettings()">🎨 Appearance</button>
     <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
     <button type="button" onclick="openPrivacyPolicy()">📜 Privacy Policy</button>
     <button type="button" onclick="openTermsConditions()">📄 Terms & Conditions</button>
@@ -976,6 +1006,19 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="openUserSupport('feedback')">💬 Feedback</button>
     <button type="button" onclick="openUserSupport('help')">❓ Help &amp; Support</button>
 
+  </div>
+</div>
+
+<div id="appearanceModal">
+  <div class="appearance-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <h3 style="margin:0;color:#ff70ae;">🎨 Appearance</h3>
+      <button type="button" onclick="closeAppearanceSettings()" style="width:auto;margin:0;padding:7px 12px;">✕</button>
+    </div>
+    <p style="font-size:13px;opacity:.8;">JABZY ka look apni pasand se chunein.</p>
+    <div class="appearance-choice"><span>🌙 Dark Mode</span><button type="button" id="appearanceDarkBtn" onclick="setAppearance('dark')">Select</button></div>
+    <div class="appearance-choice"><span>☀️ Light Mode</span><button type="button" id="appearanceLightBtn" onclick="setAppearance('light')">Select</button></div>
+    <p id="appearanceStatus" style="font-size:12px;margin-bottom:0;">Your choice is saved on this device.</p>
   </div>
 </div>
 
@@ -7652,6 +7695,36 @@ let storyTouchStartY=0;
     }
   },{passive:true});
 })();
+
+function setAppearance(mode){
+  const light=mode==="light";
+  document.body.classList.toggle("light-theme",light);
+  try{localStorage.setItem("jabzyAppearance",light?"light":"dark");}catch(e){}
+  const darkBtn=document.getElementById("appearanceDarkBtn");
+  const lightBtn=document.getElementById("appearanceLightBtn");
+  if(darkBtn)darkBtn.textContent=light?"Select":"✓ Selected";
+  if(lightBtn)lightBtn.textContent=light?"✓ Selected":"Select";
+  const status=document.getElementById("appearanceStatus");
+  if(status)status.textContent=light?"Light Mode is ON":"Dark Mode is ON";
+}
+function openAppearanceSettings(){
+  const modal=document.getElementById("appearanceModal");
+  if(modal)modal.style.display="flex";
+  let mode="dark";
+  try{mode=localStorage.getItem("jabzyAppearance")||"dark";}catch(e){}
+  setAppearance(mode);
+}
+function closeAppearanceSettings(){
+  const modal=document.getElementById("appearanceModal");
+  if(modal)modal.style.display="none";
+}
+function loadSavedAppearance(){
+  let mode="dark";
+  try{mode=localStorage.getItem("jabzyAppearance")||"dark";}catch(e){}
+  setAppearance(mode);
+}
+loadSavedAppearance();
+
 function showTab(tab){
   localStorage.setItem("jabzyLastTab",tab);
 
