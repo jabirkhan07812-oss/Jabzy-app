@@ -2266,17 +2266,27 @@ function openJabzySettings(section){
   loadJabzyUserSettings(true).then(()=>{
     if(!document.getElementById("jabzySettingsModal")||modal.style.display!=="flex")return;
     if(section==="privacy"){
-      body.innerHTML='<p style="font-size:13px;opacity:.8;">Choose what other JABZY users can discover about your account.</p>'+
-      jabzySettingToggle("show_in_discover","Show my profile in Discover","Your profile will be hidden from Discover when off.")+
-      jabzySettingToggle("show_online_status","Show my online / last seen status","When off, your last-seen time will not be updated.")+
-      jabzySettingToggle("allow_friend_requests","Allow friend requests","When off, new friend requests to you will be blocked.");
+      body.innerHTML=
+      '<div style="padding:15px;margin-bottom:17px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
+        '<div style="display:flex;align-items:center;gap:12px;"><div style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#7c4dba33;font-size:22px;">🔐</div><div><div style="font-size:15px;font-weight:800;">Your privacy matters</div><div style="font-size:11px;line-height:1.5;color:#c8bdd8;margin-top:3px;">You decide what others can see and how they connect with you.</div></div></div>'+
+      '</div>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#a99ab9;margin:4px 2px 9px;">PROFILE VISIBILITY</div>'+
+      jabzySettingToggle("show_in_discover","Discover visibility","Allow your profile to appear in Discover.")+
+      jabzySettingToggle("show_online_status","Online status","Show your online and last-seen status.")+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#a99ab9;margin:18px 2px 9px;">CONNECTIONS</div>'+
+      jabzySettingToggle("allow_friend_requests","Friend requests","Allow other users to send you friend requests.")+
+      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;margin-top:14px;border-radius:12px;background:#252039;border:1px solid #49385f;color:#cfc3df;font-size:11px;line-height:1.5;"><span>💡</span><span>Changes are saved automatically when you switch an option.</span></div>';
     }else if(section==="notifications"){
-      body.innerHTML='<p style="font-size:13px;opacity:.8;">Choose which activity notifications you want to see in JABZY.</p>'+
-      jabzySettingToggle("notify_likes","Likes","Notifications about likes")+
-      jabzySettingToggle("notify_matches","Matches","Notifications about matches")+
-      jabzySettingToggle("notify_follows","New followers","Notifications about new followers")+
-      jabzySettingToggle("notify_messages","Messages","Notifications about new messages")+
-      '<p style="font-size:11px;opacity:.65;">These preferences control which activity notifications appear in your JABZY notification list.</p>';
+      body.innerHTML=
+      '<div style="padding:15px;margin-bottom:17px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
+        '<div style="display:flex;align-items:center;gap:12px;"><div style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#7c4dba33;font-size:22px;">🔔</div><div><div style="font-size:15px;font-weight:800;">Stay in the loop</div><div style="font-size:11px;line-height:1.5;color:#c8bdd8;margin-top:3px;">Choose the updates you want to see from JABZY.</div></div></div>'+
+      '</div>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#a99ab9;margin:4px 2px 9px;">ACTIVITY ALERTS</div>'+
+      jabzySettingToggle("notify_likes","Likes","When someone likes your content.")+
+      jabzySettingToggle("notify_matches","Matches","When you get a new match.")+
+      jabzySettingToggle("notify_follows","New followers","When someone starts following you.")+
+      jabzySettingToggle("notify_messages","Messages","When you receive a new message.")+
+      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;margin-top:14px;border-radius:12px;background:#252039;border:1px solid #49385f;color:#cfc3df;font-size:11px;line-height:1.5;"><span>⚙️</span><span>These controls manage which activity notifications appear in your JABZY notification list. Changes save automatically.</span></div>';
     }else{
       body.innerHTML=
       '<div style="padding:15px;margin-bottom:16px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
@@ -2307,7 +2317,10 @@ function openJabzySettings(section){
 }
 function jabzySettingToggle(key,label,description){
   const checked=jabzyUserSettings[key]!==false;
-  return '<label style="display:flex;align-items:flex-start;gap:10px;padding:13px 10px;margin:8px 0;border:1px solid #69427f;border-radius:12px;background:#171222;cursor:pointer;"><input type="checkbox" '+(checked?'checked':'')+' onchange="saveJabzySetting(\''+key+'\',this.checked)" style="width:19px;height:19px;flex:0 0 19px;margin-top:2px;accent-color:#d65ca8;"><span><strong style="display:block;font-size:14px;">'+label+'</strong><small style="display:block;margin-top:4px;opacity:.7;font-size:11px;">'+description+'</small></span></label>';
+  return '<label style="display:flex;align-items:center;gap:12px;padding:14px;margin:8px 0;border:1px solid #49385f;border-radius:14px;background:linear-gradient(135deg,#241b33,#1b1728);cursor:pointer;box-shadow:0 5px 14px #00000018;">'+
+    '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;font-weight:750;color:#fff;">'+label+'</strong><small style="display:block;margin-top:5px;color:#b9adc8;font-size:11px;line-height:1.45;">'+description+'</small></span>'+
+    '<input type="checkbox" '+(checked?'checked':'')+' onchange="saveJabzySetting(\\''+key+'\\',this.checked)" style="width:20px;height:20px;flex:0 0 20px;accent-color:#d65ca8;cursor:pointer;">'+
+  '</label>';
 }
 async function saveJabzySetting(key,value){
   const allowed=["show_in_discover","show_online_status","allow_friend_requests","notify_likes","notify_matches","notify_follows","notify_messages"];
