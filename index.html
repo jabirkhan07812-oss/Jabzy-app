@@ -9177,17 +9177,18 @@ function handleJabzyAndroidBack(){
     const el=document.getElementById(id);
     return !!el && getComputedStyle(el).display!=="none";
   };
-  if(visible("chatWindow")){ backToChatList(); return true; }
-  if(visible("publicProfileView")){ closePublicProfile(); return true; }
-  if(visible("joinedRoomScreen")){ minimizeJoinedRoom(); return true; }
-  if(visible("notificationsScreen")){ closeNotifications(); return true; }
-  if(visible("adminDashboard")){ closeAdminDashboard(); return true; }
+  if(visible("chatWindow")){ jabzyBackPressAt=0; backToChatList(); return true; }
+  if(visible("publicProfileView")){ jabzyBackPressAt=0; closePublicProfile(); return true; }
+  if(visible("joinedRoomScreen")){ jabzyBackPressAt=0; minimizeJoinedRoom(); return true; }
+  if(visible("notificationsScreen")){ jabzyBackPressAt=0; closeNotifications(); return true; }
+  if(visible("adminDashboard")){ jabzyBackPressAt=0; closeAdminDashboard(); return true; }
   if(visible("profileEdit")){
     document.getElementById("profileEdit").style.display="none";
     document.getElementById("profileView").style.display="block";
     return true;
   }
   const currentTab=localStorage.getItem("jabzyLastTab")||"home";
+  if(currentTab!=="home") jabzyBackPressAt=0;
   while(jabzyTabHistory.length){
     const previousTab=jabzyTabHistory.pop();
     if(previousTab && previousTab!==currentTab){ showTab(previousTab,true); return true; }
@@ -9209,8 +9210,9 @@ function handleJabzyAndroidBack(){
   window.__jabzyBackHandlerReady=true;
   try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
   window.addEventListener("popstate",()=>{
-    handleJabzyAndroidBack();
+    // Restore the guard first so repeated Back presses remain inside JABZY.
     try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
+    handleJabzyAndroidBack();
   });
 })();
 </script>
