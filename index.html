@@ -6359,7 +6359,7 @@ async function startRoomVoice(){
   roomVoiceClientId = crypto.randomUUID();
   roomVoiceChannel = db.channel("room-voice:" + currentJoinedRoom.id,{
     config:{
-      private:true,
+      private:false,
       presence:{key:roomVoiceClientId},
       broadcast:{self:false}
     }
