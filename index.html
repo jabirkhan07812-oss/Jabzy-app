@@ -3412,7 +3412,8 @@ async function loadMyFriends(){
     const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:""};
     const row=document.createElement("button");
     row.type="button";
-    row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:#ffffff18;color:white;text-align:left;";
+    const friendsLightMode=document.body.classList.contains("light-theme");
+    row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:"+(friendsLightMode?"#ffffff":"#ffffff18")+";color:"+(friendsLightMode?"#241b30":"#ffffff")+";text-align:left;";
 
     const img=document.createElement("img");
     img.src=friend.photo_url||"";
