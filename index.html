@@ -1217,7 +1217,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Privacy Settings coming soon ❤️')">🔒 Privacy</button>
     <button type="button" onclick="appStatus('Notification Settings coming soon ❤️')">🔔 Notifications</button>
     <button type="button" onclick="appStatus('Security Settings coming soon ❤️')">🔑 Security</button>
-    <button type="button" onclick="appStatus('Account Information coming soon ❤️')">📱 Account Information</button>
+    <button type="button" onclick="openAccountInformation()">📱 Account Information</button>
     <button type="button" onclick="openLanguageSettings()">🌐 Language</button>
     <button type="button" onclick="openAppearanceSettings()">🎨 Appearance</button>
     <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
@@ -1227,6 +1227,33 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="openUserSupport('feedback')">💬 Feedback</button>
     <button type="button" onclick="openUserSupport('help')">❓ Help &amp; Support</button>
 
+  </div>
+</div>
+
+<div id="accountInformationModal" style="display:none;position:fixed;inset:0;z-index:100090;background:#080611eF;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto;">
+  <div class="appearance-card" style="width:100%;max-width:430px;max-height:92vh;overflow-y:auto;padding:20px;background:#21152f;border:1px solid #69427f;border-radius:20px;color:white;box-sizing:border-box;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <h3 style="margin:0;color:#ff70ae;">📱 Account Information</h3>
+      <button type="button" onclick="closeAccountInformation()" style="width:auto;margin:0;padding:7px 12px;">✕</button>
+    </div>
+    <div style="margin-top:16px;padding:13px;border:1px solid #69427f;border-radius:14px;background:#30203f;">
+      <div style="font-size:12px;opacity:.75;">Email Address</div><div id="accountInfoEmail" style="font-size:14px;overflow-wrap:anywhere;margin:4px 0 12px;">Loading...</div>
+      <div style="font-size:12px;opacity:.75;">Username</div><div id="accountInfoUsername" style="font-size:14px;margin:4px 0 12px;">Loading...</div>
+      <div style="font-size:12px;opacity:.75;">User ID</div><div id="accountInfoUserId" style="font-size:12px;overflow-wrap:anywhere;margin:4px 0 12px;"></div>
+      <div style="font-size:12px;opacity:.75;">Account Created</div><div id="accountInfoCreated" style="font-size:14px;margin-top:4px;"></div>
+    </div>
+    <h4 style="margin:18px 0 8px;color:#ff9bc5;">✏️ Change Username</h4>
+    <input id="accountNewUsername" type="text" maxlength="30" placeholder="New username" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
+    <button type="button" id="accountUsernameSave" onclick="saveAccountUsername()">Save Username</button>
+    <h4 style="margin:18px 0 8px;color:#ff9bc5;">✉️ Change Email</h4>
+    <input id="accountNewEmail" type="email" autocomplete="email" placeholder="New email address" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
+    <button type="button" id="accountEmailSave" onclick="changeAccountEmail()">Send Email Verification</button>
+    <p style="font-size:12px;opacity:.75;margin:6px 0;">Email tabhi update hoga jab aap naye email par confirmation complete karenge.</p>
+    <h4 style="margin:18px 0 8px;color:#ff9bc5;">🔒 Change Password</h4>
+    <input id="accountNewPassword" type="password" autocomplete="new-password" placeholder="New password (minimum 6 characters)" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
+    <input id="accountConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password" style="width:100%;box-sizing:border-box;margin:4px 0 8px;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
+    <button type="button" id="accountPasswordSave" onclick="changeAccountPassword()">Update Password</button>
+    <p style="font-size:12px;opacity:.75;margin:8px 0 0;">User ID aur account creation date system details hain; inhe change nahi kiya ja sakta.</p>
   </div>
 </div>
 
@@ -2128,6 +2155,85 @@ async function submitUserSupport(){
 
   panel.style.display=
     panel.style.display==="none" ? "block" : "none";
+}
+
+async function openAccountInformation(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const modal=document.getElementById("accountInformationModal");
+  if(!modal)return;
+  modal.style.display="flex";
+  document.getElementById("accountInfoEmail").textContent=me.email||"Not available";
+  document.getElementById("accountInfoUserId").textContent=me.id||"";
+  document.getElementById("accountInfoCreated").textContent=me.created_at?new Date(me.created_at).toLocaleString():"Not available";
+  document.getElementById("accountInfoUsername").textContent="Loading...";
+  document.getElementById("accountNewUsername").value="";
+  document.getElementById("accountNewEmail").value="";
+  document.getElementById("accountNewPassword").value="";
+  document.getElementById("accountConfirmPassword").value="";
+  const {data,error}=await db.from("profiles").select("username").eq("id",me.id).maybeSingle();
+  if(error){appStatus("Username load nahi hua: "+error.message);return;}
+  const username=data&&data.username?data.username:"Not set";
+  document.getElementById("accountInfoUsername").textContent=username;
+  document.getElementById("accountNewUsername").value=data&&data.username?data.username:"";
+}
+
+function closeAccountInformation(){
+  const modal=document.getElementById("accountInformationModal");
+  if(modal)modal.style.display="none";
+}
+
+async function saveAccountUsername(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const input=document.getElementById("accountNewUsername");
+  const username=input.value.trim();
+  if(username.length<2||username.length>30){appStatus("Username 2 se 30 characters ka rakhein.");return;}
+  const button=document.getElementById("accountUsernameSave");
+  button.disabled=true;
+  try{
+    const {error}=await db.from("profiles").update({username}).eq("id",me.id);
+    if(error)throw error;
+    document.getElementById("accountInfoUsername").textContent=username;
+    const profileName=document.getElementById("viewUsername");
+    if(profileName)profileName.textContent=username;
+    const editName=document.getElementById("username");
+    if(editName)editName.value=username;
+    if(typeof loadPeople==="function")await loadPeople();
+    appStatus("Username update ho gaya.");
+  }catch(error){appStatus("Username update nahi hua: "+(error.message||error));}
+  finally{button.disabled=false;}
+}
+
+async function changeAccountEmail(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const email=document.getElementById("accountNewEmail").value.trim();
+  if(!email||!/^\S+@\S+\.\S+$/.test(email)){appStatus("Valid naya email address dalein.");return;}
+  if(email.toLowerCase()===(me.email||"").toLowerCase()){appStatus("Ye email pehle se account par hai.");return;}
+  const button=document.getElementById("accountEmailSave");
+  button.disabled=true;
+  try{
+    const {error}=await db.auth.updateUser({email});
+    if(error)throw error;
+    appStatus("Verification email bhej diya. Naye email ka inbox check karein.");
+  }catch(error){appStatus("Email change request nahi hui: "+(error.message||error));}
+  finally{button.disabled=false;}
+}
+
+async function changeAccountPassword(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const password=document.getElementById("accountNewPassword").value;
+  const confirm=document.getElementById("accountConfirmPassword").value;
+  if(password.length<6){appStatus("Password kam se kam 6 characters ka rakhein.");return;}
+  if(password!==confirm){appStatus("Dono password match nahi karte.");return;}
+  const button=document.getElementById("accountPasswordSave");
+  button.disabled=true;
+  try{
+    const {error}=await db.auth.updateUser({password});
+    if(error)throw error;
+    document.getElementById("accountNewPassword").value="";
+    document.getElementById("accountConfirmPassword").value="";
+    appStatus("Password successfully update ho gaya.");
+  }catch(error){appStatus("Password update nahi hua: "+(error.message||error));}
+  finally{button.disabled=false;}
 }
 
 function toggleBlockedUsers(){
