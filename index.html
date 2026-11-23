@@ -6760,7 +6760,20 @@ async function setupGlobalRoomRealtime(){
   globalRoomRealtimeUserId=me.id;
   globalRoomRealtimeChannel=db
     .channel("global-rooms-"+me.id)
-    .on("postgres_changes",{event:"*",schema:"public",table:"live_rooms"},async()=>{
+    .on("postgres_changes",{event:"*",schema:"public",table:"live_rooms"},async(payload)=>{
+      const changedRoom=payload?.new;
+      if(changedRoom?.status==="ended" && currentJoinedRoom?.id===changedRoom.id){
+        if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
+        if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
+        await stopRoomVoice();
+        currentJoinedRoom=null;
+        const joinedScreen=document.getElementById("joinedRoomScreen");
+        const miniBar=document.getElementById("miniRoomBar");
+        if(joinedScreen) joinedScreen.style.display="none";
+        if(miniBar) miniBar.style.display="none";
+        showTab("rooms");
+        alert("Host ne ye room close kar diya hai.");
+      }
       const roomsScreen=document.getElementById("roomsScreen");
       if(roomsScreen && roomsScreen.style.display!=="none"){
         await loadActiveRooms();
@@ -7118,17 +7131,7 @@ async function ensureRoomVoicePeer(remoteClient){
   pc.onicecandidate = event => {
     if(event.candidate) sendRoomVoiceSignal(remoteClient,{candidate:event.candidate});
   };
-  pc.onnegotiationneeded = async () => {
-    try{
-      peer.makingOffer = true;
-      await pc.setLocalDescription();
-      await sendRoomVoiceSignal(remoteClient,{description:pc.localDescription});
-    }catch(error){
-      console.error("Voice negotiation error:",error);
-    }finally{
-      peer.makingOffer = false;
-    }
-  };
+  // Offers are started only by syncRoomVoicePeers() to prevent duplicate negotiations.
   return peer;
 }
 
@@ -7284,7 +7287,7 @@ async function toggleRoomMic(){
     }
     if(!roomLocalStream){
       roomLocalStream = await navigator.mediaDevices.getUserMedia({
-        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
+        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1,sampleRate:48000},
         video:false
       });
     }
