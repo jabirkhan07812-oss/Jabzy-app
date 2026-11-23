@@ -3996,12 +3996,15 @@ async function showSwipeCard(){
   if(p.photo_url){
     const img=document.createElement("img");
     img.src=p.photo_url;
-    img.style.cssText="width:100%;height:280px;object-fit:cover;border-radius:15px;";
+    img.style.cssText="width:100%;height:280px;object-fit:cover;border-radius:15px;cursor:pointer;";
+    img.addEventListener("click",()=>openPublicProfile(p.id));
     card.appendChild(img);
   }
 
   const name=document.createElement("h2");
   name.textContent=p.username||"User";
+  name.style.cursor="pointer";
+  name.addEventListener("click",()=>openPublicProfile(p.id));
   if(await isOfficialAdminUser(p.id))addOfficialAdminMark(name);
 
   const info=document.createElement("p");
