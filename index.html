@@ -2045,7 +2045,7 @@ box-sizing:border-box;
 
   <div style="display:flex;justify-content:space-between;align-items:center">
     <h2>🔔 Notifications</h2>
-    <button type="button" class="jabzy-back-button" onclick="showTab('home')" aria-label="Back" title="Back">✕</button>
+    <button type="button" class="jabzy-back-button" onclick="closeNotifications()" aria-label="Close notifications" title="Close">✕</button>
   </div>
 
   <div id="notificationsList">
@@ -2091,7 +2091,16 @@ document.getElementById("resetPassword").classList.remove("hidden");
 });
 
 
+let notificationReturnTab="home";
+
+function closeNotifications(){
+  const target=["home","discover","likes","matches","friends","chats","rooms","profile"].includes(notificationReturnTab)?notificationReturnTab:"home";
+  showTab(target);
+}
+
 async function openNotifications(){
+  const previousTab=localStorage.getItem("jabzyLastTab");
+  notificationReturnTab=previousTab && previousTab!=="notifications" && ["home","discover","likes","matches","friends","chats","rooms","profile"].includes(previousTab)?previousTab:"home";
   await loadJabzyUserSettings();
   showTab("notifications");
 
