@@ -3700,6 +3700,8 @@ async function openPublicProfile(userId){
   document.getElementById("profileView").style.display="none";
   document.getElementById("profileEdit").style.display="none";
   document.getElementById("publicProfileView").style.display="block";
+  const publicProfileNav=document.querySelector(".bottom-nav");
+  if(publicProfileNav)publicProfileNav.style.setProperty("display","none","important");
 
   const photo=document.getElementById("publicPhoto");
   const adminPhotoDeleteBtn=document.getElementById("adminDeleteProfilePhotoBtn");
