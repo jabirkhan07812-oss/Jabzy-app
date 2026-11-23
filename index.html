@@ -2853,6 +2853,7 @@ document.getElementById("login").classList.add("hidden");
 document.getElementById("signup").classList.add("hidden");
 
 showTab("home");
+await restoreJoinedRoom();
 document.getElementById("app").classList.remove("hidden");
 
 Promise.all([
@@ -6677,6 +6678,85 @@ async function endLiveRoom(roomId){
 let currentJoinedRoom = null;
 let roomChatChannel = null;
 let roomMembersChannel = null;
+
+async function restoreJoinedRoom(){
+  if(!me) return false;
+
+  const miniBar = document.getElementById("miniRoomBar");
+  const joinedScreen = document.getElementById("joinedRoomScreen");
+  let room = null;
+
+  const {data:ownedRooms,error:ownedError} = await db
+    .from("live_rooms")
+    .select("*")
+    .eq("created_by",me.id)
+    .eq("status","active")
+    .order("created_at",{ascending:false})
+    .limit(1);
+
+  if(ownedError){
+    console.error("Owned room restore error:",ownedError.message);
+    return false;
+  }
+
+  room = ownedRooms?.[0] || null;
+
+  if(!room){
+    const {data:members,error:membersError} = await db
+      .from("live_room_members")
+      .select("room_id")
+      .eq("user_id",me.id);
+
+    if(membersError){
+      console.error("Room membership restore error:",membersError.message);
+      return false;
+    }
+
+    const roomIds = [...new Set((members || []).map(item => item.room_id).filter(Boolean))];
+
+    if(roomIds.length){
+      const {data:joinedRooms,error:roomsError} = await db
+        .from("live_rooms")
+        .select("*")
+        .in("id",roomIds)
+        .eq("status","active")
+        .order("created_at",{ascending:false})
+        .limit(1);
+
+      if(roomsError){
+        console.error("Joined room restore error:",roomsError.message);
+        return false;
+      }
+
+      room = joinedRooms?.[0] || null;
+    }
+  }
+
+  if(!room){
+    currentJoinedRoom = null;
+    if(miniBar) miniBar.style.display = "none";
+    if(joinedScreen) joinedScreen.style.display = "none";
+    return false;
+  }
+
+  currentJoinedRoom = room;
+  document.getElementById("miniRoomName").textContent = room.name || "JABZY Room";
+  document.getElementById("joinedRoomName").textContent = room.name || "JABZY Room";
+
+  const {count,countError} = await db
+    .from("live_room_members")
+    .select("user_id",{count:"exact",head:true})
+    .eq("room_id",room.id);
+
+  if(count !== null && count !== undefined){
+    document.getElementById("miniRoomMemberCount").textContent = count;
+    document.getElementById("joinedRoomMemberCount").textContent = count;
+  }
+
+  if(joinedScreen) joinedScreen.style.display = "none";
+  if(miniBar) miniBar.style.display = "block";
+  return true;
+}
 
 
 async function joinLiveRoom(room){
