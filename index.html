@@ -2162,20 +2162,38 @@ if(!me||!selected)return;
 
 chatChannel=db.channel("chat-"+me.id+"-"+selected)
 .on("postgres_changes",{
-event:"INSERT",
+event:"*",
 schema:"public",
 table:"messages"
 },payload=>{
-const m=payload.new;
+  const m=payload.new || payload.old || {};
+  const isCurrentChat =
+    (m.sender_id===me.id && m.receiver_id===selected) ||
+    (m.sender_id===selected && m.receiver_id===me.id);
 
-if(
-(m.sender_id===me.id&&m.receiver_id===selected)||
-(m.sender_id===selected&&m.receiver_id===me.id)
-){
-loadMessages(true);
-}
+  // Refresh the open conversation when its message changes.
+  if(isCurrentChat){
+    loadMessages(true);
+  }
+
+  // Keep the chat list preview and latest-message order up to date.
+  const chatList=document.getElementById("chatList");
+  if(chatList && chatList.style.display!=="none"){
+    const belongsToMe =
+      m.sender_id===me.id || m.receiver_id===me.id;
+
+    // DELETE payloads may contain only the row ID; refresh the list
+    // in that case too, so an unsent latest message disappears.
+    if(belongsToMe || payload.eventType==="DELETE"){
+      loadChatList();
+    }
+  }
 })
-.subscribe();
+.subscribe((status)=>{
+  if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+    console.warn("Chat realtime status:",status);
+  }
+});
 }
 
   function openPrivacyPolicy(){const modal=document.getElementById("privacyPolicyModal");if(modal)modal.style.display="block";}
