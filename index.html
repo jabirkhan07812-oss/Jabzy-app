@@ -1531,7 +1531,7 @@ box-sizing:border-box;
 ">
 
   <button type="button"
-  onclick="showTab('discover')"
+  onclick="closePublicProfile()"
   style="width:auto;padding:6px 12px;font-size:13px">
   ← Back
   </button>
@@ -3530,6 +3530,19 @@ async function openFollowList(userId,type){
     if(!(profiles||[]).length) content.textContent="Profiles nahi milin.";
   }catch(error){
     content.textContent="List load nahi hui: "+(error.message||"Unknown error");
+  }
+}
+
+let publicProfileReturnTab="discover";
+let publicProfileReturnFriendsSection="requests";
+
+function closePublicProfile(){
+  const targetTab=publicProfileReturnTab||"discover";
+  const profileView=document.getElementById("publicProfileView");
+  if(profileView)profileView.style.display="none";
+  showTab(targetTab);
+  if(targetTab==="friends"){
+    showFriendsSection(publicProfileReturnFriendsSection||"requests");
   }
 }
 
