@@ -9213,40 +9213,30 @@ function handleJabzyAndroidBack(){
     if(previousTab && previousTab!==currentTab){ showTab(previousTab,true); return true; }
   }
   if(currentTab!=="home"){ showTab("home",true); return true; }
-  const now=Date.now();
-  if(now-jabzyBackPressAt<2000){
-    jabzyBackPressAt=0;
-    // Never close or navigate away from the website from JavaScript.
-    // A native APK wrapper may listen for this event and handle app exit itself.
-    window.dispatchEvent(new CustomEvent("jabzy-exit-request"));
-    appStatus("JABZY is open");
-  }else{
-    jabzyBackPressAt=now;
-    appStatus("Exit JABZY — Back again to exit");
-  }
+  // Home is the root screen: keep the website open on every Back press.
+  jabzyBackPressAt=0;
+  appStatus("You're on JABZY Home");
   return true;
 }
 (function setupJabzyBackButton(){
   if(window.__jabzyBackHandlerReady) return;
   window.__jabzyBackHandlerReady=true;
-  const refillBackGuards=()=>{
-    // Keep several same-page history entries so Android/browser Back cannot
-    // leave the JABZY page while navigating through its internal screens.
+  const addBackGuard=()=>{
     try{
-      for(let i=0;i<3;i++){
-        history.pushState({jabzyBackGuard:true,level:i},"",location.href);
-      }
+      history.pushState({jabzyBackGuard:true},"",location.href);
     }catch(error){ console.warn("JABZY Back guard:",error); }
   };
-  refillBackGuards();
+  addBackGuard();
   window.addEventListener("popstate",()=>{
-    // Refill first, then process one in-app Back action.
-    refillBackGuards();
+    // Handle the in-app Back action, then immediately restore the guard.
     try{ handleJabzyAndroidBack(); }catch(error){
       console.error("JABZY Back handling failed:",error);
       appStatus("Back button error. Please try again.");
+    }finally{
+      addBackGuard();
     }
   });
+  window.addEventListener("pageshow",addBackGuard);
 })();;
 </script>
 </body>
