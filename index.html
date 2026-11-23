@@ -9162,6 +9162,66 @@ if(tab==="rooms"){
   }
 }  
   
+
+/* JABZY browser / Android WebView Back button handling */
+function handleJabzyAndroidBack(){
+  const visible=(id)=>{
+    const el=document.getElementById(id);
+    return !!el && getComputedStyle(el).display!=="none";
+  };
+
+  if(visible("chatWindow")){
+    backToChatList();
+    return true;
+  }
+  if(visible("publicProfileView")){
+    closePublicProfile();
+    return true;
+  }
+  if(visible("joinedRoomScreen")){
+    minimizeJoinedRoom();
+    return true;
+  }
+  if(visible("notificationsScreen")){
+    closeNotifications();
+    return true;
+  }
+  if(visible("adminDashboard")){
+    closeAdminDashboard();
+    return true;
+  }
+  if(visible("profileEdit")){
+    document.getElementById("profileEdit").style.display="none";
+    document.getElementById("profileView").style.display="block";
+    return true;
+  }
+  return false;
+}
+
+(function setupJabzyBackButton(){
+  if(window.__jabzyBackHandlerReady) return;
+  window.__jabzyBackHandlerReady=true;
+
+  try{
+    history.pushState({jabzyBackGuard:true},"",location.href);
+  }catch(error){
+    console.warn("JABZY back navigation setup:",error);
+  }
+
+  window.addEventListener("popstate",()=>{
+    const handled=handleJabzyAndroidBack();
+    if(handled){
+      try{history.pushState({jabzyBackGuard:true},"",location.href);}catch(error){}
+      return;
+    }
+
+    const shouldExit=window.confirm("Kya aap JABZY se bahar nikalna chahte hain?");
+    if(!shouldExit){
+      try{history.pushState({jabzyBackGuard:true},"",location.href);}catch(error){}
+    }
+  });
+})();
+
 </script>
 </body>
   </html>
