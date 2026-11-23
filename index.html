@@ -5219,6 +5219,7 @@ async function forwardChatMessage(message){
                   
 
 async function loadMessages(incremental=false,olderBatch=false){
+const chatUserId=selected;
 if(!chatUserId)return;
 
 let blocked;
