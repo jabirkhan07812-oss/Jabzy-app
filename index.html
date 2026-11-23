@@ -1218,7 +1218,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
     <button type="button" onclick="appStatus('Notification Settings coming soon ❤️')">🔔 Notifications</button>
     <button type="button" onclick="appStatus('Security Settings coming soon ❤️')">🔑 Security</button>
     <button type="button" onclick="appStatus('Account Information coming soon ❤️')">📱 Account Information</button>
-    <button type="button" onclick="appStatus('Language Settings coming soon ❤️')">🌐 Language</button>
+    <button type="button" onclick="openLanguageSettings()">🌐 Language</button>
     <button type="button" onclick="openAppearanceSettings()">🎨 Appearance</button>
     <button type="button" onclick="appStatus('Delete Account option coming soon ❤️')">🗑️ Delete Account</button>
     <button type="button" onclick="openPrivacyPolicy()">📜 Privacy Policy</button>
@@ -1229,6 +1229,8 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
 
   </div>
 </div>
+
+<div id="languageModal" style="display:none;position:fixed;inset:0;z-index:100070;background:#080611cc;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;"><div class="appearance-card" style="width:100%;max-width:390px;padding:20px;background:#21152f;border:1px solid #69427f;border-radius:20px;color:white;"><div style="display:flex;justify-content:space-between;align-items:center;"><h3 style="margin:0;color:#ff70ae;">🌐 Language / भाषा</h3><button type="button" onclick="closeLanguageSettings()" style="width:auto;margin:0;padding:7px 12px;">✕</button></div><p style="font-size:13px;opacity:.8;">Choose your app language / अपनी ऐप की भाषा चुनें।</p><div class="appearance-choice"><span>🇮🇳 हिंदी</span><button type="button" id="languageHiBtn" onclick="setAppLanguage('hi')">Select</button></div><div class="appearance-choice"><span>🇬🇧 English</span><button type="button" id="languageEnBtn" onclick="setAppLanguage('en')">Select</button></div><p id="languageStatus" style="font-size:12px;margin-bottom:0;">Your choice is saved on this device.</p></div></div>
 
 <div id="appearanceModal">
   <div class="appearance-card">
@@ -1934,11 +1936,11 @@ box-sizing:border-box;
 
 
 <div class="bottom-nav">
-  <button data-tab="home" onclick="showTab('home')">🏠<br>Home</button>
-  <button data-tab="friends" onclick="showTab('friends')">👥<br>Friends</button>
-  <button data-tab="chats" onclick="showTab('chats')">💬<br>Chats</button>
-  <button data-tab="rooms" onclick="showTab('rooms')">🎮<br>Rooms</button>
-  <button data-tab="profile" onclick="showTab('profile')">👤<br>Profile</button>
+  <button data-tab="home" data-lang-nav="home" onclick="showTab('home')">🏠<br>Home</button>
+  <button data-tab="friends" data-lang-nav="friends" onclick="showTab('friends')">👥<br>Friends</button>
+  <button data-tab="chats" data-lang-nav="chats" onclick="showTab('chats')">💬<br>Chats</button>
+  <button data-tab="rooms" data-lang-nav="rooms" onclick="showTab('rooms')">🎮<br>Rooms</button>
+  <button data-tab="profile" data-lang-nav="profile" onclick="showTab('profile')">👤<br>Profile</button>
 </div>
   
   
@@ -7932,6 +7934,21 @@ let storyTouchStartY=0;
     }
   },{passive:true});
 })();
+
+function setAppLanguage(lang){
+  const hi=lang==="hi";
+  try{localStorage.setItem("jabzyLanguage",lang);}catch(e){}
+  const labels={home:hi?"होम":"Home",friends:hi?"दोस्त":"Friends",chats:hi?"चैट":"Chats",rooms:hi?"रूम्स":"Rooms",profile:hi?"प्रोफ़ाइल":"Profile"};
+  document.querySelectorAll("[data-lang-nav]").forEach(btn=>{const key=btn.getAttribute("data-lang-nav");const emoji=({home:"🏠",friends:"👥",chats:"💬",rooms:"🎮",profile:"👤"})[key];btn.innerHTML=emoji+"<br>"+labels[key];});
+  const pairs={languageHiBtn:hi,languageEnBtn:!hi};
+  Object.entries(pairs).forEach(([id,selected])=>{const el=document.getElementById(id);if(el)el.textContent=selected?"✓ Selected":"Select";});
+  const status=document.getElementById("languageStatus");if(status)status.textContent=hi?"भाषा हिंदी में सेट है।":"Language is set to English.";
+  document.documentElement.lang=lang;
+}
+function openLanguageSettings(){const modal=document.getElementById("languageModal");if(modal)modal.style.display="flex";let lang="en";try{lang=localStorage.getItem("jabzyLanguage")||"en";}catch(e){}setAppLanguage(lang);}
+function closeLanguageSettings(){const modal=document.getElementById("languageModal");if(modal)modal.style.display="none";}
+function loadSavedAppLanguage(){let lang="en";try{lang=localStorage.getItem("jabzyLanguage")||"en";}catch(e){}setAppLanguage(lang);}
+loadSavedAppLanguage();
 
 function setAppearance(mode){
   const light=mode==="light";
