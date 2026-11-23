@@ -1235,9 +1235,9 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
       <div id="blockedUsers">No blocked users.</div>
     </div>
 
-    <button type="button" onclick="appStatus('Privacy Settings coming soon ❤️')">🔒 Privacy</button>
-    <button type="button" onclick="appStatus('Notification Settings coming soon ❤️')">🔔 Notifications</button>
-    <button type="button" onclick="appStatus('Security Settings coming soon ❤️')">🔑 Security</button>
+    <button type="button" onclick="openJabzySettings('privacy')">🔒 Privacy</button>
+    <button type="button" onclick="openJabzySettings('notifications')">🔔 Notifications</button>
+    <button type="button" onclick="openJabzySettings('security')">🔑 Security</button>
     <button type="button" onclick="openAccountInformation()">📱 Account Information</button>
     <button type="button" onclick="openLanguageSettings()">🌐 Language</button>
     <button type="button" onclick="openAppearanceSettings()">🎨 Appearance</button>
@@ -2055,6 +2055,7 @@ document.getElementById("resetPassword").classList.remove("hidden");
 
 
 async function openNotifications(){
+  await loadJabzyUserSettings();
   showTab("notifications");
 
   const box=document.getElementById("notificationsList");
@@ -2071,12 +2072,19 @@ async function openNotifications(){
     return;
   }
 
-  if(!notifications || notifications.length===0){
+  const visibleNotifications=(notifications||[]).filter(n=>{
+    if(n.type==="like")return jabzyUserSettings.notify_likes!==false;
+    if(n.type==="match")return jabzyUserSettings.notify_matches!==false;
+    if(n.type==="follow")return jabzyUserSettings.notify_follows!==false;
+    if(n.type==="message")return jabzyUserSettings.notify_messages!==false;
+    return true;
+  });
+  if(!visibleNotifications || visibleNotifications.length===0){
     box.innerText="No notifications yet ❤️";
     return;
   }
 
-  const ids=[...new Set(notifications.map(n=>n.actor_id))];
+  const ids=[...new Set(visibleNotifications.map(n=>n.actor_id))];
 
   const {data:profiles}=await db
     .from("profiles")
@@ -2090,7 +2098,7 @@ async function openNotifications(){
 
   box.innerHTML="";
 
-  notifications.forEach(n=>{
+  visibleNotifications.forEach(n=>{
     const item=document.createElement("div");
     item.style.cssText="padding:12px;margin:8px 0;background:#252538;border-radius:10px;";
 
@@ -2116,7 +2124,7 @@ if(["like","match","follow","message"].includes(n.type)){
 box.appendChild(item);
   });
 
-  const unread=notifications.filter(n=>!n.is_read).map(n=>n.id);
+  const unread=visibleNotifications.filter(n=>!n.is_read).map(n=>n.id);
 
   if(unread.length){
     await db.from("notifications")
@@ -2214,6 +2222,91 @@ async function submitUserSupport(){
 
   panel.style.display=
     panel.style.display==="none" ? "block" : "none";
+}
+
+
+let jabzyUserSettings={
+  show_in_discover:true,
+  show_online_status:true,
+  allow_friend_requests:true,
+  notify_likes:true,
+  notify_matches:true,
+  notify_follows:true,
+  notify_messages:true
+};
+let jabzySettingsLoadedFor=null;
+async function loadJabzyUserSettings(force=false){
+  if(!me)return;
+  if(!force&&jabzySettingsLoadedFor===me.id)return;
+  const {data,error}=await db.from("user_settings").select("*").eq("user_id",me.id).maybeSingle();
+  if(error){console.warn("Settings load:",error.message);return;}
+  if(data){
+    jabzyUserSettings={...jabzyUserSettings,...data};
+  }else{
+    const {error:insertError}=await db.from("user_settings").insert({user_id:me.id});
+    if(insertError)console.warn("Default settings:",insertError.message);
+  }
+  jabzySettingsLoadedFor=me.id;
+}
+function openJabzySettings(section){
+  if(!me){appStatus("Pehle login karein.");return;}
+  let modal=document.getElementById("jabzySettingsModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="jabzySettingsModal";
+    modal.style.cssText="display:none;position:fixed;inset:0;z-index:100250;background:#080611ef;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+    modal.innerHTML='<div style="width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding:20px;background:#21152f;border:1px solid #8054a0;border-radius:20px;color:white;box-sizing:border-box;"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><h3 id="jabzySettingsTitle" style="margin:0;color:#ff70ae;">Settings</h3><button type="button" onclick="closeJabzySettings()" style="width:auto;margin:0;padding:7px 12px;">✕</button></div><div id="jabzySettingsBody" style="margin-top:14px;"></div></div>';
+    document.body.appendChild(modal);
+  }
+  const title=document.getElementById("jabzySettingsTitle");
+  const body=document.getElementById("jabzySettingsBody");
+  modal.style.display="flex";
+  title.textContent=section==="privacy"?"🔒 Privacy Settings":section==="notifications"?"🔔 Notification Settings":"🔑 Security Settings";
+  body.innerHTML='<p style="font-size:13px;opacity:.8;">Loading your settings...</p>';
+  loadJabzyUserSettings(true).then(()=>{
+    if(!document.getElementById("jabzySettingsModal")||modal.style.display!=="flex")return;
+    if(section==="privacy"){
+      body.innerHTML='<p style="font-size:13px;opacity:.8;">Choose what other JABZY users can discover about your account.</p>'+
+      jabzySettingToggle("show_in_discover","Show my profile in Discover","Your profile will be hidden from Discover when off.")+
+      jabzySettingToggle("show_online_status","Show my online / last seen status","When off, your last-seen time will not be updated.")+
+      jabzySettingToggle("allow_friend_requests","Allow friend requests","When off, new friend requests to you will be blocked.");
+    }else if(section==="notifications"){
+      body.innerHTML='<p style="font-size:13px;opacity:.8;">Choose which activity notifications you want to see in JABZY.</p>'+
+      jabzySettingToggle("notify_likes","Likes","Notifications about likes")+
+      jabzySettingToggle("notify_matches","Matches","Notifications about matches")+
+      jabzySettingToggle("notify_follows","New followers","Notifications about new followers")+
+      jabzySettingToggle("notify_messages","Messages","Notifications about new messages")+
+      '<p style="font-size:11px;opacity:.65;">These preferences control which activity notifications appear in your JABZY notification list.</p>';
+    }else{
+      body.innerHTML='<p style="font-size:13px;opacity:.8;">Manage your sign-in details and protect your account.</p>'+
+      '<button type="button" onclick="closeJabzySettings();openAccountInformation()">✉️ Change Email / Account Information</button>'+
+      '<button type="button" onclick="closeJabzySettings();openAccountPasswordChange()">🔒 Change Password</button>'+
+      '<button type="button" onclick="sendAccountPasswordReset()">📩 Send Password Reset Link</button>'+
+      '<p style="font-size:11px;opacity:.65;">Never share your password or verification links with anyone.</p>';
+    }
+  });
+}
+function jabzySettingToggle(key,label,description){
+  const checked=jabzyUserSettings[key]!==false;
+  return '<label style="display:flex;align-items:flex-start;gap:10px;padding:13px 10px;margin:8px 0;border:1px solid #69427f;border-radius:12px;background:#171222;cursor:pointer;"><input type="checkbox" '+(checked?'checked':'')+' onchange="saveJabzySetting(\''+key+'\',this.checked)" style="width:19px;height:19px;flex:0 0 19px;margin-top:2px;accent-color:#d65ca8;"><span><strong style="display:block;font-size:14px;">'+label+'</strong><small style="display:block;margin-top:4px;opacity:.7;font-size:11px;">'+description+'</small></span></label>';
+}
+async function saveJabzySetting(key,value){
+  const allowed=["show_in_discover","show_online_status","allow_friend_requests","notify_likes","notify_matches","notify_follows","notify_messages"];
+  if(!allowed.includes(key)||!me)return;
+  const previous=jabzyUserSettings[key];
+  jabzyUserSettings[key]=value;
+  const {error}=await db.from("user_settings").upsert({user_id:me.id,[key]:value,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error){
+    jabzyUserSettings[key]=previous;
+    appStatus("Setting save nahi hui: "+error.message);
+    openJabzySettings(key.startsWith("notify_")?"notifications":"privacy");
+    return;
+  }
+  appStatus("Setting save ho gayi ❤️");
+}
+function closeJabzySettings(){
+  const modal=document.getElementById("jabzySettingsModal");
+  if(modal)modal.style.display="none";
 }
 
 async function openAccountInformation(){
@@ -3591,6 +3684,8 @@ return ids;
 
 async function updateOnlineStatus(){
   if(!me)return;
+  await loadJabzyUserSettings();
+  if(jabzyUserSettings.show_online_status===false)return;
 
   for(let attempt=1;attempt<=2;attempt++){
     const {error}=await db
@@ -3611,6 +3706,8 @@ async function updateOnlineStatus(){
 
 async function loadPeople(){
 const box=document.getElementById("people");
+await loadJabzyUserSettings();
+if(jabzyUserSettings.show_in_discover===false){box.innerText="Aapne apna profile Discover mein hide kiya hua hai. Privacy Settings se ise on kar sakte hain.";return;}
 
 const {data,error}=await db.from("profiles")
 .select("id,username,age,bio,photo_url,last_seen");
@@ -3725,6 +3822,9 @@ async function showSwipeCard(){
 async function likeUser(){
   const p=window.jabzyPeople[window.jabzyIndex];
   if(!p)return;
+  const {data:targetSettings,error:targetSettingsError}=await db.from("user_settings").select("allow_friend_requests").eq("user_id",p.id).maybeSingle();
+  if(targetSettingsError){appStatus("Privacy setting check nahi ho payi: "+targetSettingsError.message);return;}
+  if(targetSettings&&targetSettings.allow_friend_requests===false){appStatus("Is user ne friend requests band kar rakhi hain.");return;}
 
   const {data:existing,error:checkError}=await db
     .from("friend_requests")
