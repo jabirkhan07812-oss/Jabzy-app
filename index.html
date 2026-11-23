@@ -3598,6 +3598,9 @@ async function openPublicProfile(userId){
     return;
   }
 
+  // Admin status is resolved before rendering to prevent a normal-user profile flash.
+  const {data:isOfficialAdmin,error:officialAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
+
   showTab("profile");
   document.getElementById("profileView").style.display="none";
   document.getElementById("profileEdit").style.display="none";
@@ -3621,7 +3624,6 @@ async function openPublicProfile(userId){
   if(officialAdminBadge)officialAdminBadge.style.display="none";
   if(adminVerifiedTick)adminVerifiedTick.style.display="none";
   if(publicProfileView)publicProfileView.classList.remove("official-admin-profile");
-  const {data:isOfficialAdmin,error:officialAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
   if(!officialAdminError&&isOfficialAdmin===true){
     if(officialAdminBadge)officialAdminBadge.style.display="inline-flex";
     if(adminVerifiedTick)adminVerifiedTick.style.display="inline-flex";
