@@ -921,8 +921,8 @@ style="position:absolute;top:12px;right:12px;width:auto;margin:0;padding:9px 13p
   <p id="viewBio"></p>
 
   <div class="profile-stats">
-    <div>👥 Followers <strong id="myFollowers">0</strong></div>
-    <div>➕ Following <strong id="myFollowing">0</strong></div>
+    <div role="button" tabindex="0" onclick="openFollowList(me.id,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'followers')}" style="cursor:pointer;">👥 Followers <strong id="myFollowers">0</strong></div>
+    <div role="button" tabindex="0" onclick="openFollowList(me.id,'following')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'following')}" style="cursor:pointer;">➕ Following <strong id="myFollowing">0</strong></div>
   </div>
 
   <button onclick="openEditProfile()">✏️ Edit Profile</button>
@@ -1188,8 +1188,8 @@ box-sizing:border-box;
   </div>
 
   <div class="profile-stats">
-  <div>👥 Followers <strong id="publicFollowers">0</strong></div>
-  <div>➕ Following <strong id="publicFollowing">0</strong></div>
+  <div role="button" tabindex="0" onclick="openFollowList(window.currentPublicProfileId,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(window.currentPublicProfileId,'followers')}" style="cursor:pointer;">👥 Followers <strong id="publicFollowers">0</strong></div>
+  <div id="publicFollowingStat" style="cursor:default;">➕ Following <strong id="publicFollowing">0</strong></div>
   </div>
 
   
@@ -1207,6 +1207,16 @@ box-sizing:border-box;
 </div>
                                      
   
+<div id="followListModal" style="display:none;position:fixed;inset:0;z-index:100100;background:#090711ee;padding:18px;box-sizing:border-box;overflow-y:auto;">
+  <div style="max-width:460px;margin:25px auto;background:#211a30;border:1px solid #684b80;border-radius:18px;padding:16px;color:white;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <h3 id="followListTitle" style="margin:0;color:#ff80bd;">Followers</h3>
+      <button type="button" onclick="closeFollowList()" style="width:auto;margin:0;padding:6px 11px;">✕</button>
+    </div>
+    <div id="followListContent" style="margin-top:14px;">Loading...</div>
+  </div>
+</div>
+
 <div id="likesScreen" class="app-screen" style="display:none">
 <h3>People Who Liked You ❤️</h3>
 <div id="likesReceived">Loading likes...</div>
@@ -2530,6 +2540,78 @@ async function respondFriendRequest(requestId,status){
   if(section==="discover") showTab("discover");
   }
 
+let followListTargetId = null;
+
+function closeFollowList(){
+  document.getElementById("followListModal").style.display="none";
+}
+
+async function openFollowList(userId,type){
+  if(!me || !userId) return;
+  if(type==="following" && userId!==me.id){
+    appStatus("Following list private hai.");
+    return;
+  }
+
+  const modal=document.getElementById("followListModal");
+  const title=document.getElementById("followListTitle");
+  const content=document.getElementById("followListContent");
+  followListTargetId=userId;
+  title.textContent=type==="followers"?"Followers":"Following";
+  content.textContent="Loading...";
+  modal.style.display="block";
+
+  try{
+    const column=type==="followers"?"following_id":"follower_id";
+    const {data:rows,error}=await db.from("follows")
+      .select(type==="followers"?"follower_id":"following_id")
+      .eq(column,userId)
+      .limit(200);
+
+    if(error) throw error;
+
+    const ids=(rows||[]).map(row=>type==="followers"?row.follower_id:row.following_id).filter(Boolean);
+    if(!ids.length){
+      content.textContent="Abhi koi "+(type==="followers"?"follower":"following")+" nahi hai.";
+      return;
+    }
+
+    const {data:profiles,error:profileError}=await db.from("profiles")
+      .select("id,username,photo_url")
+      .in("id",ids);
+
+    if(profileError) throw profileError;
+    content.replaceChildren();
+
+    (profiles||[]).forEach(profile=>{
+      const item=document.createElement("div");
+      item.style.cssText="display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid #493653;cursor:pointer;";
+      const img=document.createElement("img");
+      img.alt="";img.src=profile.photo_url||"";
+      img.style.cssText="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#392747;";
+      const name=document.createElement("span");
+      name.textContent=profile.username||"User";
+      name.style.cssText="font-weight:600;flex:1;";
+      item.append(img,name);
+      item.addEventListener("click",()=>{
+        closeFollowList();
+        if(profile.id===me.id){
+          showTab("profile");
+          document.getElementById("publicProfileView").style.display="none";
+          document.getElementById("profileView").style.display="block";
+        }else{
+          openPublicProfile(profile.id);
+        }
+      });
+      content.appendChild(item);
+    });
+
+    if(!(profiles||[]).length) content.textContent="Profiles nahi milin.";
+  }catch(error){
+    content.textContent="List load nahi hui: "+(error.message||"Unknown error");
+  }
+}
+
 async function openPublicProfile(userId){
 
   const {data:p,error}=await db.from("profiles")
@@ -2557,6 +2639,19 @@ async function openPublicProfile(userId){
   document.getElementById("publicUsername").innerText=p.username||"User";
   document.getElementById("publicAge").innerText=(p.age||"")+" years";
   document.getElementById("publicBio").innerText=p.bio||"";
+  window.currentPublicProfileId=userId;
+  const followingStat=document.getElementById("publicFollowingStat");
+  if(userId===me.id){
+    followingStat.style.cursor="pointer";
+    followingStat.onclick=()=>openFollowList(userId,"following");
+    followingStat.setAttribute("role","button");
+    followingStat.setAttribute("tabindex","0");
+  }else{
+    followingStat.style.cursor="default";
+    followingStat.onclick=null;
+    followingStat.removeAttribute("role");
+    followingStat.removeAttribute("tabindex");
+  }
 
   const [followers,following]=await Promise.all([
     db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
