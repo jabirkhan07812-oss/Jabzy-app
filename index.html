@@ -9177,23 +9177,31 @@ function handleJabzyAndroidBack(){
     const el=document.getElementById(id);
     return !!el && getComputedStyle(el).display!=="none";
   };
+  // Close the most recently opened app overlay/sub-screen before changing tabs.
+  if(visible("storyViewerModal")){ jabzyBackPressAt=0; closeJabzyStory(); return true; }
+  if(visible("storyUploadModal")){ jabzyBackPressAt=0; closeStoryUpload(); return true; }
+  if(visible("chatPhotoPreview")){ jabzyBackPressAt=0; cancelChatPhotoPreview(); return true; }
+  if(visible("followListModal")){ jabzyBackPressAt=0; closeFollowList(); return true; }
   if(visible("jabzySettingsModal")){ jabzyBackPressAt=0; closeJabzySettings(); return true; }
   if(visible("appearanceModal")){ jabzyBackPressAt=0; closeAppearanceSettings(); return true; }
-  if(visible("accountSettingsPanel")){
-    jabzyBackPressAt=0;
-    document.getElementById("accountSettingsPanel").style.display="none";
-    return true;
-  }
+  if(visible("languageModal")){ jabzyBackPressAt=0; closeLanguageSettings(); return true; }
+  if(visible("accountPasswordChangeModal")){ jabzyBackPressAt=0; closeAccountPasswordChange(); return true; }
+  if(visible("accountEmailChangeModal")){ jabzyBackPressAt=0; closeAccountEmailChange(); return true; }
+  if(visible("accountInformationModal")){ jabzyBackPressAt=0; closeAccountInformation(); return true; }
+  if(visible("userSupportModal")){ jabzyBackPressAt=0; closeUserSupport(); return true; }
+  if(visible("privacyPolicyModal")){ jabzyBackPressAt=0; closePrivacyPolicy(); return true; }
+  if(visible("termsConditionsModal")){ jabzyBackPressAt=0; closeTermsConditions(); return true; }
+  if(visible("aboutAppModal")){ jabzyBackPressAt=0; closeAboutApp(); return true; }
+  if(visible("adminDashboard")){ jabzyBackPressAt=0; closeAdminDashboard(); return true; }
+  if(visible("jabzySettingsModal")){ jabzyBackPressAt=0; closeJabzySettings(); return true; }
+  if(visible("blockedUsersPanel")){ jabzyBackPressAt=0; document.getElementById("blockedUsersPanel").style.display="none"; return true; }
+  if(visible("accountSettingsPanel")){ jabzyBackPressAt=0; document.getElementById("accountSettingsPanel").style.display="none"; return true; }
+  if(visible("profileEdit")){ jabzyBackPressAt=0; cancelEditProfile(); return true; }
   if(visible("chatWindow")){ jabzyBackPressAt=0; backToChatList(); return true; }
   if(visible("publicProfileView")){ jabzyBackPressAt=0; closePublicProfile(); return true; }
   if(visible("joinedRoomScreen")){ jabzyBackPressAt=0; minimizeJoinedRoom(); return true; }
   if(visible("notificationsScreen")){ jabzyBackPressAt=0; closeNotifications(); return true; }
-  if(visible("adminDashboard")){ jabzyBackPressAt=0; closeAdminDashboard(); return true; }
-  if(visible("profileEdit")){
-    document.getElementById("profileEdit").style.display="none";
-    document.getElementById("profileView").style.display="block";
-    return true;
-  }
+  if(visible("replyPreview")){ jabzyBackPressAt=0; cancelChatReply(); return true; }
   const currentTab=localStorage.getItem("jabzyLastTab")||"home";
   if(currentTab!=="home") jabzyBackPressAt=0;
   while(jabzyTabHistory.length){
@@ -9217,7 +9225,6 @@ function handleJabzyAndroidBack(){
   window.__jabzyBackHandlerReady=true;
   try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
   window.addEventListener("popstate",()=>{
-    // Restore the guard first so repeated Back presses remain inside JABZY.
     try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
     handleJabzyAndroidBack();
   });
