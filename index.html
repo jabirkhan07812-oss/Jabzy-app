@@ -984,6 +984,11 @@ body.light-theme #discoverScreen #swipeCard img{
   <div id="signupStep2" class="hidden">
     <h4>Step 2 – Complete Your Profile</h4>
     <input id="signupGoogleEmail" type="email" placeholder="Google Email" readonly style="display:none;">
+    <div id="googleSignupPasswordFields" style="display:none;">
+      <input id="googleSignupPassword" type="password" autocomplete="new-password" placeholder="Create JABZY password (minimum 6 characters)">
+      <input id="googleSignupConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm JABZY password">
+      <p style="font-size:12px;opacity:.8;">Google password se alag, JABZY ka password banayein.</p>
+    </div>
     <input id="signupName" placeholder="Your Name">
     <input id="signupDob" type="date">
     <textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
@@ -1007,6 +1012,16 @@ body.light-theme #discoverScreen #swipeCard img{
 <p id="status"></p>
   
   
+
+<div class="card hidden" id="googlePasswordSetup" style="max-width:430px;margin:30px auto;">
+  <h3>🔐 Create Your JABZY Password</h3>
+  <p style="font-size:13px;line-height:1.5;">Google login ke saath JABZY account ke liye alag password banana zaroori hai. Ye Google password nahi hai.</p>
+  <input id="googleNewPassword" type="password" autocomplete="new-password" placeholder="Create JABZY password (minimum 6 characters)">
+  <input id="googleConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm JABZY password">
+  <button type="button" id="googlePasswordSave" onclick="saveGoogleAccountPassword()">Create Password & Continue</button>
+  <p id="googlePasswordStatus" style="font-size:13px;"></p>
+</div>
+
 <div class="card hidden" id="resetPassword">
 <h3>Set New Password 🔐</h3>
 <input id="newPassword" type="password" placeholder="New Password">
@@ -2418,6 +2433,33 @@ async function signinWithGoogle(){
   if(error) status(error.message);
 }
 
+async function saveGoogleAccountPassword(){
+  const password=document.getElementById("googleNewPassword").value;
+  const confirm=document.getElementById("googleConfirmPassword").value;
+  const statusBox=document.getElementById("googlePasswordStatus");
+  const button=document.getElementById("googlePasswordSave");
+  if(password.length<6){statusBox.textContent="Password kam se kam 6 characters ka hona chahiye.";return;}
+  if(password!==confirm){statusBox.textContent="Dono password match nahi karte.";return;}
+  button.disabled=true;
+  button.textContent="Saving...";
+  statusBox.textContent="JABZY password save ho raha hai...";
+  try{
+    const {data,error}=await db.auth.updateUser({password,data:{jabzy_password_set:true}});
+    if(error)throw error;
+    if(data&&data.user)me=data.user;
+    document.getElementById("googleNewPassword").value="";
+    document.getElementById("googleConfirmPassword").value="";
+    document.getElementById("googlePasswordSetup").classList.add("hidden");
+    statusBox.textContent="";
+    await startApp();
+  }catch(error){
+    statusBox.textContent="Password save nahi hua: "+(error.message||error);
+  }finally{
+    button.disabled=false;
+    button.textContent="Create Password & Continue";
+  }
+}
+
 async function createJabzyAccount(){
   const username=document.getElementById("signupName").value.trim();
   const dob=document.getElementById("signupDob").value;
@@ -2451,17 +2493,24 @@ async function createJabzyAccount(){
   status("Please wait...");
 
   if(signupProvider==="google"){
-    const {error}=await db.rpc("complete_google_profile",{
+    const googlePassword=document.getElementById("googleSignupPassword").value;
+    const googleConfirm=document.getElementById("googleSignupConfirmPassword").value;
+    if(googlePassword.length<6){status("JABZY password kam se kam 6 characters ka hona chahiye.");return;}
+    if(googlePassword!==googleConfirm){status("Dono JABZY password match nahi karte.");return;}
+
+    const {error:profileError}=await db.rpc("complete_google_profile",{
       p_username:username,
       p_dob:dob,
       p_bio:bio,
       p_privacy_accepted:true
     });
+    if(profileError){status(profileError.message);return;}
 
-    if(error){
-      status(error.message);
-      return;
-    }
+    const {error:passwordError}=await db.auth.updateUser({
+      password:googlePassword,
+      data:{jabzy_password_set:true}
+    });
+    if(passwordError){status("Profile ban gaya, lekin JABZY password set nahi hua: "+passwordError.message);return;}
 
     me=(await db.auth.getUser()).data.user;
     await startApp();
@@ -2612,13 +2661,24 @@ return;
 
     document.getElementById("signupGoogleEmail").style.display="block";
     document.getElementById("signupGoogleEmail").value=me.email || "";
+    document.getElementById("googleSignupPasswordFields").style.display="block";
 
     signupProvider="google";
     status("Complete your profile to continue.");
     return;
   }
+
+  if(me.user_metadata?.jabzy_password_set!==true){
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("signup").classList.add("hidden");
+    document.getElementById("welcomeScreen").style.display="none";
+    document.getElementById("googlePasswordSetup").classList.remove("hidden");
+    return;
+  }
 }
 
+document.getElementById("googlePasswordSetup").classList.add("hidden");
 document.getElementById("login").classList.add("hidden");
 document.getElementById("app").classList.add("hidden");
 
