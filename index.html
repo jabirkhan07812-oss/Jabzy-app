@@ -6634,12 +6634,80 @@ async function createLiveRoom(){
     overlay.remove();
 
     if(data && data.password){
-      alert(
-        "Private Room Created!\n\n" +
-        "Room ID: " + data.room_code +
-        "\nPassword: " + data.password +
-        "\n\nYe details save kar lein."
-      );
+      const detailsOverlay = document.createElement("div");
+      detailsOverlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;";
+      
+      const detailsCard = document.createElement("div");
+      detailsCard.style.cssText = "width:100%;max-width:380px;background:#21132f;border:1px solid #a45bea;border-radius:20px;padding:22px;color:white;box-shadow:0 16px 50px rgba(0,0,0,.45);";
+      
+      const detailsTitle = document.createElement("h3");
+      detailsTitle.textContent = "🔒 Private Room Created";
+      detailsTitle.style.cssText = "margin:0 0 8px;font-size:20px;";
+      
+      const detailsNote = document.createElement("p");
+      detailsNote.textContent = "Room ID aur Password copy karke friends ko share karein.";
+      detailsNote.style.cssText = "margin:0 0 18px;color:#d6c9e4;font-size:13px;";
+      
+      async function copyPrivateRoomValue(value, button){
+        try{
+          if(navigator.clipboard && window.isSecureContext){
+            await navigator.clipboard.writeText(String(value));
+          } else {
+            const temp = document.createElement("textarea");
+            temp.value = String(value);
+            temp.style.position = "fixed";
+            temp.style.opacity = "0";
+            document.body.appendChild(temp);
+            temp.select();
+            const copied = document.execCommand("copy");
+            temp.remove();
+            if(!copied) throw new Error("Copy failed");
+          }
+          const previous = button.textContent;
+          button.textContent = "✓ Copied";
+          button.style.background = "#238653";
+          setTimeout(() => {
+            button.textContent = previous;
+            button.style.background = "#8b45c7";
+          }, 1400);
+        }catch(error){
+          alert("Copy nahi hua. Detail ko long-press karke copy karein.");
+        }
+      }
+      
+      function addRoomDetailRow(labelText, value){
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;gap:8px;background:#352346;border-radius:12px;padding:10px;margin:10px 0;";
+        const detail = document.createElement("div");
+        detail.style.cssText = "flex:1;min-width:0;";
+        const label = document.createElement("div");
+        label.textContent = labelText;
+        label.style.cssText = "font-size:11px;color:#cbb6df;margin-bottom:4px;";
+        const valueText = document.createElement("div");
+        valueText.textContent = String(value);
+        valueText.style.cssText = "font-size:17px;font-weight:700;letter-spacing:1px;overflow-wrap:anywhere;";
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.textContent = "Copy";
+        copyBtn.style.cssText = "border:0;border-radius:9px;padding:10px 13px;background:#8b45c7;color:white;font-weight:700;cursor:pointer;flex-shrink:0;";
+        copyBtn.onclick = () => copyPrivateRoomValue(value, copyBtn);
+        detail.append(label,valueText);
+        row.append(detail,copyBtn);
+        detailsCard.appendChild(row);
+      }
+      
+      const closeBtn = document.createElement("button");
+      closeBtn.type = "button";
+      closeBtn.textContent = "Continue to Room";
+      closeBtn.style.cssText = "width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,#a45bea,#7134a5);color:white;font-weight:700;font-size:15px;";
+      closeBtn.onclick = () => detailsOverlay.remove();
+      
+      detailsCard.append(detailsTitle,detailsNote);
+      addRoomDetailRow("ROOM ID",data.room_code);
+      addRoomDetailRow("PASSWORD",data.password);
+      detailsCard.appendChild(closeBtn);
+      detailsOverlay.appendChild(detailsCard);
+      document.body.appendChild(detailsOverlay);
     }
 
     const {data:roomData,error:roomError} = await db
