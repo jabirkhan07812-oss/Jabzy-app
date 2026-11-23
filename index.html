@@ -2319,7 +2319,7 @@ function jabzySettingToggle(key,label,description){
   const checked=jabzyUserSettings[key]!==false;
   return '<label style="display:flex;align-items:center;gap:12px;padding:14px;margin:8px 0;border:1px solid #49385f;border-radius:14px;background:linear-gradient(135deg,#241b33,#1b1728);cursor:pointer;box-shadow:0 5px 14px #00000018;">'+
     '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;font-weight:750;color:#fff;">'+label+'</strong><small style="display:block;margin-top:5px;color:#b9adc8;font-size:11px;line-height:1.45;">'+description+'</small></span>'+
-    '<input type="checkbox" '+(checked?'checked':'')+' onchange="saveJabzySetting(\\''+key+'\\',this.checked)" style="width:20px;height:20px;flex:0 0 20px;accent-color:#d65ca8;cursor:pointer;">'+
+    '<input type="checkbox" '+(checked?'checked':'')+' onchange="saveJabzySetting(&#39;'+key+'&#39;,this.checked)" style="width:20px;height:20px;flex:0 0 20px;accent-color:#d65ca8;cursor:pointer;">'+
   '</label>';
 }
 async function saveJabzySetting(key,value){
