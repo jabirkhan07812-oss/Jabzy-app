@@ -2876,6 +2876,7 @@ showTab("home");
 document.getElementById("app").classList.remove("hidden");
 
 Promise.resolve().then(async()=>{
+  await setupFriendsRealtime();
   await restoreJoinedRoom();
   await setupGlobalRoomRealtime();
 }).catch(error=>{
@@ -3365,81 +3366,103 @@ function addOfficialAdminMark(parent){
   parent.appendChild(label);
 }
 
-async function loadMyFriends(){
+let friendsRealtimeChannel=null;
+let friendsRealtimeUserId=null;
+let friendsRefreshInProgress=false;
+let friendsRefreshQueued=false;
+let friendsCachedIds=[];
 
+async function setupFriendsRealtime(){
+  if(!me)return;
+  if(friendsRealtimeChannel && friendsRealtimeUserId===me.id)return;
+  if(friendsRealtimeChannel){
+    await db.removeChannel(friendsRealtimeChannel);
+    friendsRealtimeChannel=null;
+  }
+  friendsRealtimeUserId=me.id;
+  friendsRealtimeChannel=db.channel("friends-live-"+me.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"friend_requests",filter:"sender_id=eq."+me.id},()=>loadMyFriends(true))
+    .on("postgres_changes",{event:"*",schema:"public",table:"friend_requests",filter:"receiver_id=eq."+me.id},()=>loadMyFriends(true))
+    .on("postgres_changes",{event:"*",schema:"public",table:"profiles"},payload=>{
+      const changedId=(payload.new&&payload.new.id)||(payload.old&&payload.old.id);
+      if(changedId && friendsCachedIds.includes(changedId))loadMyFriends(true);
+    })
+    .subscribe(status=>{
+      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("Friends Realtime:",status);
+    });
+}
+
+async function loadMyFriends(silent=false){
+  if(friendsRefreshInProgress){
+    friendsRefreshQueued=true;
+    return;
+  }
+  friendsRefreshInProgress=true;
   const box=document.getElementById("myFriendsList");
   const countBox=document.getElementById("myFriendsCount");
-
-  if(!box || !countBox) return;
-
-  box.dataset.loaded="false";
-  box.innerText="Loading your circle...";
-
-  const {data:requests,error}=await db
-    .from("friend_requests")
-    .select("sender_id,receiver_id")
-    .eq("status","accepted")
-    .or(`sender_id.eq.${me.id},receiver_id.eq.${me.id}`);
-
-  if(error){
-    box.innerText=error.message;
-    return;
+  if(!box||!countBox){friendsRefreshInProgress=false;return;}
+  if(!silent && box.dataset.loaded!=="true")box.innerText="Loading your circle...";
+  try{
+    const {data:requests,error}=await db.from("friend_requests")
+      .select("sender_id,receiver_id")
+      .eq("status","accepted")
+      .or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+    if(error)throw error;
+    const ids=[...new Set((requests||[]).map(r=>r.sender_id===me.id?r.receiver_id:r.sender_id))];
+    const nextContent=document.createElement("div");
+    if(ids.length===0){
+      nextContent.textContent="Your circle is waiting for friends ❤️";
+      countBox.innerText="0 Friends";
+      box.replaceChildren(...nextContent.childNodes);
+      friendsCachedIds=[];
+      box.dataset.loaded="true";
+      return;
+    }
+    const {data:friends,error:friendError}=await db.from("profiles")
+      .select("id,username,photo_url").in("id",ids);
+    if(friendError)throw friendError;
+    const profileMap=new Map((friends||[]).map(friend=>[friend.id,friend]));
+    const adminFlags=await Promise.all(ids.map(friendId=>isOfficialAdminUser(friendId)));
+    for(let i=0;i<ids.length;i++){
+      const friendId=ids[i];
+      const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:""};
+      const row=document.createElement("button");
+      row.type="button";
+      const light=document.body.classList.contains("light-theme");
+      row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:"+(light?"#ffffff":"#ffffff18")+";color:"+(light?"#241b30":"#ffffff")+";text-align:left;";
+      const img=document.createElement("img");
+      img.src=friend.photo_url||"";
+      img.alt="";
+      img.style.cssText="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#555;";
+      const name=document.createElement("span");
+      name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;min-width:0;font-weight:700;";
+      name.textContent=friend.username&&friend.username.trim()?friend.username:"JABZY Friend";
+      if(adminFlags[i])addOfficialAdminMark(name);
+      row.append(img,name);
+      row.onclick=()=>openPublicProfile(friendId);
+      nextContent.appendChild(row);
+    }
+    if(!friends||friends.length===0){
+      const note=document.createElement("p");
+      note.textContent="Friend profiles load nahi hui. Aapke friends ka record hai, lekin unki profile details available nahi hain.";
+      note.style.cssText="font-size:12px;color:#d9c9e8;margin:10px 2px;";
+      nextContent.appendChild(note);
+    }
+    box.replaceChildren(...nextContent.childNodes);
+    countBox.innerText=ids.length+" Friends";
+    friendsCachedIds=ids;
+    box.dataset.loaded="true";
+  }catch(error){
+    console.error("Friends load error:",error);
+    if(!silent || box.dataset.loaded!=="true")box.innerText=error.message||"Friends load nahi ho sake.";
+  }finally{
+    friendsRefreshInProgress=false;
+    if(friendsRefreshQueued){
+      friendsRefreshQueued=false;
+      loadMyFriends(true);
+    }
   }
-
-  const ids=[...new Set((requests||[]).map(r=>
-    r.sender_id===me.id ? r.receiver_id : r.sender_id
-  ))];
-
-  countBox.innerText=ids.length+" Friends";
-  box.innerHTML="";
-
-  if(ids.length===0){
-    box.innerText="Your circle is waiting for friends ❤️";
-    return;
-  }
-
-  const {data:friends,error:friendError}=await db
-    .from("profiles")
-    .select("id,username,photo_url")
-    .in("id",ids);
-
-  if(friendError){
-    box.innerText=friendError.message;
-    return;
-  }
-
-  const profileMap=new Map((friends||[]).map(friend=>[friend.id,friend]));
-  const adminFlags=await Promise.all(ids.map(friendId=>isOfficialAdminUser(friendId)));
-  for(let friendIndex=0;friendIndex<ids.length;friendIndex++){
-    const friendId=ids[friendIndex];
-    const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:""};
-    const row=document.createElement("button");
-    row.type="button";
-    const friendsLightMode=document.body.classList.contains("light-theme");
-    row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:"+(friendsLightMode?"#ffffff":"#ffffff18")+";color:"+(friendsLightMode?"#241b30":"#ffffff")+";text-align:left;";
-
-    const img=document.createElement("img");
-    img.src=friend.photo_url||"";
-    img.alt="";
-    img.style.cssText="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#555;";
-
-    const name=document.createElement("span");
-    name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;min-width:0;font-weight:700;";
-    const displayName=friend.username&&friend.username.trim()?friend.username:"JABZY Friend";
-    name.textContent=displayName;
-    if(adminFlags[friendIndex])addOfficialAdminMark(name);
-    row.append(img,name);
-    row.onclick=()=>openPublicProfile(friendId);
-    box.appendChild(row);
-  }
-  if(!friends||friends.length===0){
-    const note=document.createElement("p");
-    note.textContent="Friend profiles load nahi hui. Aapke friends ka record hai, lekin unki profile details available nahi hain.";
-    note.style.cssText="font-size:12px;color:#d9c9e8;margin:10px 2px;";
-    box.appendChild(note);
-  }
-  box.dataset.loaded="true";
-  }
+}
 
   function showFriendsSection(section){
   const requests=document.getElementById("friendRequestsPanel");
