@@ -6212,7 +6212,10 @@ async function sendRoomVoiceSignal(toClient, signal){
 async function ensureRoomVoicePeer(remoteClient){
   if(roomVoicePeers.has(remoteClient)) return roomVoicePeers.get(remoteClient);
   const pc = new RTCPeerConnection({
-    iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+    iceServers:[{urls:"stun:stun.l.google.com:19302"}],
+    iceCandidatePoolSize:10,
+    bundlePolicy:"max-bundle",
+    rtcpMuxPolicy:"require"
   });
   const audio = document.createElement("audio");
   audio.autoplay = true;
@@ -6225,6 +6228,7 @@ async function ensureRoomVoicePeer(remoteClient){
     makingOffer:false,
     ignoreOffer:false,
     settingRemoteAnswer:false,
+    pendingCandidates:[],
     polite:roomVoiceClientId > remoteClient
   };
   roomVoicePeers.set(remoteClient,peer);
@@ -6328,13 +6332,21 @@ async function handleRoomVoiceSignal(message){
       if(collision && peer.polite) await pc.setLocalDescription({type:"rollback"});
       await pc.setRemoteDescription(description);
       peer.settingRemoteAnswer = false;
+      for(const candidate of peer.pendingCandidates.splice(0)){
+        try{ await pc.addIceCandidate(candidate); }
+        catch(candidateError){ console.warn("Queued ICE candidate failed:",candidateError); }
+      }
       if(description.type === "offer"){
         await pc.setLocalDescription();
         await sendRoomVoiceSignal(message.fromClient,{description:pc.localDescription});
       }
     }else if(signal.candidate){
-      try{ await pc.addIceCandidate(signal.candidate); }
-      catch(error){ if(!peer.ignoreOffer) throw error; }
+      if(!pc.remoteDescription){
+        peer.pendingCandidates.push(signal.candidate);
+      }else{
+        try{ await pc.addIceCandidate(signal.candidate); }
+        catch(error){ if(!peer.ignoreOffer) throw error; }
+      }
     }
   }catch(error){
     console.error("Voice signal error:",error);
