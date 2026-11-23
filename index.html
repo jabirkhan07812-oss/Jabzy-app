@@ -1071,6 +1071,7 @@ body.light-theme #discoverScreen #swipeCard img{
       <p style="margin:3px 0 0;font-size:11px;color:#cbb8df;">Your world. Your people. ❤️</p>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button type="button" onclick="openDailyRewards()" aria-label="Daily Rewards" style="width:42px;height:42px;padding:0;margin:0;border-radius:14px;background:linear-gradient(135deg,#49305f,#2a1a3b);border:1px solid #a477c5;color:white;font-size:21px;box-shadow:0 0 14px #b45be733;">🎁</button>
       <button type="button" onclick="openNotifications()" class="notification-bell" style="width:auto;padding:9px 12px;margin:0;border-radius:14px;background:#281b38;border:1px solid #69427f;color:white;">🔔 <span id="notificationCountHome">0</span></button>
       <button type="button" onclick="showTab('profile')" style="width:39px;height:39px;padding:5px;margin:0;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);border:0;">⚙️</button>
     </div>
@@ -1789,7 +1790,32 @@ box-sizing:border-box;
 
     <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
 
-    <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">➤</button>
+    <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">
+/* JABZY DAILY REWARDS */
+#dailyRewardsModal{display:none;position:fixed;inset:0;z-index:100200;background:rgba(7,5,13,.96);padding:18px 14px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;color:#fff}
+#dailyRewardsModal .daily-rewards-shell{width:100%;max-width:480px;margin:0 auto;border:1px solid #68477d;border-radius:25px;padding:16px;background:linear-gradient(155deg,#21152f,#100b1c 78%);box-shadow:0 16px 45px #0009}
+#dailyRewardsModal .daily-rewards-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+#dailyRewardsModal .daily-rewards-kicker{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#d7b5ff}
+#dailyRewardsModal .daily-rewards-title{font-size:25px;font-weight:900;margin:4px 0;color:#fff}
+#dailyRewardsModal .daily-rewards-close{width:36px;height:36px;flex:0 0 36px;padding:0;margin:0;border-radius:50%;background:#382547;border:1px solid #77568d;color:#fff;font-size:18px}
+#dailyRewardsModal .daily-balance-card{padding:17px;border-radius:18px;background:linear-gradient(120deg,#49305f,#30203f);border:1px solid #76558e;margin-bottom:12px}
+#dailyRewardsModal .daily-balance-label{font-size:11px;letter-spacing:1px;color:#e5d5f3;font-weight:800}
+#dailyRewardsModal .daily-balance-value{font-size:27px;font-weight:900;color:#fff;margin-top:7px}
+#dailyRewardsModal .daily-rewards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+#dailyRewardsModal .daily-reward-tile{min-width:0;min-height:145px;padding:14px 12px;border-radius:17px;border:1px solid #9363a7;background:linear-gradient(145deg,#59366d,#382547);color:#fff;text-align:left}
+#dailyRewardsModal .daily-reward-tile.exchange{background:linear-gradient(145deg,#743d79,#43244e)}
+#dailyRewardsModal .daily-reward-icon{font-size:25px;margin-bottom:9px}
+#dailyRewardsModal .daily-reward-name{font-size:15px;font-weight:900;margin-bottom:7px}
+#dailyRewardsModal .daily-reward-detail{font-size:11px;line-height:1.45;color:#eadcf2}
+#dailyRewardsModal .daily-bonus-card{padding:15px;border-radius:17px;background:#382547;border:1px solid #68477d}
+#dailyRewardsModal .daily-bonus-head{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
+#dailyRewardsModal .daily-bonus-pill{font-size:10px;font-weight:800;padding:5px 9px;border-radius:20px;background:#1f6547;color:#c5ffe0}
+#dailyRewardsModal .daily-bonus-copy{font-size:12px;color:#e6d4f2;line-height:1.5;margin-bottom:12px}
+#dailyRewardsModal .daily-bonus-button{width:100%;margin:0;padding:13px;border:0;border-radius:13px;background:linear-gradient(90deg,#ffd36b,#ffb84d);color:#26192e;font-weight:900;font-size:14px}
+#dailyRewardsModal .daily-rewards-status{min-height:18px;margin-top:10px;font-size:11px;line-height:1.4;color:#e8cfff;text-align:center}
+@media(max-width:360px){#dailyRewardsModal{padding:12px 10px}#dailyRewardsModal .daily-reward-tile{padding:11px 9px;min-height:138px}#dailyRewardsModal .daily-reward-name{font-size:13px}}
+
+➤</button>
   </div>
 
   <p id="appStatus" style="padding:5px 12px;"></p>
@@ -2055,6 +2081,42 @@ box-sizing:border-box;
 </div>
   
 
+
+
+<div id="dailyRewardsModal" role="dialog" aria-modal="true" aria-label="Daily Rewards">
+  <div class="daily-rewards-shell">
+    <div class="daily-rewards-top">
+      <div>
+        <div class="daily-rewards-kicker">JABZY EXCLUSIVE</div>
+        <div class="daily-rewards-title">Daily Rewards 🎁</div>
+        <div style="font-size:11px;color:#d8c9e8;">Collect coins. Unlock rewards.</div>
+      </div>
+      <button type="button" class="daily-rewards-close" onclick="closeDailyRewards()" aria-label="Close Daily Rewards">✕</button>
+    </div>
+    <div class="daily-balance-card">
+      <div class="daily-balance-label">YOUR COIN BALANCE</div>
+      <div class="daily-balance-value">🪙 <span id="dailyRewardsCoinBalance">—</span> Coins</div>
+    </div>
+    <div class="daily-rewards-grid">
+      <button type="button" class="daily-reward-tile" onclick="showDailyRewardsStatus('Daily Streak details will appear here when the rewards account is connected.')">
+        <div class="daily-reward-icon">🔥</div>
+        <div class="daily-reward-name">Daily Streak</div>
+        <div class="daily-reward-detail"><span id="dailyRewardsStreak">—</span> Days<br>Keep your streak alive</div>
+      </button>
+      <button type="button" class="daily-reward-tile exchange" onclick="showDailyRewardsStatus('Coin Exchange is being connected. No coins will be deducted until the exchange is live.')">
+        <div class="daily-reward-icon">🛍️</div>
+        <div class="daily-reward-name">Coin Exchange</div>
+        <div class="daily-reward-detail">Unlock special rewards<br>Explore →</div>
+      </button>
+    </div>
+    <div class="daily-bonus-card">
+      <div class="daily-bonus-head"><span>🎁 Daily Bonus</span><span class="daily-bonus-pill">DAILY</span></div>
+      <div class="daily-bonus-copy">Watch an ad and earn bonus coins.</div>
+      <button type="button" class="daily-bonus-button" onclick="showDailyRewardsStatus('Rewarded ads are not connected yet. Coins will be credited only after a verified ad completion.')">Watch Ad &amp; Earn Coins</button>
+      <div id="dailyRewardsStatus" class="daily-rewards-status" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
 
 <div class="bottom-nav">
   <button data-tab="home" data-lang-nav="home" onclick="showTab('home')">🏠<br>Home</button>
@@ -9182,6 +9244,7 @@ function handleJabzyAndroidBack(){
     return !!el && getComputedStyle(el).display!=="none";
   };
   // Close the most recently opened app overlay/sub-screen before changing tabs.
+  if(visible("dailyRewardsModal")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
   if(visible("storyViewerModal")){ jabzyBackPressAt=0; closeJabzyStory(); return true; }
   if(visible("storyUploadModal")){ jabzyBackPressAt=0; closeStoryUpload(); return true; }
   if(visible("chatPhotoPreview")){ jabzyBackPressAt=0; cancelChatPhotoPreview(); return true; }
@@ -9238,6 +9301,23 @@ function handleJabzyAndroidBack(){
   });
   window.addEventListener("pageshow",addBackGuard);
 })();;
+
+function openDailyRewards(){
+  const modal=document.getElementById("dailyRewardsModal");
+  if(!modal)return;
+  const status=document.getElementById("dailyRewardsStatus");
+  if(status)status.textContent="";
+  modal.style.display="block";
+}
+function closeDailyRewards(){
+  const modal=document.getElementById("dailyRewardsModal");
+  if(modal)modal.style.display="none";
+}
+function showDailyRewardsStatus(message){
+  const status=document.getElementById("dailyRewardsStatus");
+  if(status)status.textContent=message;
+}
+
 </script>
 </body>
   </html>
