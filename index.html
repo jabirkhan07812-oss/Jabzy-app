@@ -5218,6 +5218,21 @@ p.textContent+=m.message;
 row.appendChild(p);
 }
 
+const messageTime=document.createElement("small");
+messageTime.textContent=new Date(m.created_at).toLocaleTimeString("en-IN",{
+  hour:"numeric",
+  minute:"2-digit",
+  hour12:true
+});
+messageTime.style.display="block";
+messageTime.style.fontSize="9px";
+messageTime.style.lineHeight="11px";
+messageTime.style.color="#c7c7c7";
+messageTime.style.textAlign="right";
+messageTime.style.marginTop="3px";
+messageTime.style.fontWeight="400";
+row.appendChild(messageTime);
+
   if(starredIds.has(String(m.id))){
   const star=document.createElement("div");
   star.textContent="⭐ Starred";
