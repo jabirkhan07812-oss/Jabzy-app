@@ -2278,11 +2278,30 @@ function openJabzySettings(section){
       jabzySettingToggle("notify_messages","Messages","Notifications about new messages")+
       '<p style="font-size:11px;opacity:.65;">These preferences control which activity notifications appear in your JABZY notification list.</p>';
     }else{
-      body.innerHTML='<p style="font-size:13px;opacity:.8;">Manage your sign-in details and protect your account.</p>'+
-      '<button type="button" onclick="closeJabzySettings();openAccountInformation()">✉️ Change Email / Account Information</button>'+
-      '<button type="button" onclick="closeJabzySettings();openAccountPasswordChange()">🔒 Change Password</button>'+
-      '<button type="button" onclick="sendAccountPasswordReset()">📩 Send Password Reset Link</button>'+
-      '<p style="font-size:11px;opacity:.65;">Never share your password or verification links with anyone.</p>';
+      body.innerHTML=
+      '<div style="padding:15px;margin-bottom:16px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
+        '<div style="display:flex;align-items:center;gap:12px;">'+
+          '<div style="width:44px;height:44px;flex:0 0 44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#7c4dba33;font-size:22px;">🛡️</div>'+
+          '<div><div style="font-size:15px;font-weight:800;color:#fff;">Your account, your security</div><div style="font-size:11px;line-height:1.5;color:#c8bdd8;margin-top:3px;">Keep your sign-in information up to date.</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#a99ab9;margin:4px 2px 9px;">ACCOUNT ACCESS</div>'+
+      '<button type="button" onclick="closeJabzySettings();openAccountInformation()" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:13px;margin:0 0 9px;border:1px solid #49385f;border-radius:14px;background:#211a30;color:#fff;">'+
+        '<span style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#3b2b50;font-size:19px;">✉️</span>'+
+        '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;">Email address</strong><small style="display:block;margin-top:4px;color:#b9adc8;font-size:11px;">View account details or change your email</small></span><span style="color:#b9adc8;font-size:20px;">›</span>'+
+      '</button>'+
+      '<button type="button" onclick="closeJabzySettings();openAccountPasswordChange()" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:13px;margin:0 0 9px;border:1px solid #49385f;border-radius:14px;background:#211a30;color:#fff;">'+
+        '<span style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#263d50;font-size:19px;">🔑</span>'+
+        '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;">Change password</strong><small style="display:block;margin-top:4px;color:#b9adc8;font-size:11px;">Update your password securely</small></span><span style="color:#b9adc8;font-size:20px;">›</span>'+
+      '</button>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#a99ab9;margin:18px 2px 9px;">ACCOUNT RECOVERY</div>'+
+      '<button type="button" onclick="sendAccountPasswordReset()" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:13px;margin:0 0 12px;border:1px solid #49385f;border-radius:14px;background:#211a30;color:#fff;">'+
+        '<span style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#4a3529;font-size:19px;">📩</span>'+
+        '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;">Password reset link</strong><small style="display:block;margin-top:4px;color:#b9adc8;font-size:11px;">Send a password recovery link to your email</small></span><span style="color:#b9adc8;font-size:20px;">›</span>'+
+      '</button>'+
+      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;border-radius:12px;background:#172b2a;border:1px solid #28504a;color:#bce8d7;font-size:11px;line-height:1.5;">'+
+        '<span style="font-size:16px;">🔐</span><span><strong style="display:block;color:#d6f7e9;margin-bottom:2px;">Security tip</strong>Never share your password, OTP, or password reset link with anyone.</span>'+
+      '</div>';
     }
   });
 }
