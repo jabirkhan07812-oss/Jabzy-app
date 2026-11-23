@@ -1777,6 +1777,7 @@ overflow-y:auto;
     </div>
   </div>
 
+  <button onclick="toggleRoomMic()" style="width:auto;min-width:76px;padding:8px 9px;margin:0;background:#a45bea;font-size:11px;white-space:nowrap;">🎤 Mic OFF</button>
   <button onclick="openRoomInvitePicker()" style="width:36px;padding:8px;margin:0;background:#a45bea;">＋</button>
   <button onclick="leaveJoinedRoom()" style="width:auto;padding:8px;margin:0;background:#a83245;">Leave</button>
 </div>
@@ -6368,12 +6369,15 @@ function updateRoomMicButtonState(){
   document.querySelectorAll('[onclick="toggleRoomMic()"]').forEach(btn => {
     btn.disabled = !roomMicPermissionAllowed;
     btn.textContent = roomMicPermissionAllowed
-      ? (roomMicOn ? "🎤 Mic ON" : "🎤 Mic OFF")
+      ? (roomMicOn ? "🎙️ Mic ON" : "🎤 Mic OFF")
       : "🔒 Mic Locked";
     btn.title = roomMicPermissionAllowed
       ? "Turn your microphone on or off"
       : "Room Owner se Mic permission maangein";
     btn.style.opacity = roomMicPermissionAllowed ? "1" : ".6";
+    btn.style.background = roomMicPermissionAllowed
+      ? (roomMicOn ? "#b83255" : "#287a55")
+      : "#594b63";
   });
 }
 
@@ -7979,8 +7983,10 @@ function showTab(tab){
   if(publicProfile) publicProfile.style.display="none";
 
   const nav=document.querySelector(".bottom-nav");
+  const joinedRoom=document.getElementById("joinedRoomScreen");
+  const roomIsFullScreen=joinedRoom && joinedRoom.style.display==="block";
   if(nav){
-    nav.style.display="flex";
+    nav.style.display=roomIsFullScreen ? "none" : "flex";
     nav.querySelectorAll("button[data-tab]").forEach(button=>{
       button.classList.toggle("active",button.dataset.tab===tab);
     });
