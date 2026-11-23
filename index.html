@@ -7953,12 +7953,26 @@ async function joinPrivateRoomByCode(){
     return;
   }
 
+  const {data:roomData,error:roomError} = await db
+    .from("live_rooms")
+    .select("*")
+    .eq("room_code",roomCode)
+    .eq("status","active")
+    .eq("visibility","private")
+    .single();
+
+  if(roomError || !roomData){
+    alert("Room join ho gaya, lekin Room details load nahi hui. Room list refresh karke dobara tap karein.");
+    await loadMyPrivateRooms();
+    return;
+  }
+
   document.getElementById("privateRoomId").value = "";
   document.getElementById("privateRoomCode").value = "";
 
-  alert("Private Room successfully joined!");
-
+  currentJoinedRoom = roomData;
   await loadMyPrivateRooms();
+  await openJoinedRoom();
 }
   
 
@@ -8089,6 +8103,30 @@ async function loadMyPrivateRooms(){
     info.textContent = room.category + " • Private";
 
     card.append(title, info);
+    card.style.cursor = "pointer";
+    card.onclick = async () => {
+      if(currentJoinedRoom && currentJoinedRoom.id !== room.id){
+        alert("Pehle current Room leave karo.");
+        return;
+      }
+
+      if(room.created_by !== me.id){
+        const {data:membership,error:membershipError} = await db
+          .from("live_room_members")
+          .select("user_id")
+          .eq("room_id",room.id)
+          .eq("user_id",me.id)
+          .maybeSingle();
+
+        if(membershipError || !membership){
+          alert("Is Room ke member nahi ho. Pehle Room ID aur Password se join karo.");
+          return;
+        }
+      }
+
+      currentJoinedRoom = room;
+      await openJoinedRoom();
+    };
 
     if(room.created_by === me.id){
 
