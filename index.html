@@ -1180,6 +1180,7 @@ box-sizing:border-box;
     <img id="publicPhoto" class="photo hidden"
     alt="Profile photo"
     style="width:150px;height:150px;object-fit:cover;border-radius:50%">
+    <button id="adminDeleteProfilePhotoBtn" type="button" onclick="adminDeleteProfilePhoto()" style="display:none;width:auto;margin:8px auto;padding:6px 12px;border-radius:18px;background:#a83245;font-size:12px;">🗑️ Remove Photo</button>
 
     <h2 id="publicUsername">User</h2>
     <p id="publicAge"></p>
@@ -2628,6 +2629,8 @@ async function openPublicProfile(userId){
   document.getElementById("publicProfileView").style.display="block";
 
   const photo=document.getElementById("publicPhoto");
+  const adminPhotoDeleteBtn=document.getElementById("adminDeleteProfilePhotoBtn");
+  if(adminPhotoDeleteBtn)adminPhotoDeleteBtn.style.display=(me && me.email==="jabirkhanmewati01@gmail.com" && userId!==me.id && p.photo_url)?"block":"none";
 
   if(p.photo_url){
     photo.src=p.photo_url;
@@ -7486,7 +7489,7 @@ async function openJabzyStory(userId,index){
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
   if(story.media_type==="video"){el.controls=true;el.autoplay=true;el.playsInline=true;}
   media.appendChild(el);
-  document.getElementById("storyDeleteBtn").style.display=activeJabzyStoryOwner?"block":"none";
+  document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
   if(!activeJabzyStoryOwner){
     const {error}=await db.from("story_views").upsert({story_id:story.id,viewer_id:me.id,viewed_at:new Date().toISOString()},{onConflict:"story_id,viewer_id",ignoreDuplicates:true});
     if(error)console.warn("Story view:",error.message);
@@ -7558,14 +7561,47 @@ async function sendJabzyStoryComment(){
   input.value="";delete input.dataset.parent;
 }
 async function deleteJabzyStory(){
-  if(!activeJabzyStoryOwner || !activeJabzyStory)return;
-  if(!confirm("Delete this story?"))return;
+  if(!activeJabzyStory || !me)return;
   const story=activeJabzyStory;
-  const path=story.media_url.split("/stories/").pop();
-  const {error}=await db.from("stories").delete().eq("id",story.id).eq("user_id",me.id);
-  if(error){alert(error.message);return;}
-  if(path)await db.storage.from("stories").remove([decodeURIComponent(path)]);
+  const isAdmin=me.email==="jabirkhanmewati01@gmail.com";
+  if(story.user_id===me.id){
+    if(!confirm("Delete your story?"))return;
+    const path=story.media_url.split("/stories/").pop();
+    const {error}=await db.from("stories").delete().eq("id",story.id).eq("user_id",me.id);
+    if(error){alert(error.message);return;}
+    if(path){const removed=await db.storage.from("stories").remove([decodeURIComponent(path)]);if(removed.error)console.warn("Story media cleanup:",removed.error.message);}
+  }else{
+    if(!isAdmin){alert("Admin access denied.");return;}
+    const reason=prompt("Story remove karne ka reason likhein (user ko notification milega):");
+    if(reason===null)return;
+    if(!reason.trim()){alert("Reason likhna zaroori hai.");return;}
+    if(!confirm("Is story ko remove karke user ko warning bhejein?"))return;
+    const {data:mediaUrl,error}=await db.rpc("admin_remove_story",{p_story_id:story.id,p_reason:reason.trim()});
+    if(error){alert("Story remove nahi hui: "+error.message);return;}
+    const marker="/stories/";
+    const path=mediaUrl && mediaUrl.includes(marker)?decodeURIComponent(mediaUrl.split(marker).pop().split("?")[0]):null;
+    if(path){const removed=await db.storage.from("stories").remove([path]);if(removed.error)alert("Story record aur warning ho gaye, lekin media file remove nahi hui: "+removed.error.message);}
+    alert("Story remove ho gayi aur user ko warning notification bhej di gayi.");
+  }
   closeJabzyStory();await loadJabzyStories();
+}
+
+async function adminDeleteProfilePhoto(){
+  if(!me || me.email!=="jabirkhanmewati01@gmail.com"){alert("Admin access denied.");return;}
+  const userId=window.currentPublicProfileId;
+  if(!userId || userId===me.id){alert("Is profile ki photo yahan se remove nahi kar sakte.");return;}
+  const reason=prompt("Profile photo remove karne ka reason likhein (user ko notification milega):");
+  if(reason===null)return;
+  if(!reason.trim()){alert("Reason likhna zaroori hai.");return;}
+  if(!confirm("Profile photo remove karke user ko warning bhejein?"))return;
+  const {data:photoUrl,error}=await db.rpc("admin_remove_profile_photo",{p_user_id:userId,p_reason:reason.trim()});
+  if(error){alert("Photo remove nahi hui: "+error.message);return;}
+  const marker="/profile-photos/";
+  const path=photoUrl && photoUrl.includes(marker)?decodeURIComponent(photoUrl.split(marker).pop().split("?")[0]):null;
+  if(path){const removed=await db.storage.from("profile-photos").remove([path]);if(removed.error)alert("Profile record aur warning ho gaye, lekin storage file remove nahi hui: "+removed.error.message);}
+  const photo=document.getElementById("publicPhoto");photo.removeAttribute("src");photo.classList.add("hidden");
+  document.getElementById("adminDeleteProfilePhotoBtn").style.display="none";
+  alert("Profile photo remove ho gayi aur user ko warning notification bhej di gayi.");
 }
 function changeJabzyStory(direction){
   if(!activeJabzyStoryUserId)return;
