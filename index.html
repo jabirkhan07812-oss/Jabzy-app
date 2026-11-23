@@ -7053,9 +7053,11 @@ let roomSpeakerOn = true;
 let roomVoiceChannel = null;
 let roomVoiceClientId = null;
 let roomLocalStream = null;
+let roomStatusCheckTimer = null;
 const roomVoicePeers = new Map();
 
 async function stopRoomVoice(){
+  if(roomStatusCheckTimer){ clearInterval(roomStatusCheckTimer); roomStatusCheckTimer=null; }
   if(roomVoiceChannel){
     await db.removeChannel(roomVoiceChannel);
     roomVoiceChannel = null;
@@ -7137,10 +7139,12 @@ async function ensureRoomVoicePeer(remoteClient){
 
 async function syncRoomVoicePeers(){
   if(!currentJoinedRoom || !roomVoiceChannel || !roomVoiceClientId) return;
+  const roomId = currentJoinedRoom.id;
   const {data:members,error} = await db.from("live_room_members")
     .select("user_id,audio_role,mic_allowed")
-    .eq("room_id",currentJoinedRoom.id);
+    .eq("room_id",roomId);
   if(error){ console.error("Voice members error:",error); return; }
+  if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
 
   const allowedUsers = new Set([
     currentJoinedRoom.created_by,
@@ -7151,12 +7155,22 @@ async function syncRoomVoicePeers(){
   const localCanSpeak = allowedUsers.has(me.id);
   const presence = roomVoiceChannel.presenceState();
   const active = new Set();
+  const oneClientPerUser = new Map();
 
-  for(const clientId of Object.keys(presence)){
+  // Same account may appear with multiple browser/device presence keys.
+  // Keep one stable connection per user so their voice is not played repeatedly.
+  for(const clientId of Object.keys(presence).sort()){
     if(clientId === roomVoiceClientId) continue;
     const remote = (presence[clientId] || [])[0];
     if(!remote?.userId || remote.userId === me.id) continue;
     if(!localCanSpeak && !allowedUsers.has(remote.userId)) continue;
+    if(!oneClientPerUser.has(remote.userId)){
+      oneClientPerUser.set(remote.userId,clientId);
+    }
+  }
+
+  for(const clientId of oneClientPerUser.values()){
+    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
     active.add(clientId);
     const peer = await ensureRoomVoicePeer(clientId);
     if(roomVoiceClientId < clientId && !peer.initialOfferSent){
@@ -7166,6 +7180,7 @@ async function syncRoomVoicePeers(){
         await peer.connection.setLocalDescription();
         await sendRoomVoiceSignal(clientId,{description:peer.connection.localDescription});
       }catch(error){
+        peer.initialOfferSent = false;
         console.error("Voice offer error:",error);
       }finally{
         peer.makingOffer = false;
@@ -7175,6 +7190,8 @@ async function syncRoomVoicePeers(){
   for(const [clientId,peer] of roomVoicePeers){
     if(!active.has(clientId)){
       peer.connection.close();
+      peer.audio.pause();
+      peer.audio.srcObject = null;
       peer.audio.remove();
       roomVoicePeers.delete(clientId);
     }
@@ -7229,6 +7246,29 @@ async function handleRoomVoiceSignal(message){
   }
 }
 
+async function checkJoinedRoomStillActive(){
+  if(!currentJoinedRoom) return;
+  const roomId = currentJoinedRoom.id;
+  const {data,error} = await db.from("live_rooms").select("status").eq("id",roomId).maybeSingle();
+  if(error){ console.warn("Room status check failed:",error.message); return; }
+  if(!data || data.status !== "active"){
+    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
+    if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
+    if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
+    await stopRoomVoice();
+    currentJoinedRoom=null;
+    roomMicPermissionAllowed=false;
+    const joinedScreen=document.getElementById("joinedRoomScreen");
+    const miniBar=document.getElementById("miniRoomBar");
+    if(joinedScreen) joinedScreen.style.display="none";
+    if(miniBar) miniBar.style.display="none";
+    showTab("rooms");
+    await loadActiveRooms();
+    await loadMyPrivateRooms();
+    alert("Host ne ye room close kar diya hai.");
+  }
+}
+
 async function startRoomVoice(){
   if(!currentJoinedRoom || !me) return;
   await stopRoomVoice();
@@ -7251,6 +7291,11 @@ async function startRoomVoice(){
         console.error("Room voice channel:",status);
       }
     });
+  // Realtime UPDATE may be delayed or blocked by publication/RLS; poll as a fallback.
+  const watchedRoomId = currentJoinedRoom.id;
+  roomStatusCheckTimer = setInterval(()=>{
+    if(currentJoinedRoom?.id === watchedRoomId) checkJoinedRoomStillActive();
+  },2500);
 }
 
 function updateRoomMicButtonState(){
