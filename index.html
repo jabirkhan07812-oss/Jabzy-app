@@ -1513,6 +1513,7 @@ box-sizing:border-box;
     <button id="adminDeleteProfilePhotoBtn" type="button" onclick="adminDeleteProfilePhoto()" style="display:none;width:auto;margin:8px auto;padding:6px 12px;border-radius:18px;background:#a83245;font-size:12px;">🗑️ Remove Photo</button>
 
     <h2 id="publicUsername">User</h2>
+    <span id="officialAdminBadge" style="display:none;align-items:center;gap:4px;margin-top:4px;padding:4px 10px;border-radius:14px;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;letter-spacing:.3px;">✓ OFFICIAL ADMIN</span>
     <p id="publicAge"></p>
     <p id="publicBio"></p>
 
@@ -3122,6 +3123,10 @@ async function openPublicProfile(userId){
   }
 
   document.getElementById("publicUsername").innerText=p.username||"User";
+  const officialAdminBadge=document.getElementById("officialAdminBadge");
+  if(officialAdminBadge)officialAdminBadge.style.display="none";
+  const {data:isOfficialAdmin,error:officialAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
+  if(officialAdminBadge&&!officialAdminError&&isOfficialAdmin===true)officialAdminBadge.style.display="inline-flex";
   document.getElementById("publicAge").innerText=(p.age||"")+" years";
   document.getElementById("publicBio").innerText=p.bio||"";
   window.currentPublicProfileId=userId;
