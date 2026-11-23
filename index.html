@@ -2055,6 +2055,8 @@ let me=null;
 let selected=null;
 let replyingTo=null;
 let chatChannel=null;
+let globalRoomRealtimeChannel = null;
+let globalRoomRealtimeUserId = null;
 
 db.auth.onAuthStateChange((event, session)=>{
 if(event==="PASSWORD_RECOVERY"){
@@ -2854,6 +2856,7 @@ document.getElementById("signup").classList.add("hidden");
 
 showTab("home");
 await restoreJoinedRoom();
+await setupGlobalRoomRealtime();
 document.getElementById("app").classList.remove("hidden");
 
 Promise.all([
@@ -6678,6 +6681,54 @@ async function endLiveRoom(roomId){
 let currentJoinedRoom = null;
 let roomChatChannel = null;
 let roomMembersChannel = null;
+
+async function setupGlobalRoomRealtime(){
+  if(!me) return;
+  if(globalRoomRealtimeChannel && globalRoomRealtimeUserId===me.id) return;
+  if(globalRoomRealtimeChannel){
+    await db.removeChannel(globalRoomRealtimeChannel);
+    globalRoomRealtimeChannel=null;
+  }
+  globalRoomRealtimeUserId=me.id;
+  globalRoomRealtimeChannel=db
+    .channel("global-rooms-"+me.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"live_rooms"},async()=>{
+      const roomsScreen=document.getElementById("roomsScreen");
+      if(roomsScreen && roomsScreen.style.display!=="none"){
+        await loadActiveRooms();
+        await loadMyPrivateRooms();
+      }
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"live_room_members"},async(payload)=>{
+      const roomsScreen=document.getElementById("roomsScreen");
+      if(roomsScreen && roomsScreen.style.display!=="none"){
+        await loadActiveRooms();
+        await loadMyPrivateRooms();
+      }
+      if(currentJoinedRoom && payload?.new?.room_id===currentJoinedRoom.id ||
+         currentJoinedRoom && payload?.old?.room_id===currentJoinedRoom.id){
+        const {count,error}=await db.from("live_room_members")
+          .select("user_id",{count:"exact",head:true})
+          .eq("room_id",currentJoinedRoom.id);
+        if(!error && count!==null){
+          const miniCount=document.getElementById("miniRoomMemberCount");
+          const joinedCount=document.getElementById("joinedRoomMemberCount");
+          if(miniCount) miniCount.textContent=count;
+          if(joinedCount) joinedCount.textContent=count;
+        }
+        const joinedScreen=document.getElementById("joinedRoomScreen");
+        if(joinedScreen && joinedScreen.style.display==="block"){
+          await loadRoomParticipants();
+          await syncRoomVoicePeers();
+        }
+      }
+    })
+    .subscribe((status)=>{
+      if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
+        console.warn("Global room realtime status:",status);
+      }
+    });
+}
 
 async function restoreJoinedRoom(){
   if(!me) return false;
