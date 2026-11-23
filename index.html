@@ -7110,41 +7110,38 @@ async function ensureRoomVoicePeer(remoteClient){
   };
   roomVoicePeers.set(remoteClient,peer);
   const transceiver = pc.addTransceiver("audio",{direction:"sendrecv"});
-  try{
-    const audioCodecs = window.RTCRtpSender?.getCapabilities?.("audio")?.codecs || [];
-    const opusCodecs = audioCodecs.filter(codec => codec.mimeType?.toLowerCase() === "audio/opus");
-    const otherCodecs = audioCodecs.filter(codec => codec.mimeType?.toLowerCase() !== "audio/opus");
-    if(opusCodecs.length && typeof transceiver.setCodecPreferences === "function"){
-      transceiver.setCodecPreferences([...opusCodecs,...otherCodecs]);
-    }
-  }catch(error){
-    console.warn("Opus preference unavailable; browser default audio codec will be used:",error);
-  }
   if(roomLocalStream){
     const track = roomLocalStream.getAudioTracks()[0];
     if(track) await transceiver.sender.replaceTrack(track);
   }
   pc.ontrack = event => {
-    const incomingStream = event.streams?.[0] || new MediaStream([event.track]);
-    audio.srcObject = incomingStream;
+    audio.srcObject = event.streams[0];
     audio.volume = roomSpeakerOn ? 1 : 0;
-    audio.play().catch(error => console.warn("Room audio playback blocked:",error));
+    audio.play().catch(() => {});
   };
   pc.onicecandidate = event => {
     if(event.candidate) sendRoomVoiceSignal(remoteClient,{candidate:event.candidate});
   };
-  // Offers are started only by syncRoomVoicePeers() to prevent duplicate negotiations.
+  pc.onnegotiationneeded = async () => {
+    try{
+      peer.makingOffer = true;
+      await pc.setLocalDescription();
+      await sendRoomVoiceSignal(remoteClient,{description:pc.localDescription});
+    }catch(error){
+      console.error("Voice negotiation error:",error);
+    }finally{
+      peer.makingOffer = false;
+    }
+  };
   return peer;
 }
 
 async function syncRoomVoicePeers(){
   if(!currentJoinedRoom || !roomVoiceChannel || !roomVoiceClientId) return;
-  const roomId = currentJoinedRoom.id;
   const {data:members,error} = await db.from("live_room_members")
     .select("user_id,audio_role,mic_allowed")
-    .eq("room_id",roomId);
+    .eq("room_id",currentJoinedRoom.id);
   if(error){ console.error("Voice members error:",error); return; }
-  if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
 
   const allowedUsers = new Set([
     currentJoinedRoom.created_by,
@@ -7155,22 +7152,12 @@ async function syncRoomVoicePeers(){
   const localCanSpeak = allowedUsers.has(me.id);
   const presence = roomVoiceChannel.presenceState();
   const active = new Set();
-  const oneClientPerUser = new Map();
 
-  // Same account may appear with multiple browser/device presence keys.
-  // Keep one stable connection per user so their voice is not played repeatedly.
-  for(const clientId of Object.keys(presence).sort()){
+  for(const clientId of Object.keys(presence)){
     if(clientId === roomVoiceClientId) continue;
     const remote = (presence[clientId] || [])[0];
     if(!remote?.userId || remote.userId === me.id) continue;
     if(!localCanSpeak && !allowedUsers.has(remote.userId)) continue;
-    if(!oneClientPerUser.has(remote.userId)){
-      oneClientPerUser.set(remote.userId,clientId);
-    }
-  }
-
-  for(const clientId of oneClientPerUser.values()){
-    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
     active.add(clientId);
     const peer = await ensureRoomVoicePeer(clientId);
     if(roomVoiceClientId < clientId && !peer.initialOfferSent){
@@ -7180,7 +7167,6 @@ async function syncRoomVoicePeers(){
         await peer.connection.setLocalDescription();
         await sendRoomVoiceSignal(clientId,{description:peer.connection.localDescription});
       }catch(error){
-        peer.initialOfferSent = false;
         console.error("Voice offer error:",error);
       }finally{
         peer.makingOffer = false;
@@ -7190,8 +7176,6 @@ async function syncRoomVoicePeers(){
   for(const [clientId,peer] of roomVoicePeers){
     if(!active.has(clientId)){
       peer.connection.close();
-      peer.audio.pause();
-      peer.audio.srcObject = null;
       peer.audio.remove();
       roomVoicePeers.delete(clientId);
     }
@@ -7246,29 +7230,6 @@ async function handleRoomVoiceSignal(message){
   }
 }
 
-async function checkJoinedRoomStillActive(){
-  if(!currentJoinedRoom) return;
-  const roomId = currentJoinedRoom.id;
-  const {data,error} = await db.from("live_rooms").select("status").eq("id",roomId).maybeSingle();
-  if(error){ console.warn("Room status check failed:",error.message); return; }
-  if(!data || data.status !== "active"){
-    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
-    if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
-    if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
-    await stopRoomVoice();
-    currentJoinedRoom=null;
-    roomMicPermissionAllowed=false;
-    const joinedScreen=document.getElementById("joinedRoomScreen");
-    const miniBar=document.getElementById("miniRoomBar");
-    if(joinedScreen) joinedScreen.style.display="none";
-    if(miniBar) miniBar.style.display="none";
-    showTab("rooms");
-    await loadActiveRooms();
-    await loadMyPrivateRooms();
-    alert("Host ne ye room close kar diya hai.");
-  }
-}
-
 async function startRoomVoice(){
   if(!currentJoinedRoom || !me) return;
   await stopRoomVoice();
@@ -7291,7 +7252,6 @@ async function startRoomVoice(){
         console.error("Room voice channel:",status);
       }
     });
-  // Realtime UPDATE may be delayed or blocked by publication/RLS; poll as a fallback.
   const watchedRoomId = currentJoinedRoom.id;
   roomStatusCheckTimer = setInterval(()=>{
     if(currentJoinedRoom?.id === watchedRoomId) checkJoinedRoomStillActive();
@@ -7332,7 +7292,7 @@ async function toggleRoomMic(){
     }
     if(!roomLocalStream){
       roomLocalStream = await navigator.mediaDevices.getUserMedia({
-        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1,sampleRate:48000},
+        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
         video:false
       });
     }
