@@ -9303,12 +9303,44 @@ function handleJabzyAndroidBack(){
   window.addEventListener("pageshow",addBackGuard);
 })();;
 
-function openDailyRewards(){
+async function loadDailyRewardsWallet(){
+  const balanceEl=document.getElementById("dailyRewardsCoinBalance");
+  const streakEl=document.getElementById("dailyRewardsStreak");
+  if(!me || !me.id){
+    if(balanceEl)balanceEl.textContent="0";
+    if(streakEl)streakEl.textContent="0";
+    showDailyRewardsStatus("Please sign in to view your coin balance.");
+    return;
+  }
+
+  if(balanceEl)balanceEl.textContent="…";
+  if(streakEl)streakEl.textContent="…";
+
+  const {data,error}=await db
+    .from("user_coins")
+    .select("balance,streak_days")
+    .eq("user_id",me.id)
+    .maybeSingle();
+
+  if(error){
+    console.error("Daily Rewards wallet load failed:",error);
+    if(balanceEl)balanceEl.textContent="—";
+    if(streakEl)streakEl.textContent="—";
+    showDailyRewardsStatus("Could not load your rewards. Please try again.");
+    return;
+  }
+
+  if(balanceEl)balanceEl.textContent=String(data?.balance ?? 0);
+  if(streakEl)streakEl.textContent=String(data?.streak_days ?? 0);
+}
+
+async function openDailyRewards(){
   const modal=document.getElementById("dailyRewardsModal");
   if(!modal)return;
   const status=document.getElementById("dailyRewardsStatus");
-  if(status)status.textContent="";
+  if(status)status.textContent="Loading your rewards…";
   modal.style.display="block";
+  await loadDailyRewardsWallet();
 }
 function closeDailyRewards(){
   const modal=document.getElementById("dailyRewardsModal");
