@@ -809,6 +809,59 @@ body.light-theme #appearanceModal .appearance-choice{
   background:#f8f3fb!important;color:#493653!important;border-color:#e5d9ed!important;
 }
 
+
+/* JABZY CLEAN ICON + LABEL BOTTOM NAV */
+.bottom-nav{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-around!important;
+  gap:2px!important;
+  padding:8px 5px calc(8px + env(safe-area-inset-bottom))!important;
+  border-radius:18px 18px 0 0!important;
+  background:rgba(23,16,34,.97)!important;
+  border-top:1px solid rgba(180,140,205,.18)!important;
+  box-shadow:0 -6px 24px rgba(0,0,0,.16)!important;
+  backdrop-filter:blur(16px);
+}
+.bottom-nav button{
+  flex:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  min-width:0!important;
+  min-height:48px!important;
+  padding:5px 2px!important;
+  margin:0!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#b9abc8!important;
+  font-size:11px!important;
+  font-weight:500!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+.bottom-nav button:focus,
+.bottom-nav button:active{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.light-theme .bottom-nav{
+  background:rgba(255,255,255,.97)!important;
+  border-top:1px solid #e8deee!important;
+  box-shadow:0 -6px 24px rgba(55,30,75,.09)!important;
+}
+body.light-theme .bottom-nav button{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:#786785!important;
+}
+
 </style>
 </head>
 <body>
