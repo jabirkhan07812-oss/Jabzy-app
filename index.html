@@ -1437,7 +1437,7 @@ style="display:none;padding:15px 12px 100px;">
 
   <div style="
     display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-columns:repeat(3,minmax(0,1fr));
     gap:6px;
     margin:15px 0;
   ">
@@ -1453,12 +1453,6 @@ style="display:none;padding:15px 12px 100px;">
   🎙️<br>Rooms
     </button>
 
-    <button id="groupsTab"
-  onclick="showRoomsSection('groups')"
-  style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
-  👥<br>Groups
-    </button>
-
     <button id="privateRoomsTab"
   onclick="showRoomsSection('private')"
   style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
@@ -1470,16 +1464,6 @@ style="display:none;padding:15px 12px 100px;">
   <div id="liveRoomsSection">
     <h3>🔥 Live Rooms</h3>
     <div id="activeRoomsList">No live rooms yet.</div>
-  </div>
-
-  <div id="groupsSection" style="display:none;">
-    <h3>👥 My Groups</h3>
-    <div id="myGroupsList">No groups joined yet.</div>
-
-    <h3>🔎 Discover Groups</h3>
-    <div id="discoverGroupsList">No groups available yet.</div>
-
-    <button onclick="createGroup()">＋ Create Group</button>
   </div>
 
   <div id="privateRoomsSection" style="display:none;">
@@ -7263,13 +7247,11 @@ data.forEach(room => {
 function showRoomsSection(section){
   const sections = {
     live: "liveRoomsSection",
-    groups: "groupsSection",
     private: "privateRoomsSection"
   };
 
   const tabs = {
     live: "liveRoomsTab",
-    groups: "groupsTab",
     private: "privateRoomsTab"
   };
 
