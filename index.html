@@ -9212,8 +9212,10 @@ function handleJabzyAndroidBack(){
   const now=Date.now();
   if(now-jabzyBackPressAt<2000){
     jabzyBackPressAt=0;
-    try{ window.close(); }catch(error){}
+    // Never close or navigate away from the website from JavaScript.
+    // A native APK wrapper may listen for this event and handle app exit itself.
     window.dispatchEvent(new CustomEvent("jabzy-exit-request"));
+    appStatus("JABZY is open");
   }else{
     jabzyBackPressAt=now;
     appStatus("Exit JABZY — Back again to exit");
