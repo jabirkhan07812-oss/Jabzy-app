@@ -2952,7 +2952,25 @@ async function respondFriendRequest(requestId,status){
   await loadMyFriends();
   }
 
-  async function loadMyFriends(){
+  async function isOfficialAdminUser(userId){
+  if(!userId)return false;
+  const {data,error}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
+  return !error&&data===true;
+}
+function addOfficialAdminMark(parent){
+  const mark=document.createElement("span");
+  mark.textContent="✓";
+  mark.title="Verified Official Admin";
+  mark.setAttribute("aria-label","Verified Official Admin");
+  mark.style.cssText="display:inline-flex;align-items:center;justify-content:center;flex:0 0 17px;width:17px;height:17px;margin-left:5px;border-radius:50%;background:#168cff;color:white;font-size:11px;font-weight:900;box-shadow:0 0 9px #168cff66;vertical-align:middle;";
+  parent.appendChild(mark);
+  const label=document.createElement("span");
+  label.textContent="OFFICIAL ADMIN";
+  label.style.cssText="display:inline-block;margin-left:7px;padding:3px 7px;border-radius:10px;background:#fff1c9;color:#825400;font-size:9px;font-weight:800;letter-spacing:.3px;vertical-align:middle;";
+  parent.appendChild(label);
+}
+
+async function loadMyFriends(){
 
   const box=document.getElementById("myFriendsList");
   const countBox=document.getElementById("myFriendsCount");
@@ -2994,25 +3012,33 @@ async function respondFriendRequest(requestId,status){
     return;
   }
 
-  (friends||[]).forEach(friend=>{
-
+  const profileMap=new Map((friends||[]).map(friend=>[friend.id,friend]));
+  for(const friendId of ids){
+    const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:""};
     const row=document.createElement("button");
     row.type="button";
-    row.style="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:#ffffff18;color:white;text-align:left;";
+    row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:#ffffff18;color:white;text-align:left;";
 
     const img=document.createElement("img");
     img.src=friend.photo_url||"";
     img.alt="";
-    img.style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#555;";
+    img.style.cssText="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#555;";
 
     const name=document.createElement("span");
-    name.innerText=friend.username||"JABZY Friend";
-
+    name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;min-width:0;font-weight:700;";
+    const displayName=friend.username&&friend.username.trim()?friend.username:"JABZY Friend";
+    name.textContent=displayName;
+    if(await isOfficialAdminUser(friendId))addOfficialAdminMark(name);
     row.append(img,name);
-    row.onclick=()=>openPublicProfile(friend.id);
-
+    row.onclick=()=>openPublicProfile(friendId);
     box.appendChild(row);
-  });
+  }
+  if(!friends||friends.length===0){
+    const note=document.createElement("p");
+    note.textContent="Friend profiles load nahi hui. Aapke friends ka record hai, lekin unki profile details available nahi hain.";
+    note.style.cssText="font-size:12px;color:#d9c9e8;margin:10px 2px;";
+    box.appendChild(note);
+  }
   }
 
   function showFriendsSection(section){
@@ -3424,6 +3450,7 @@ async function showSwipeCard(){
 
   const name=document.createElement("h2");
   name.textContent=p.username||"User";
+  if(await isOfficialAdminUser(p.id))addOfficialAdminMark(name);
 
   const info=document.createElement("p");
   info.textContent=(p.age||"")+" years • "+(p.bio||"");
@@ -7952,7 +7979,7 @@ async function loadJabzyStories(){
   }
   const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
   row.replaceChildren();
-  [...groups.entries()].forEach(([userId,list])=>{
+  for(const [userId,list] of groups.entries()){
     const btn=document.createElement("button");
     btn.type="button";btn.style.cssText="flex:0 0 68px;width:68px;padding:0;margin:0;background:none;border:0;color:white;";
     const ring=document.createElement("div");
@@ -7962,8 +7989,16 @@ async function loadJabzyStories(){
     const thumb=document.createElement("img");thumb.src=list[list.length-1].media_url;thumb.style.cssText="width:100%;height:100%;object-fit:cover;";
     inner.appendChild(thumb);ring.appendChild(inner);
     const label=document.createElement("div");label.textContent=userId===me.id?"Your Story":names[userId]||"User";label.style.cssText="font-size:11px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-    btn.append(ring,label);btn.onclick=()=>openJabzyStory(userId,0);row.appendChild(btn);
-  });
+    btn.append(ring,label);
+    if(await isOfficialAdminUser(userId)){
+      ring.style.cssText+="box-shadow:0 0 0 2px #168cff,0 0 16px #168cff99;";
+      label.style.fontWeight="800";
+      label.style.color="#9dccff";
+      const tick=document.createElement("span");tick.textContent=" ✓";tick.style.cssText="color:#168cff;font-weight:900;";
+      label.appendChild(tick);
+    }
+    btn.onclick=()=>openJabzyStory(userId,0);row.appendChild(btn);
+  }
 }
 async function openStoryUserProfile(){
   const userId=activeJabzyStory && activeJabzyStory.user_id;
@@ -8003,7 +8038,9 @@ async function openJabzyStory(userId,index){
   document.getElementById("storyViewerActions").style.display=activeJabzyStoryOwner?"none":"flex";
   document.getElementById("storyOwnerSwipeHint").style.display=activeJabzyStoryOwner?"block":"none";
   const {data:profile}=await db.from("profiles").select("username,photo_url").eq("id",userId).maybeSingle();
-  document.getElementById("storyViewerUser").textContent=userId===me.id?"Your Story":(profile?.username||"Story");
+  const storyUserName=document.getElementById("storyViewerUser");
+  storyUserName.textContent=userId===me.id?"Your Story":(profile?.username||"Story");
+  if(await isOfficialAdminUser(userId))addOfficialAdminMark(storyUserName);
   const avatar=document.getElementById("storyViewerAvatar");avatar.replaceChildren();
   if(profile?.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;";avatar.appendChild(img);}else{avatar.textContent="👤";}
   document.getElementById("storyViewerCaption").textContent=story.caption||"";
