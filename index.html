@@ -9200,7 +9200,7 @@ function handleJabzyAndroidBack(){
     window.dispatchEvent(new CustomEvent("jabzy-exit-request"));
   }else{
     jabzyBackPressAt=now;
-    alert("JABZY se bahar nikalne ke liye dobara Back dabayein.");
+    appStatus("Exit JABZY — Back again to exit");
   }
   return true;
 }
