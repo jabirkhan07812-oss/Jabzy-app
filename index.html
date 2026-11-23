@@ -1261,6 +1261,7 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
 <div id="accountPasswordChangeModal" style="display:none;position:fixed;inset:0;z-index:100110;background:#080611ef;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
   <div class="appearance-card" style="width:100%;max-width:430px;padding:20px;background:#21152f;border:1px solid #69427f;border-radius:20px;color:white;box-sizing:border-box;">
     <div style="display:flex;justify-content:space-between;align-items:center;"><h3 style="margin:0;color:#ff70ae;">🔒 Change Password</h3><button type="button" onclick="closeAccountPasswordChange()" style="width:auto;margin:0;padding:7px 12px;">✕</button></div>
+    <p id="accountPasswordStatus" style="display:none;margin:12px 0;padding:10px;border-radius:9px;background:#352344;color:#fff;font-size:13px;line-height:1.4;"></p>
     <div id="accountOldPasswordStep">
       <label for="accountCurrentPassword">Old Password</label>
       <input id="accountCurrentPassword" type="password" autocomplete="current-password" placeholder="Enter old password" style="width:100%;box-sizing:border-box;margin:8px 0;padding:12px;border-radius:10px;border:1px solid #69427f;background:#171222;color:white;">
@@ -2233,40 +2234,60 @@ async function changeAccountEmail(){
   }catch(error){appStatus("Email change request nahi hui: "+(error.message||error));}
   finally{button.disabled=false;}
 }
+function accountPasswordMessage(message,isError=false){
+  const box=document.getElementById("accountPasswordStatus");
+  if(box){
+    box.textContent=message;
+    box.style.display="block";
+    box.style.border=isError?"1px solid #ff7070":"1px solid #8ee6b0";
+    box.style.background=isError?"#4a202b":"#203b31";
+  }
+}
 async function verifyAccountOldPassword(){
-  if(!me||!me.email){appStatus("Is account ke liye email password login available nahi hai. Forgot Password use karein.");return;}
   const currentPassword=document.getElementById("accountCurrentPassword").value;
-  if(!currentPassword){appStatus("Pehle purana password dalein.");return;}
+  if(!me||!me.email){accountPasswordMessage("Is account ke liye email/password login available nahi hai. Forgot Password use karein.",true);return;}
+  if(!currentPassword){accountPasswordMessage("Pehle purana password dalein.",true);return;}
   const button=document.getElementById("accountVerifyPassword");
   button.disabled=true;
+  button.textContent="Checking...";
+  accountPasswordMessage("Purana password check ho raha hai...");
   try{
     const {data,error}=await db.auth.signInWithPassword({email:me.email,password:currentPassword});
-    if(error)throw new Error("Purana password galat hai. Dobara check karein.");
-    if(data&&data.user)me=data.user;
+    if(error) throw error;
+    if(!data||!data.user) throw new Error("Password verify nahi ho paya. Dobara try karein.");
+    me=data.user;
     document.getElementById("accountOldPasswordStep").style.display="none";
     document.getElementById("accountNewPasswordStep").style.display="block";
-  }catch(error){appStatus("Password verify nahi hua: "+(error.message||error));}
-  finally{button.disabled=false;}
+    accountPasswordMessage("Old password sahi hai. Ab naya password dalein.");
+  }catch(error){
+    accountPasswordMessage(error.message==="Invalid login credentials"?"Purana password galat hai. Dobara check karein.":"Password verify nahi hua: "+(error.message||"Unknown error"),true);
+  }finally{
+    button.disabled=false;
+    button.textContent="Continue";
+  }
 }
 async function changeAccountPassword(){
-  if(!me){appStatus("Pehle login karein.");return;}
-  const currentPassword=document.getElementById("accountCurrentPassword").value;
+  if(!me){accountPasswordMessage("Pehle login karein.",true);return;}
   const password=document.getElementById("accountNewPassword").value;
   const confirm=document.getElementById("accountConfirmPassword").value;
-  if(!currentPassword){appStatus("Pehle purana password verify karein.");return;}
-  if(password.length<6){appStatus("Password kam se kam 6 characters ka rakhein.");return;}
-  if(password!==confirm){appStatus("Dono new password match nahi karte.");return;}
-  if(password===currentPassword){appStatus("Naya password purane password se alag rakhein.");return;}
+  if(password.length<6){accountPasswordMessage("Naya password kam se kam 6 characters ka hona chahiye.",true);return;}
+  if(password!==confirm){accountPasswordMessage("New Password aur Confirm New Password match nahi karte.",true);return;}
   const button=document.getElementById("accountPasswordSave");
   button.disabled=true;
+  button.textContent="Updating...";
+  accountPasswordMessage("Naya password update ho raha hai...");
   try{
     const {data:updated,error}=await db.auth.updateUser({password});
-    if(error)throw error;
+    if(error) throw error;
     if(updated&&updated.user)me=updated.user;
     closeAccountPasswordChange();
     appStatus("Password successfully update ho gaya.");
-  }catch(error){appStatus("Password update nahi hua: "+(error.message||error));}
-  finally{button.disabled=false;}
+  }catch(error){
+    accountPasswordMessage("Password update nahi hua: "+(error.message||error),true);
+  }finally{
+    button.disabled=false;
+    button.textContent="Update Password";
+  }
 }
 async function sendAccountPasswordReset(){
   if(!me||!me.email){appStatus("Account email available nahi hai.");return;}
