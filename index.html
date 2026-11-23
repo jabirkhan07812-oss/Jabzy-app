@@ -9223,12 +9223,25 @@ function handleJabzyAndroidBack(){
 (function setupJabzyBackButton(){
   if(window.__jabzyBackHandlerReady) return;
   window.__jabzyBackHandlerReady=true;
-  try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
+  const refillBackGuards=()=>{
+    // Keep several same-page history entries so Android/browser Back cannot
+    // leave the JABZY page while navigating through its internal screens.
+    try{
+      for(let i=0;i<3;i++){
+        history.pushState({jabzyBackGuard:true,level:i},"",location.href);
+      }
+    }catch(error){ console.warn("JABZY Back guard:",error); }
+  };
+  refillBackGuards();
   window.addEventListener("popstate",()=>{
-    try{ history.pushState({jabzyBackGuard:true},"",location.href); }catch(error){}
-    handleJabzyAndroidBack();
+    // Refill first, then process one in-app Back action.
+    refillBackGuards();
+    try{ handleJabzyAndroidBack(); }catch(error){
+      console.error("JABZY Back handling failed:",error);
+      appStatus("Back button error. Please try again.");
+    }
   });
-})();
+})();;
 </script>
 </body>
   </html>
