@@ -6638,15 +6638,15 @@ async function createLiveRoom(){
       detailsOverlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;";
       
       const detailsCard = document.createElement("div");
-      detailsCard.style.cssText = "width:100%;max-width:380px;background:#21132f;border:1px solid #a45bea;border-radius:20px;padding:22px;color:white;box-shadow:0 16px 50px rgba(0,0,0,.45);";
+      detailsCard.style.cssText = "width:100%;max-width:300px;background:#21132f;border:1px solid #a45bea;border-radius:16px;padding:14px;color:white;box-shadow:0 12px 36px rgba(0,0,0,.4);";
       
       const detailsTitle = document.createElement("h3");
       detailsTitle.textContent = "🔒 Private Room Created";
-      detailsTitle.style.cssText = "margin:0 0 8px;font-size:20px;";
+      detailsTitle.style.cssText = "margin:0 0 6px;font-size:17px;";
       
       const detailsNote = document.createElement("p");
       detailsNote.textContent = "Room ID aur Password copy karke friends ko share karein.";
-      detailsNote.style.cssText = "margin:0 0 18px;color:#d6c9e4;font-size:13px;";
+      detailsNote.style.cssText = "margin:0 0 10px;color:#d6c9e4;font-size:12px;";
       
       async function copyPrivateRoomValue(value, button){
         try{
@@ -6677,7 +6677,7 @@ async function createLiveRoom(){
       
       function addRoomDetailRow(labelText, value){
         const row = document.createElement("div");
-        row.style.cssText = "display:flex;align-items:center;gap:8px;background:#352346;border-radius:12px;padding:10px;margin:10px 0;";
+        row.style.cssText = "display:flex;align-items:center;gap:7px;background:#352346;border-radius:10px;padding:8px;margin:7px 0;";
         const detail = document.createElement("div");
         detail.style.cssText = "flex:1;min-width:0;";
         const label = document.createElement("div");
@@ -6685,11 +6685,11 @@ async function createLiveRoom(){
         label.style.cssText = "font-size:11px;color:#cbb6df;margin-bottom:4px;";
         const valueText = document.createElement("div");
         valueText.textContent = String(value);
-        valueText.style.cssText = "font-size:17px;font-weight:700;letter-spacing:1px;overflow-wrap:anywhere;";
+        valueText.style.cssText = "font-size:15px;font-weight:700;letter-spacing:1px;overflow-wrap:anywhere;";
         const copyBtn = document.createElement("button");
         copyBtn.type = "button";
         copyBtn.textContent = "Copy";
-        copyBtn.style.cssText = "border:0;border-radius:9px;padding:10px 13px;background:#8b45c7;color:white;font-weight:700;cursor:pointer;flex-shrink:0;";
+        copyBtn.style.cssText = "border:0;border-radius:8px;padding:8px 10px;background:#8b45c7;color:white;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;";
         copyBtn.onclick = () => copyPrivateRoomValue(value, copyBtn);
         detail.append(label,valueText);
         row.append(detail,copyBtn);
@@ -6699,7 +6699,7 @@ async function createLiveRoom(){
       const closeBtn = document.createElement("button");
       closeBtn.type = "button";
       closeBtn.textContent = "Continue to Room";
-      closeBtn.style.cssText = "width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,#a45bea,#7134a5);color:white;font-weight:700;font-size:15px;";
+      closeBtn.style.cssText = "width:100%;margin-top:9px;padding:10px;border:0;border-radius:10px;background:linear-gradient(135deg,#a45bea,#7134a5);color:white;font-weight:700;font-size:13px;";
       closeBtn.onclick = () => detailsOverlay.remove();
       
       detailsCard.append(detailsTitle,detailsNote);
