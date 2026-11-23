@@ -9338,13 +9338,21 @@ async function loadDailyRewardsWallet(){
 async function openDailyRewards(){
   const screen=document.getElementById("dailyRewardsScreen");
   if(!screen)return;
+  if(screen.parentElement!==document.body)document.body.appendChild(screen);
   const status=document.getElementById("dailyRewardsStatus");
   if(status)status.textContent="Loading your rewards…";
   showTab("dailyRewards");
+  const nav=document.querySelector(".bottom-nav");
+  if(nav)nav.style.setProperty("display","none","important");
+  screen.style.setProperty("display","block","important");
   await loadDailyRewardsWallet();
 }
 function closeDailyRewards(){
+  const screen=document.getElementById("dailyRewardsScreen");
+  if(screen)screen.style.setProperty("display","none","important");
   showTab("home");
+  const nav=document.querySelector(".bottom-nav");
+  if(nav)nav.style.setProperty("display","flex","important");
 }
 function showDailyRewardsStatus(message){
   const status=document.getElementById("dailyRewardsStatus");
@@ -9352,6 +9360,32 @@ function showDailyRewardsStatus(message){
 }
 
 </script>
+
+<style id="jabzyDailyRewardsFinalStyle">
+#dailyRewardsScreen{display:none;position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100dvh!important;z-index:2147483000!important;box-sizing:border-box!important;margin:0!important;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 22px)!important;overflow-x:hidden!important;overflow-y:auto!important;background:linear-gradient(155deg,#21152f 0%,#100b1c 78%)!important;color:#fff!important;border:0!important;border-radius:0!important}
+#dailyRewardsScreen *{box-sizing:border-box}
+#dailyRewardsScreen .daily-rewards-shell{display:block!important;width:100%!important;max-width:480px!important;min-height:100%!important;margin:0 auto!important;padding:8px 0 24px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+#dailyRewardsScreen .daily-rewards-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0 0 22px!important;padding:0!important}
+#dailyRewardsScreen .daily-rewards-kicker{font-size:10px!important;letter-spacing:1.7px!important;font-weight:800!important;color:#d7b5ff!important}
+#dailyRewardsScreen .daily-rewards-title{font-size:25px!important;line-height:1.2!important;font-weight:900!important;margin:5px 0!important;color:#fff!important}
+#dailyRewardsScreen .daily-rewards-close{display:flex!important;align-items:center!important;justify-content:center!important;width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:#382547!important;border:1px solid #77568d!important;color:#fff!important;font-size:19px!important;box-shadow:none!important}
+#dailyRewardsScreen .daily-balance-card{display:block!important;padding:19px!important;border-radius:20px!important;background:linear-gradient(120deg,#49305f,#30203f)!important;border:1px solid #76558e!important;margin:0 0 14px!important;color:#fff!important}
+#dailyRewardsScreen .daily-balance-label{font-size:11px!important;letter-spacing:1px!important;color:#e5d5f3!important;font-weight:800!important}
+#dailyRewardsScreen .daily-balance-value{font-size:28px!important;font-weight:900!important;color:#fff!important;margin-top:8px!important}
+#dailyRewardsScreen .daily-rewards-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;margin:0 0 14px!important}
+#dailyRewardsScreen .daily-reward-tile{display:block!important;min-width:0!important;min-height:150px!important;padding:16px 13px!important;margin:0!important;border-radius:18px!important;border:1px solid #9363a7!important;background:linear-gradient(145deg,#59366d,#382547)!important;color:#fff!important;text-align:left!important;box-shadow:none!important}
+#dailyRewardsScreen .daily-reward-tile.exchange{background:linear-gradient(145deg,#743d79,#43244e)!important}
+#dailyRewardsScreen .daily-reward-icon{font-size:25px!important;margin:0 0 10px!important}
+#dailyRewardsScreen .daily-reward-name{font-size:15px!important;font-weight:900!important;margin:0 0 7px!important;color:#fff!important}
+#dailyRewardsScreen .daily-reward-detail{font-size:11px!important;line-height:1.5!important;color:#eadcf2!important}
+#dailyRewardsScreen .daily-bonus-card{display:block!important;padding:17px!important;margin:0!important;border-radius:18px!important;background:#382547!important;border:1px solid #68477d!important;color:#fff!important}
+#dailyRewardsScreen .daily-bonus-head{display:flex!important;justify-content:space-between!important;align-items:center!important;font-weight:900!important;margin:0 0 9px!important;color:#fff!important}
+#dailyRewardsScreen .daily-bonus-pill{font-size:10px!important;font-weight:800!important;padding:5px 9px!important;border-radius:20px!important;background:#1f6547!important;color:#c5ffe0!important}
+#dailyRewardsScreen .daily-bonus-copy{font-size:12px!important;color:#e6d4f2!important;line-height:1.5!important;margin:0 0 13px!important}
+#dailyRewardsScreen .daily-bonus-button{display:block!important;width:100%!important;margin:0!important;padding:14px!important;border:0!important;border-radius:13px!important;background:linear-gradient(90deg,#ffd36b,#ffb84d)!important;color:#26192e!important;font-weight:900!important;font-size:14px!important;box-shadow:none!important}
+#dailyRewardsScreen .daily-rewards-status{min-height:18px!important;margin-top:10px!important;font-size:11px!important;line-height:1.4!important;color:#e8cfff!important;text-align:center!important}
+@media(max-width:380px){#dailyRewardsScreen{padding-left:13px!important;padding-right:13px!important}#dailyRewardsScreen .daily-reward-tile{padding:13px 10px!important;min-height:140px!important}}
+</style>
 </body>
   </html>
   
