@@ -9177,6 +9177,13 @@ function handleJabzyAndroidBack(){
     const el=document.getElementById(id);
     return !!el && getComputedStyle(el).display!=="none";
   };
+  if(visible("jabzySettingsModal")){ jabzyBackPressAt=0; closeJabzySettings(); return true; }
+  if(visible("appearanceModal")){ jabzyBackPressAt=0; closeAppearanceSettings(); return true; }
+  if(visible("accountSettingsPanel")){
+    jabzyBackPressAt=0;
+    document.getElementById("accountSettingsPanel").style.display="none";
+    return true;
+  }
   if(visible("chatWindow")){ jabzyBackPressAt=0; backToChatList(); return true; }
   if(visible("publicProfileView")){ jabzyBackPressAt=0; closePublicProfile(); return true; }
   if(visible("joinedRoomScreen")){ jabzyBackPressAt=0; minimizeJoinedRoom(); return true; }
