@@ -5006,6 +5006,42 @@ let jabzyVoiceListener=null;
 let jabzyVoiceCall=null;
 let jabzyVoiceIncomingCall=null;
 
+let jabzyIncomingRingTimer=null;
+let jabzyRingAudioContext=null;
+function stopIncomingCallAlert(){
+  if(jabzyIncomingRingTimer){clearInterval(jabzyIncomingRingTimer);jabzyIncomingRingTimer=null;}
+  try{navigator.vibrate?.(0);}catch(e){}
+  try{if(jabzyRingAudioContext){jabzyRingAudioContext.close();jabzyRingAudioContext=null;}}catch(e){}
+}
+function startIncomingCallAlert(){
+  stopIncomingCallAlert();
+  const vibrate=()=>{try{if(navigator.vibrate)navigator.vibrate([450,250,450,700]);}catch(e){}};
+  vibrate();
+  jabzyIncomingRingTimer=setInterval(vibrate,1900);
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)return;
+    jabzyRingAudioContext=new AudioCtx();
+    const ctx=jabzyRingAudioContext;
+    const ring=()=>{
+      if(!jabzyRingAudioContext||ctx.state==="closed")return;
+      const now=ctx.currentTime;
+      [0,0.32].forEach(offset=>{
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.type="sine";osc.frequency.setValueAtTime(880,now+offset);
+        gain.gain.setValueAtTime(0.0001,now+offset);
+        gain.gain.exponentialRampToValueAtTime(0.12,now+offset+0.025);
+        gain.gain.setValueAtTime(0.12,now+offset+0.19);
+        gain.gain.exponentialRampToValueAtTime(0.0001,now+offset+0.24);
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.start(now+offset);osc.stop(now+offset+0.25);
+      });
+    };
+    if(ctx.state==="suspended")ctx.resume().then(()=>{if(jabzyRingAudioContext===ctx)ring();}).catch(()=>{});
+    else ring();
+    jabzyIncomingRingTimer=setInterval(()=>{vibrate();ring();},1900);
+  }catch(e){console.warn("Incoming call sound unavailable:",e);}
+}
 function voiceCallPanel(title,subtitle,buttons,profilePhoto=null,displayName=''){
   let panel=document.getElementById("jabzyVoiceCallPanel");
   if(!panel){
@@ -5013,10 +5049,10 @@ function voiceCallPanel(title,subtitle,buttons,profilePhoto=null,displayName='')
     panel.id="jabzyVoiceCallPanel";
     document.body.appendChild(panel);
   }
-  panel.style.cssText="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 50% 35%,#49305f 0%,#171020 48%,#09070e 100%);";
+  panel.style.cssText="position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:99999;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:24px 22px calc(28px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 38%,#49305f 0%,#171020 50%,#09070e 100%);overflow:auto;";
   panel.innerHTML="";
   const card=document.createElement("div");
-  card.style.cssText="position:relative;overflow:hidden;width:min(370px,100%);box-sizing:border-box;background:linear-gradient(155deg,#30213f 0%,#171321 75%);border:1px solid #a77ac455;border-radius:30px;padding:34px 24px 26px;text-align:center;color:#fff;box-shadow:0 25px 80px #000a,inset 0 1px #ffffff18;";
+  card.style.cssText="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;width:100%;max-width:440px;min-height:min(720px,calc(100dvh - 52px));box-sizing:border-box;background:linear-gradient(155deg,#30213f 0%,#171321 75%);border:1px solid #a77ac455;border-radius:34px;padding:42px 24px 34px;text-align:center;color:#fff;box-shadow:0 25px 80px #000a,inset 0 1px #ffffff18;";
   const glow=document.createElement("div");glow.style.cssText="width:112px;height:112px;border-radius:50%;margin:0 auto 18px;background:radial-gradient(circle,#b78ad8 0%,#704a91 48%,#39264c 72%);box-shadow:0 0 0 12px #a77ac414,0 0 55px #a77ac455;display:flex;align-items:center;justify-content:center;font-size:42px;overflow:hidden;border:2px solid #d9b9f0;";
   if(profilePhoto){const photo=document.createElement("img");photo.src=profilePhoto;photo.alt="Caller profile photo";photo.style.cssText="width:100%;height:100%;object-fit:cover;";photo.onerror=()=>{photo.remove();glow.textContent="☎";};glow.appendChild(photo);}else{glow.textContent="☎";}
   const brand=document.createElement("div");brand.textContent="J A B Z Y";brand.style.cssText="font-size:10px;letter-spacing:5px;color:#c9a9e4;font-weight:800;margin-bottom:13px;";
@@ -5050,6 +5086,7 @@ async function setupVoiceCallListener(){
         {label:"✓  Accept",color:"linear-gradient(135deg,#19a86b,#087a50)",onClick:()=>acceptVoiceCall()},
         {label:"✕  Reject",color:"linear-gradient(135deg,#e34b68,#a91f43)",onClick:()=>rejectVoiceCall()}
       ],jabzyVoiceIncomingCall.callerPhoto,jabzyVoiceIncomingCall.callerName);
+      startIncomingCallAlert();
     })
     .subscribe();
 }
@@ -5108,6 +5145,7 @@ async function startVoiceCall(){
 async function acceptVoiceCall(){
   const incoming=jabzyVoiceIncomingCall;
   if(!incoming)return;
+  stopIncomingCallAlert();
   try{
     const {error}=await db.rpc("set_voice_call_status",{p_call_id:incoming.callId,p_status:"accepted"});
     if(error)throw error;
@@ -5141,6 +5179,7 @@ async function acceptVoiceCall(){
 }
 async function rejectVoiceCall(){
   const incoming=jabzyVoiceIncomingCall;
+  stopIncomingCallAlert();
   jabzyVoiceIncomingCall=null;closeVoiceCallPanel();
   if(incoming)await db.rpc("set_voice_call_status",{p_call_id:incoming.callId,p_status:"rejected"});
 }
@@ -5204,6 +5243,7 @@ function toggleVoiceCallMute(){
   ]);
 }
 async function endVoiceCall(status="ended",updateServer=true){
+  stopIncomingCallAlert();
   const call=jabzyVoiceCall;
   jabzyVoiceCall=null;
   if(call){
