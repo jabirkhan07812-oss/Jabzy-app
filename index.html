@@ -1321,6 +1321,8 @@ body.light-theme #discoverScreen #swipeCard img{
 #dailyRewardsScreen .daily-bonus-button{width:100%;margin:0;padding:13px;border:0;border-radius:13px;background:linear-gradient(90deg,#ffd36b,#ffb84d);color:#26192e;font-weight:900;font-size:14px}
 #dailyRewardsScreen .daily-rewards-status{min-height:18px;margin-top:10px;font-size:11px;line-height:1.4;color:#e8cfff;text-align:center}
 @media(max-width:360px){#dailyRewardsScreen{padding:12px 10px}#dailyRewardsScreen .daily-reward-tile{padding:11px 9px;min-height:138px}#dailyRewardsScreen .daily-reward-name{font-size:13px}}
+
+.room-gift-category{margin:0 0 13px}.room-gift-category-title{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#e9b7ff;margin:0 0 8px;padding:0 2px}.room-gift-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.room-gift-category-grid button{margin:0;min-width:0;min-height:94px;padding:9px 4px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:13px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.room-gift-category-grid button .room-gift-emoji{font-size:25px;line-height:1.2}.room-gift-category-grid button .room-gift-name{font-size:11px;font-weight:700;line-height:1.2;text-align:center}.room-gift-category-grid button small{font-size:10px;color:#f4d58a}@media(max-width:360px){.room-gift-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
   <link rel="icon" type="image/svg+xml" href="./jabzy-app-icon.svg">
   <link rel="apple-touch-icon" href="./jabzy-app-icon.svg">
@@ -2470,24 +2472,13 @@ box-sizing:border-box;
 
 
 <!-- ROOM GIFT PICKER -->
-<div id="roomGiftPicker" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(8,5,14,.88);padding:18px;overflow-y:auto;color:white;">
- <div style="max-width:440px;margin:12vh auto 0;background:linear-gradient(145deg,#302044,#160f22);border:1px solid #8d58b4;border-radius:22px;padding:18px;box-shadow:0 18px 60px #0009;">
+<div id="roomGiftPicker" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(8,5,14,.88);padding:12px;overflow:hidden;color:white;align-items:center;justify-content:center;">
+ <div style="width:100%;max-width:440px;max-height:94dvh;margin:auto;background:linear-gradient(145deg,#302044,#160f22);border:1px solid #8d58b4;border-radius:22px;padding:16px;box-shadow:0 18px 60px #0009;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
   <div style="display:flex;align-items:center;justify-content:space-between;"><b style="font-size:19px;">🎁 Send a Gift</b><button onclick="closeRoomGift()" style="width:34px;margin:0;padding:6px;">✕</button></div>
   <div id="roomGiftBalance" style="margin:10px 0 14px;color:#f4d58a;">🪙 Coins: loading…</div>
   <label style="display:block;margin:8px 0 5px;">Gift kisko bhejna hai?</label>
   <select id="roomGiftRecipient" style="width:100%;padding:12px;border-radius:12px;background:#21152f;color:white;border:1px solid #68447d;"><option value="">Choose room member</option></select>
-  <div id="roomGiftChoices" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;">
-   <button type="button" data-gift="rose" onclick="selectRoomGift('rose')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">🌹<br>Rose<br><small>10 Coins</small></button>
-   <button type="button" data-gift="heart" onclick="selectRoomGift('heart')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">❤️<br>Heart<br><small>25 Coins</small></button>
-   <button type="button" data-gift="teddy" onclick="selectRoomGift('teddy')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">🧸<br>Teddy<br><small>50 Coins</small></button>
-   <button type="button" data-gift="crown" onclick="selectRoomGift('crown')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">👑<br>Crown<br><small>100 Coins</small></button>
-   <button type="button" data-gift="diamond" onclick="selectRoomGift('diamond')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">💎<br>Diamond<br><small>250 Coins</small></button>
-   <button type="button" data-gift="trophy" onclick="selectRoomGift('trophy')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">🏆<br>Trophy<br><small>500 Coins</small></button>
-   <button type="button" data-gift="super_car" onclick="selectRoomGift('super_car')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">🏎️<br>Super Car<br><small>1,000 Coins</small></button>
-   <button type="button" data-gift="royal_crown" onclick="selectRoomGift('royal_crown')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">👑<br>Royal Crown<br><small>2,000 Coins</small></button>
-   <button type="button" data-gift="private_jet" onclick="selectRoomGift('private_jet')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">✈️<br>Private Jet<br><small>5,000 Coins</small></button>
-   <button type="button" data-gift="rocket" onclick="selectRoomGift('rocket')" style="margin:0;padding:12px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:14px;">🚀<br>Rocket<br><small>10,000 Coins</small></button>
-  </div>
+  <div id="roomGiftChoices" style="margin-top:12px;min-height:0;max-height:42dvh;overflow-y:auto;overflow-x:hidden;padding:0 4px 8px 0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;"></div>
   <div id="roomGiftStatus" aria-live="polite" style="min-height:22px;margin-top:12px;font-size:12px;color:#f6d6ff;"></div>
   <button id="roomGiftSendButton" onclick="sendRoomGift()" disabled style="width:100%;margin:8px 0 0;padding:13px;background:linear-gradient(90deg,#a45bea,#e14c9a);">Send Gift 🎁</button>
  </div>
@@ -10392,17 +10383,40 @@ function handleJabzyAndroidBack(){
 let selectedRoomGift = null;
 let roomGiftsChannel = null;
 const ROOM_GIFT_CATALOG = {
- rose:{name:"Rose",emoji:"🌹",cost:10},
- heart:{name:"Heart",emoji:"❤️",cost:25},
- teddy:{name:"Teddy",emoji:"🧸",cost:50},
- crown:{name:"Crown",emoji:"👑",cost:100},
- diamond:{name:"Diamond",emoji:"💎",cost:250},
- trophy:{name:"Trophy",emoji:"🏆",cost:500},
- super_car:{name:"Super Car",emoji:"🏎️",cost:1000},
- royal_crown:{name:"Royal Crown",emoji:"👑",cost:2000},
- private_jet:{name:"Private Jet",emoji:"✈️",cost:5000},
- rocket:{name:"Rocket",emoji:"🚀",cost:10000}
+ rose:{name:"Rose",emoji:"🌹",cost:10,category:"Flowers"},
+ bouquet:{name:"Bouquet",emoji:"💐",cost:30,category:"Flowers"},
+ sunflower:{name:"Sunflower",emoji:"🌻",cost:40,category:"Flowers"},
+ lotus:{name:"Lotus",emoji:"🪷",cost:60,category:"Flowers"},
+ heart:{name:"Heart",emoji:"❤️",cost:25,category:"Love"},
+ love_letter:{name:"Love Letter",emoji:"💌",cost:75,category:"Love"},
+ couple_ring:{name:"Couple Ring",emoji:"💍",cost:300,category:"Love"},
+ love_bear:{name:"Love Bear",emoji:"💝",cost:450,category:"Love"},
+ teddy:{name:"Teddy",emoji:"🧸",cost:50,category:"Cute"},
+ puppy:{name:"Puppy",emoji:"🐶",cost:80,category:"Cute"},
+ kitten:{name:"Kitten",emoji:"🐱",cost:90,category:"Cute"},
+ bunny:{name:"Bunny",emoji:"🐰",cost:120,category:"Cute"},
+ birthday_cake:{name:"Birthday Cake",emoji:"🎂",cost:150,category:"Celebration"},
+ party_popper:{name:"Party Popper",emoji:"🎉",cost:100,category:"Celebration"},
+ fireworks:{name:"Fireworks",emoji:"🎆",cost:350,category:"Celebration"},
+ champagne:{name:"Celebration Toast",emoji:"🥂",cost:250,category:"Celebration"},
+ crown:{name:"Crown",emoji:"👑",cost:100,category:"Premium"},
+ diamond:{name:"Diamond",emoji:"💎",cost:250,category:"Premium"},
+ trophy:{name:"Trophy",emoji:"🏆",cost:500,category:"Premium"},
+ royal_crown:{name:"Royal Crown",emoji:"👑",cost:2000,category:"Premium"},
+ super_car:{name:"Super Car",emoji:"🏎️",cost:1000,category:"Luxury"},
+ private_jet:{name:"Private Jet",emoji:"✈️",cost:5000,category:"Luxury"},
+ yacht:{name:"Yacht",emoji:"🛥️",cost:7000,category:"Luxury"},
+ luxury_villa:{name:"Luxury Villa",emoji:"🏰",cost:8000,category:"Luxury"},
+ rocket:{name:"Rocket",emoji:"🚀",cost:10000,category:"Special"},
+ galaxy:{name:"Galaxy",emoji:"🌌",cost:12000,category:"Special"},
+ golden_star:{name:"Golden Star",emoji:"🌟",cost:1500,category:"Special"},
+ magic_wand:{name:"Magic Wand",emoji:"🪄",cost:750,category:"Special"}
 };
+function renderRoomGiftChoices(){
+ const box=document.getElementById("roomGiftChoices");if(!box)return;
+ const categories=[...new Set(Object.values(ROOM_GIFT_CATALOG).map(g=>g.category))];
+ box.innerHTML=categories.map(category=>'<section class="room-gift-category"><div class="room-gift-category-title">'+category+'</div><div class="room-gift-category-grid">'+Object.entries(ROOM_GIFT_CATALOG).filter(([,g])=>g.category===category).map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectRoomGift(\''+key+'\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div></section>').join("");
+}
 async function openRoomGift(){
  if(!currentJoinedRoom || !me?.id){alert("Pehle Room join karein.");return;}
  const picker=document.getElementById("roomGiftPicker");
@@ -10410,7 +10424,7 @@ async function openRoomGift(){
  const status=document.getElementById("roomGiftStatus");
  const send=document.getElementById("roomGiftSendButton");
  if(!picker||!recipient)return;
- selectedRoomGift=null;send.disabled=true;status.textContent="Room members load ho rahe hain…";
+ selectedRoomGift=null;send.disabled=true;status.textContent="Room members load ho rahe hain…";renderRoomGiftChoices();
  recipient.innerHTML='<option value="">Choose room member</option>';
  picker.style.display="block";
  const [{data:members,error:memberError},{data:wallet,error:walletError}]=await Promise.all([
