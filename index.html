@@ -392,7 +392,50 @@ font-size:12px;
   font-weight:700;
 }
 
-    /* JABZY INSTAGRAM STYLE FULL SCREEN */
+    
+/* JABZY INSTAGRAM-INSPIRED PREMIUM PROFILE */
+#profileScreen{padding:0 0 100px!important;background:linear-gradient(160deg,#100b19,#1c102b 58%,#100b19)!important;}
+#profileView{text-align:left!important;}
+.jabzy-profile-topbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid rgba(190,145,220,.16);}
+.jabzy-profile-topbar strong{font-size:19px;letter-spacing:1.2px;background:linear-gradient(90deg,#ff75b8,#b58aff,#62d9ff);background-clip:text;-webkit-background-clip:text;color:transparent;}
+.jabzy-profile-topbar button{width:40px!important;height:38px;margin:0!important;padding:0!important;border:1px solid #69427f!important;border-radius:12px!important;background:#281a37!important;color:#fff!important;font-size:19px!important;}
+.jabzy-profile-identity{display:flex;align-items:center;gap:18px;padding:22px 16px 8px;min-height:112px;}
+#profileView #myPhoto{width:92px!important;height:92px!important;min-width:92px;object-fit:cover;border:3px solid transparent!important;border-radius:50%!important;padding:3px!important;background:linear-gradient(#1c102b,#1c102b) padding-box,linear-gradient(135deg,#ff55a8,#9657e8,#43d8ed) border-box!important;}
+.jabzy-profile-summary{min-width:0;flex:1;}
+.jabzy-profile-summary h3{margin:0 0 5px!important;font-size:19px!important;color:#fff!important;overflow-wrap:anywhere;}
+.jabzy-profile-summary p{margin:3px 0!important;font-size:12px;color:#cbb8df!important;white-space:pre-wrap;overflow-wrap:anywhere;}
+#profileView .jabzy-profile-stats{display:flex!important;gap:0!important;margin:14px 0 12px!important;padding:10px 5px;border-top:1px solid #ffffff14;border-bottom:1px solid #ffffff14;}
+#profileView .jabzy-profile-stats div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 2px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#fff!important;font-size:12px!important;}
+#profileView .jabzy-profile-stats strong{display:block;margin:0!important;font-size:18px!important;color:#fff!important;}
+#profileView .jabzy-profile-stats span{font-size:11px;color:#cbb8df;}
+.jabzy-profile-actions{display:flex;gap:9px;padding:0 14px 14px;}
+.jabzy-profile-actions button{flex:1;width:auto!important;margin:0!important;padding:10px 6px!important;border:1px solid #8d55b6!important;border-radius:11px!important;background:linear-gradient(110deg,#7138a1,#a33e86)!important;color:#fff!important;font-size:12px!important;font-weight:800;}
+.jabzy-profile-actions button+button{background:#30213f!important;border-color:#634779!important;}
+.jabzy-profile-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #ffffff17;}
+.jabzy-profile-tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;margin:0!important;padding:10px 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:transparent!important;color:#a99ab7!important;}
+.jabzy-profile-tabs button span{font-size:21px;line-height:1.1;}
+.jabzy-profile-tabs button small{font-size:9px;letter-spacing:.7px;}
+.jabzy-profile-tabs button.active{color:#fff!important;border-bottom-color:#d66aff!important;}
+.jabzy-profile-tabs button:disabled{opacity:.42;}
+.jabzy-profile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding-top:2px;}
+.jabzy-profile-grid-item{position:relative;aspect-ratio:1;overflow:hidden;background:linear-gradient(145deg,#30203f,#171020);display:flex;align-items:center;justify-content:center;color:#fff;}
+.jabzy-profile-grid-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.jabzy-profile-grid-item video{width:100%;height:100%;object-fit:cover;}
+.jabzy-profile-grid-item .jabzy-grid-text{padding:8px;text-align:center;font-size:11px;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;}
+.jabzy-profile-grid-item .jabzy-grid-video{position:absolute;right:7px;top:6px;text-shadow:0 1px 5px #000;font-size:15px;}
+.jabzy-profile-empty{grid-column:1/-1;padding:45px 16px;text-align:center;color:#bba9ca;font-size:13px;}
+body.light-theme #profileScreen{background:linear-gradient(160deg,#fff,#f4eafa)!important;color:#30233b!important;}
+body.light-theme .jabzy-profile-topbar{border-color:#e7dced;}
+body.light-theme .jabzy-profile-summary h3,body.light-theme #profileView .jabzy-profile-stats strong{color:#30233b!important;}
+body.light-theme .jabzy-profile-summary p,body.light-theme #profileView .jabzy-profile-stats span{color:#6b5878!important;}
+body.light-theme #profileView .jabzy-profile-stats{border-color:#e7dced;}
+body.light-theme .jabzy-profile-tabs{border-color:#e7dced;}
+body.light-theme .jabzy-profile-tabs button{color:#786785!important;}
+body.light-theme .jabzy-profile-tabs button.active{color:#8b35b4!important;border-bottom-color:#a94bd0!important;}
+body.light-theme .jabzy-profile-grid-item{background:linear-gradient(145deg,#f0e4f8,#e5d8ef);color:#39264a;}
+@media(max-width:360px){.jabzy-profile-identity{gap:12px;padding-left:12px;padding-right:12px;}#profileView #myPhoto{width:78px!important;height:78px!important;min-width:78px;}.jabzy-profile-summary h3{font-size:17px!important;}}
+
+/* JABZY INSTAGRAM STYLE FULL SCREEN */
 html,body{
   width:100%;
   margin:0;
@@ -1541,32 +1584,35 @@ body.light-theme #discoverScreen #swipeCard img{
 <div id="profileScreen" class="app-screen">
 
 <div id="profileView">
-
-<div style="text-align:center;padding:10px 8px 20px;">
-
-  <button type="button" onclick="toggleAccountSettings()"
-style="position:absolute;top:12px;right:12px;width:auto;margin:0;padding:9px 13px;border-radius:22px;font-size:12px;background:linear-gradient(90deg,#ff55a8,#9657e8);">
-⚙️ Settings
-  </button>
-
-  <div style="font-size:24px;font-weight:900;color:#ff70ae;margin-bottom:20px;">
-    My Profile 👤
+  <div class="jabzy-profile-topbar">
+    <strong>JABZY</strong>
+    <button type="button" onclick="toggleAccountSettings()" aria-label="Profile settings">☰</button>
   </div>
-
-  <img id="myPhoto" class="photo hidden" alt="Your photo">
-
-  <h3 id="viewUsername">Your Name</h3>
-  <p id="viewAge"></p>
-  <p id="viewBio"></p>
-
-  <div class="profile-stats">
-    <div role="button" tabindex="0" onclick="openFollowList(me.id,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'followers')}" style="cursor:pointer;">👥 Followers <strong id="myFollowers">0</strong></div>
-    <div role="button" tabindex="0" onclick="openFollowList(me.id,'following')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'following')}" style="cursor:pointer;">➕ Following <strong id="myFollowing">0</strong></div>
+  <section class="jabzy-profile-identity">
+    <img id="myPhoto" class="photo hidden" alt="Your profile photo">
+    <div class="jabzy-profile-summary">
+      <h3 id="viewUsername">Your Name</h3>
+      <p id="viewAge"></p>
+      <p id="viewBio"></p>
+    </div>
+  </section>
+  <div class="profile-stats jabzy-profile-stats">
+    <div><strong id="myPostCount">0</strong><span>Posts</span></div>
+    <div role="button" tabindex="0" onclick="openFollowList(me.id,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'followers')}" style="cursor:pointer;"><strong id="myFollowers">0</strong><span>Followers</span></div>
+    <div role="button" tabindex="0" onclick="openFollowList(me.id,'following')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'following')}" style="cursor:pointer;"><strong id="myFollowing">0</strong><span>Following</span></div>
   </div>
-
-  <button onclick="openEditProfile()">✏️ Edit Profile</button>
-
-</div>
+  <div class="jabzy-profile-actions">
+    <button type="button" onclick="openEditProfile()">✏️ Edit Profile</button>
+    <button type="button" onclick="shareMyProfile()">↗ Share Profile</button>
+  </div>
+  <div class="jabzy-profile-tabs" aria-label="Profile posts">
+    <button type="button" class="active" aria-label="Posts"><span>▦</span><small>POSTS</small></button>
+    <button type="button" disabled aria-label="Videos coming soon"><span>▣</span><small>VIDEOS</small></button>
+    <button type="button" disabled aria-label="Tagged coming soon"><span>♙</span><small>TAGGED</small></button>
+  </div>
+  <div id="myProfilePosts" class="jabzy-profile-grid">
+    <div class="jabzy-profile-empty">Your posts will appear here.</div>
+  </div>
 </div> 
 
 <div id="profileEdit" style="display:none">
@@ -3994,6 +4040,34 @@ appStatus(followingError.message);
 return;
 }
 document.getElementById("myFollowing").innerText=following||0;
+await loadMyProfilePosts();
+  }
+
+async function loadMyProfilePosts(){
+  const box=document.getElementById("myProfilePosts");if(!box||!me)return;
+  box.innerHTML='<div class="jabzy-profile-empty">Loading your posts...</div>';
+  const {data:posts,error}=await db.from("posts").select("id,content,media_url,media_type,created_at").eq("user_id",me.id).order("created_at",{ascending:false});
+  if(error){console.warn("My profile posts:",error.message);box.innerHTML='<div class="jabzy-profile-empty">Posts load nahi ho paaye. Please try again.</div>';return;}
+  const count=document.getElementById("myPostCount");if(count)count.textContent=posts?.length||0;
+  box.replaceChildren();
+  if(!posts||!posts.length){box.innerHTML='<div class="jabzy-profile-empty">📸<br><strong>No posts yet</strong><br>Your photos and videos will appear here.</div>';return;}
+  posts.forEach(post=>{
+    const tile=document.createElement("div");tile.className="jabzy-profile-grid-item";
+    if(post.media_url&&post.media_type==="image"){
+      const img=document.createElement("img");img.src=post.media_url;img.alt="Your post";img.loading="lazy";img.onclick=()=>openJabzyPhotoViewer(post.media_url,"Your post");img.style.cursor="zoom-in";tile.appendChild(img);
+    }else if(post.media_url&&post.media_type==="video"){
+      const video=document.createElement("video");video.src=post.media_url;video.muted=true;video.playsInline=true;video.preload="metadata";video.onclick=()=>{video.controls=true;video.muted=false;video.play().catch(()=>{});};tile.appendChild(video);
+      const mark=document.createElement("span");mark.className="jabzy-grid-video";mark.textContent="▶";tile.appendChild(mark);
+    }else{
+      const content=document.createElement("div");content.className="jabzy-grid-text";content.textContent=post.content||"JABZY";tile.appendChild(content);
+    }
+    box.appendChild(tile);
+  });
+}
+
+async function shareMyProfile(){
+  const shareData={title:"My JABZY Profile",text:"Connect with me on JABZY",url:location.href};
+  try{if(navigator.share){await navigator.share(shareData);}else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(location.href);appStatus("JABZY profile link copied!");}else{appStatus("Profile link: "+location.href);}}catch(error){if(error?.name!=="AbortError")appStatus("Profile share nahi ho paya.");}
   }
 
   async function openFriendRequests(){
