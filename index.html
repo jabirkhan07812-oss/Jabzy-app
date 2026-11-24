@@ -715,6 +715,23 @@ body.light-theme #appearanceModal .appearance-choice{background:#f7f1fb;color:#3
 
 
 
+body.light-theme #jabzySettingsModal .jabzy-security-tip{
+  background:#eaf7f0!important;
+  border-color:#b9dfca!important;
+  color:#24543d!important;
+}
+body.light-theme #jabzySettingsModal .jabzy-security-tip strong{
+  color:#174b32!important;
+}
+body:not(.light-theme) #jabzySettingsModal .jabzy-security-tip{
+  background:#172b2a!important;
+  border-color:#28504a!important;
+  color:#bce8d7!important;
+}
+body:not(.light-theme) #jabzySettingsModal .jabzy-security-tip strong{
+  color:#d6f7e9!important;
+}
+
 /* SETTINGS + INFORMATION MODALS: FOLLOW THE SELECTED APP THEME */
 body.light-theme #jabzySettingsModal,
 body.light-theme #accountInformationModal,
@@ -2585,7 +2602,7 @@ function openJabzySettings(section){
         '<span style="width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#4a3529;font-size:19px;">📩</span>'+
         '<span style="flex:1;min-width:0;"><strong style="display:block;font-size:13px;">Password reset link</strong><small style="display:block;margin-top:4px;color:#b9adc8;font-size:11px;">Send a password recovery link to your email</small></span><span style="color:#b9adc8;font-size:20px;">›</span>'+
       '</button>'+
-      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;border-radius:12px;background:#172b2a;border:1px solid #28504a;color:#bce8d7;font-size:11px;line-height:1.5;">'+
+      '<div class="jabzy-security-tip" style="display:flex;align-items:flex-start;gap:9px;padding:12px;border-radius:12px;background:#172b2a;border:1px solid #28504a;color:#bce8d7;font-size:11px;line-height:1.5;">'+
         '<span style="font-size:16px;">🔐</span><span><strong style="display:block;color:#d6f7e9;margin-bottom:2px;">Security tip</strong>Never share your password, OTP, or password reset link with anyone.</span>'+
       '</div>';
     }
