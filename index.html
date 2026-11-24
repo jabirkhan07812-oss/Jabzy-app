@@ -6026,57 +6026,59 @@ function previewChatPhotos(input){
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
 
-if(photoInput.files.length>0){
-await sendChatPhoto();
-return;
+if(photoInput && photoInput.files.length>0){
+  await sendChatPhoto();
+  return;
 }
+
 if(chatSendInProgress)return;
-if(!selected){
-appStatus("Pehle kisi user ko Chat select karein.");
-return;
-}
-
-let blocked=await getBlockedIds();
-
-if(blocked.has(selected)){
-appStatus("Blocked user ko message nahi bhej sakte.");
-return;
+if(!me || !selected){
+  appStatus("Pehle kisi user ko Chat select karein.");
+  return;
 }
 
 const input=document.getElementById("message");
 const message=input.value.trim();
 if(!message)return;
 
+// Lock immediately, before any asynchronous request, so rapid taps
+// cannot pass the guard while getBlockedIds() is still loading.
 chatSendInProgress=true;
 const sendButton=document.querySelector('button[onclick="sendMessage()"]');
 if(sendButton)sendButton.disabled=true;
 
 try{
-const {error}=await db.from("messages").insert({
-  sender_id:me.id,
-  receiver_id:selected,
-  message,
-  reply_to:replyingTo ? replyingTo.id : null
-});
+  const recipientId=selected;
+  const blocked=await getBlockedIds();
 
-if(error){
-appStatus(error.message);
-return;
-}
+  if(blocked.has(recipientId)){
+    appStatus("Blocked user ko message nahi bhej sakte.");
+    return;
+  }
 
-input.value="";
-cancelChatReply();
-await loadMessages();
+  const {error}=await db.from("messages").insert({
+    sender_id:me.id,
+    receiver_id:recipientId,
+    message,
+    reply_to:replyingTo ? replyingTo.id : null
+  });
 
+  if(error){
+    appStatus(error.message);
+    return;
+  }
+
+  if(input.value.trim()===message)input.value="";
+  cancelChatReply();
+  await loadMessages();
 }catch(e){
-appStatus("ERROR: "+e.message);
-console.error(e);
+  appStatus("ERROR: "+e.message);
+  console.error(e);
 }finally{
-chatSendInProgress=false;
-if(sendButton)sendButton.disabled=false;
+  chatSendInProgress=false;
+  if(sendButton)sendButton.disabled=false;
 }
 }
-  
   
   
 async function openAdminDashboard(){
