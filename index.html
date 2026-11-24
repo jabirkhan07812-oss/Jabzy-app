@@ -5398,6 +5398,33 @@ function showChatMenu(){
   if(!term || !term.trim())return;
 
   const box=document.getElementById("messages");
+if(box && !document.body.classList.contains("light-theme")){
+  box.style.setProperty("background","linear-gradient(180deg,#1b1625 0%,#14101d 100%)","important");
+  box.style.setProperty("color","#f7f1fc","important");
+  box.style.setProperty("padding","16px 13px 20px","important");
+  const chat=document.getElementById("chatWindow");
+  if(chat){
+    chat.style.setProperty("background","linear-gradient(160deg,#1a1523 0%,#110e19 100%)","important");
+    chat.style.setProperty("color","#f7f1fc","important");
+    const header=chat.firstElementChild;
+    if(header){
+      header.style.setProperty("background","linear-gradient(115deg,#39284c,#251c35)","important");
+      header.style.setProperty("border-bottom","1px solid #76558d","important");
+    }
+    const composer=document.getElementById("chatComposer");
+    if(composer){
+      composer.style.setProperty("background","linear-gradient(120deg,#382849,#281e37)","important");
+      composer.style.setProperty("border","1px solid #a77bc0","important");
+      composer.style.setProperty("box-shadow","0 7px 22px #0006","important");
+    }
+    const input=document.getElementById("message");
+    if(input){
+      input.style.setProperty("background","#211a2c","important");
+      input.style.setProperty("color","#fff","important");
+      input.style.setProperty("border","1px solid #74568c","important");
+    }
+  }
+}
   const rows=Array.from(box.children);
 
   const found=rows.find(row=>
@@ -6196,6 +6223,15 @@ row.style.background=own?"#075e54":"#29283d";
 row.style.borderRadius=own?"16px 4px 16px 16px":"4px 16px 16px 16px";
 row.style.margin=own?"8px 0 8px auto":"8px auto 8px 0";
 row.style.color="white";
+row.dataset.ownMessage=own?"true":"false";
+if(!document.body.classList.contains("light-theme")){
+  row.style.setProperty("background",own
+    ?"linear-gradient(135deg,#9850c5 0%,#7443ad 58%,#59358f 100%)"
+    :"linear-gradient(140deg,#382d49 0%,#292236 100%)","important");
+  row.style.setProperty("color","#fff","important");
+  row.style.setProperty("border","1px solid rgba(210,175,235,.22)","important");
+  row.style.setProperty("box-shadow","0 5px 17px rgba(0,0,0,.28)","important");
+}
 
 row.style.userSelect="none";
 row.style.webkitUserSelect="none";
