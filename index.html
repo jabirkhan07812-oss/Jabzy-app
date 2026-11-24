@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#21152f">
 <title>JABZY - Make New Friends</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -2447,7 +2449,9 @@ function openJabzySettings(section){
       jabzySettingToggle("notify_matches","Matches","When you get a new match.")+
       jabzySettingToggle("notify_follows","New followers","When someone starts following you.")+
       jabzySettingToggle("notify_messages","Messages","When you receive a new message.")+
-      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;margin-top:14px;border-radius:12px;background:#252039;border:1px solid #49385f;color:#cfc3df;font-size:11px;line-height:1.5;"><span>⚙️</span><span>These controls manage which activity notifications appear in your JABZY notification list. Changes save automatically.</span></div>';
+      '<button type="button" onclick="enableJabzyNotifications()" style="margin-top:16px;background:linear-gradient(120deg,#ff4d9d,#8755e8);border:1px solid #ffffff30;border-radius:14px;">📲 Enable Mobile Notifications</button>'+
+      '<div id="jabzyPushPermissionStatus" style="font-size:12px;color:#d9c9e8;padding:8px 2px;">Allow notifications to receive alerts while JABZY is open.</div>'+
+      '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;margin-top:8px;border-radius:12px;background:#252039;border:1px solid #49385f;color:#cfc3df;font-size:11px;line-height:1.5;"><span>⚙️</span><span>Activity controls manage which alerts appear in JABZY. Background alerts when the app is fully closed need push-server setup.</span></div>';
     }else{
       body.innerHTML=
       '<div style="padding:15px;margin-bottom:16px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
@@ -3063,6 +3067,8 @@ showTab("home");
 document.getElementById("app").classList.remove("hidden");
 
 Promise.resolve().then(async()=>{
+  await registerJabzyServiceWorker();
+  await setupJabzyRealtimeNotifications();
   await setupVoiceCallListener();
   await setupFriendsRealtime();
   await restoreJoinedRoom();
@@ -3388,6 +3394,109 @@ async function openPostShare(post){
     row.append(label,send);list.appendChild(row);
   });
 }
+let jabzyServiceWorkerRegistration=null;
+let jabzyAlertChannel=null;
+const jabzyRecentAlertKeys=new Map();
+
+async function registerJabzyServiceWorker(){
+  if(!("serviceWorker" in navigator))return null;
+  try{
+    jabzyServiceWorkerRegistration=await navigator.serviceWorker.register("./service-worker.js");
+    return jabzyServiceWorkerRegistration;
+  }catch(error){
+    console.warn("JABZY service worker registration failed:",error);
+    return null;
+  }
+}
+
+async function enableJabzyNotifications(){
+  const statusBox=document.getElementById("jabzyPushPermissionStatus");
+  if(!("Notification" in window)){
+    if(statusBox)statusBox.textContent="Is browser mein mobile notifications supported nahi hain.";
+    return;
+  }
+  if(!window.isSecureContext){
+    if(statusBox)statusBox.textContent="Notifications ke liye secure HTTPS connection zaroori hai.";
+    return;
+  }
+  try{
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted"){
+      if(statusBox)statusBox.textContent="Notification permission allow nahi hui. Browser settings se JABZY notifications allow karein.";
+      return;
+    }
+    await registerJabzyServiceWorker();
+    if(statusBox)statusBox.textContent="✅ Mobile notifications allowed. JABZY open ya active rahega to alerts milenge.";
+    if(jabzyServiceWorkerRegistration){
+      await jabzyServiceWorkerRegistration.showNotification("JABZY notifications enabled",{
+        body:"Ab JABZY ke alerts yahan dikh sakte hain.",
+        icon:"./jabzy-app-icon.svg",
+        badge:"./jabzy-app-icon.svg",
+        tag:"jabzy-permission-test"
+      });
+    }
+  }catch(error){
+    if(statusBox)statusBox.textContent="Notification setup error: "+(error.message||error);
+  }
+}
+
+async function jabzyShowMobileAlert(title,body,tag){
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  try{
+    if(!jabzyServiceWorkerRegistration)await registerJabzyServiceWorker();
+    const options={body:body||"You have a new update.",icon:"./jabzy-app-icon.svg",badge:"./jabzy-app-icon.svg",tag:tag||("jabzy-"+Date.now()),renotify:false};
+    if(jabzyServiceWorkerRegistration)await jabzyServiceWorkerRegistration.showNotification(title,options);
+    else new Notification(title,options);
+  }catch(error){console.warn("JABZY notification display failed:",error);}
+}
+
+async function setupJabzyRealtimeNotifications(){
+  if(!me)return;
+  if(jabzyAlertChannel)await db.removeChannel(jabzyAlertChannel);
+  jabzyAlertChannel=db.channel("jabzy-alerts-"+me.id)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+me.id},async payload=>{
+      const n=payload.new||{};
+      if(n.type==="like"&&jabzyUserSettings.notify_likes===false)return;
+      if(n.type==="match"&&jabzyUserSettings.notify_matches===false)return;
+      if(n.type==="follow"&&jabzyUserSettings.notify_follows===false)return;
+      if(n.type==="message"&&jabzyUserSettings.notify_messages===false)return;
+      let actorName="Someone";
+      if(n.actor_id){
+        const {data}=await db.from("profiles").select("username").eq("id",n.actor_id).maybeSingle();
+        if(data&&data.username)actorName=data.username;
+      }
+      const labels={like:"liked your content ❤️",match:"It's a Match! 💕",follow:"started following you ➕",message:"sent you a message 💬"};
+      const body=n.message||((actorName+" "+(labels[n.type]||"sent you an update.")));
+      const key=n.type==="message"?"msg:"+n.actor_id+":"+body.slice(0,70):"notification:"+n.id;
+      jabzyShowDedupedAlert(key,"JABZY",body,"jabzy-notification-"+(n.id||Date.now()));
+      loadNotificationCount();
+    })
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"receiver_id=eq."+me.id},async payload=>{
+      const m=payload.new||{};
+      if(!m.sender_id||jabzyUserSettings.notify_messages===false)return;
+      if(selected===m.sender_id&&document.getElementById("chatWindow")?.style.display==="flex")return;
+      let senderName="Someone";
+      const {data}=await db.from("profiles").select("username").eq("id",m.sender_id).maybeSingle();
+      if(data&&data.username)senderName=data.username;
+      const body=m.message||"Sent you a photo or attachment.";
+      const key="msg:"+m.sender_id+":"+body.slice(0,70);
+      jabzyShowDedupedAlert(key,"New message • "+senderName,body,"jabzy-message-"+m.sender_id);
+      loadChatList();
+    })
+    .subscribe(status=>{
+      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("JABZY notification realtime:",status);
+    });
+}
+
+function jabzyShowDedupedAlert(key,title,body,tag){
+  const now=Date.now();
+  const previous=jabzyRecentAlertKeys.get(key)||0;
+  if(now-previous<8000)return;
+  jabzyRecentAlertKeys.set(key,now);
+  for(const [k,t] of jabzyRecentAlertKeys){if(now-t>30000)jabzyRecentAlertKeys.delete(k);}
+  jabzyShowMobileAlert(title,body,tag);
+}
+
 async function loadNotificationCount(){
 
   const {count,error}=await db
