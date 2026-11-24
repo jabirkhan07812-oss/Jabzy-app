@@ -10596,6 +10596,43 @@ body:not(.light-theme) #matchesScreen #chatWindow #message::placeholder{color:#b
 body:not(.light-theme) #matchesScreen #chatWindow #chatComposer label{color:#e4c8fa!important}
 body:not(.light-theme) #matchesScreen #chatWindow #chatOptionsMenu{background:#2d2340!important;border-color:#76568e!important}
 </style>
+
+<style id="jabzy-chat-surface-hard-fix">
+/* Chat itself has a dark header/composer; force its message canvas to match */
+#matchesScreen #chatWindow{background:#15111d!important;color:#f7f1fc!important}
+#matchesScreen #chatWindow #messages{
+ background:radial-gradient(ellipse at 50% 0%,rgba(117,70,151,.18),transparent 55%),linear-gradient(180deg,#1b1625 0%,#14111c 100%)!important;
+ color:#f7f1fc!important;
+ min-height:55vh;
+}
+#matchesScreen #chatWindow #messages [data-message-id]{
+ border:1px solid rgba(255,255,255,.10)!important;
+ box-shadow:0 5px 18px rgba(0,0,0,.28)!important;
+ color:#fff!important;
+}
+#matchesScreen #chatWindow #messages [data-message-id][data-own-message="true"]{
+ background:linear-gradient(135deg,#9650c2 0%,#7140a4 55%,#563786 100%)!important;
+ border-color:rgba(221,176,255,.30)!important;
+ color:#fff!important;
+}
+#matchesScreen #chatWindow #messages [data-message-id][data-own-message="false"]{
+ background:linear-gradient(145deg,#393047 0%,#292337 100%)!important;
+ border-color:rgba(198,169,222,.18)!important;
+ color:#fff!important;
+}
+#matchesScreen #chatWindow #messages [data-message-id] p{color:#fff!important}
+#matchesScreen #chatWindow #messages [data-message-id] small{color:#e0d1eb!important}
+#matchesScreen #chatWindow #chatComposer{
+ background:linear-gradient(120deg,#352744,#281f36)!important;
+ border:1px solid rgba(190,145,225,.42)!important;
+ box-shadow:0 7px 22px rgba(0,0,0,.30)!important;
+}
+#matchesScreen #chatWindow #message{
+ background:#211a2c!important;color:#fff!important;
+ border:1px solid rgba(190,145,225,.18)!important;
+}
+#matchesScreen #chatWindow #message::placeholder{color:#c0b1cd!important;opacity:1}
+</style>
 </body>
   </html>
   
