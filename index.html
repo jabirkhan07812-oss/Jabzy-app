@@ -2180,11 +2180,13 @@ style="display:none;padding:15px 12px 100px;">
 <div id="roomsAds" style="margin:12px 0;"></div>
 <!-- END ROOMS AD -->
 
-  <div style="
+  <div id="roomsActionButtons" style="
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:6px;
+    gap:8px;
     margin:15px 0;
+    width:100%;
+    box-sizing:border-box;
   ">
 
     <button id="createLiveRoomButton" onclick="createLiveRoom()"
@@ -10719,6 +10721,38 @@ body.light-theme #createLiveRoomCard input,body.light-theme #createLiveRoomCard 
 body.light-theme #createLiveRoomCard input::placeholder{color:#897b93!important;}
 body.light-theme #createLiveRoomCard option{background:#fff!important;color:#30233b!important;}
 body.light-theme #createLiveRoomCard #cancelRoomCreate{background:#eee7f3!important;color:#493653!important;}
+</style>
+
+<style id="jabzy-rooms-create-button-size-fix">
+#roomsScreen #roomsActionButtons{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;align-items:stretch!important}
+#roomsScreen #roomsActionButtons>button{
+ width:100%!important;min-width:0!important;min-height:72px!important;height:72px!important;
+ margin:0!important;padding:8px 4px!important;box-sizing:border-box!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ border-radius:14px!important;overflow:visible!important;white-space:normal!important;
+ font-size:12px!important;font-weight:800!important;line-height:1.25!important;
+}
+#roomsScreen #roomsActionButtons #createLiveRoomButton{
+ background:linear-gradient(135deg,#ff55a8 0%,#a45bea 100%)!important;
+ border:1px solid rgba(255,255,255,.24)!important;
+ box-shadow:0 5px 15px rgba(164,91,234,.28)!important;
+}
+#roomsScreen #roomsActionButtons #createLiveRoomButton span:first-child{font-size:23px!important;line-height:24px!important}
+#roomsScreen #roomsActionButtons #createLiveRoomButton span:last-child{font-size:12px!important;line-height:16px!important;white-space:normal!important}
+#roomsScreen #roomsActionButtons #liveRoomsTab,#roomsScreen #roomsActionButtons #privateRoomsTab{
+ background:linear-gradient(145deg,#38264b,#2b2039)!important;color:#fff!important;
+ border:1px solid #684b7c!important;box-shadow:0 4px 12px rgba(0,0,0,.16)!important;
+}
+body.light-theme #roomsScreen #roomsActionButtons #liveRoomsTab,
+body.light-theme #roomsScreen #roomsActionButtons #privateRoomsTab{
+ background:linear-gradient(145deg,#fff,#f1e8f7)!important;color:#493653!important;
+ border:1px solid #dfd1e9!important;box-shadow:0 4px 12px rgba(50,25,70,.08)!important;
+}
+@media(max-width:360px){
+ #roomsScreen #roomsActionButtons{gap:6px!important}
+ #roomsScreen #roomsActionButtons>button{font-size:11px!important;padding:7px 2px!important}
+ #roomsScreen #roomsActionButtons #createLiveRoomButton span:last-child{font-size:11px!important}
+}
 </style>
 </body>
   </html>
