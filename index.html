@@ -2418,6 +2418,27 @@ box-sizing:border-box;
 
 
 
+<!-- ROOM GIFT PICKER -->
+<div id="roomGiftPicker" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(8,5,14,.88);padding:18px;overflow-y:auto;color:white;">
+ <div style="max-width:440px;margin:12vh auto 0;background:linear-gradient(145deg,#302044,#160f22);border:1px solid #8d58b4;border-radius:22px;padding:18px;box-shadow:0 18px 60px #0009;">
+  <div style="display:flex;align-items:center;justify-content:space-between;"><b style="font-size:19px;">🎁 Send a Gift</b><button onclick="closeRoomGift()" style="width:34px;margin:0;padding:6px;">✕</button></div>
+  <div id="roomGiftBalance" style="margin:10px 0 14px;color:#f4d58a;">🪙 Coins: loading…</div>
+  <label style="display:block;margin:8px 0 5px;">Gift kisko bhejna hai?</label>
+  <select id="roomGiftRecipient" style="width:100%;padding:12px;border-radius:12px;background:#21152f;color:white;border:1px solid #68447d;"><option value="">Choose room member</option></select>
+  <div id="roomGiftChoices" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;">
+   <button type="button" data-gift="rose" onclick="selectRoomGift('rose')" style="margin:0;padding:12px;background:#402448;">🌹<br>Rose<br><small>10 Coins</small></button>
+   <button type="button" data-gift="heart" onclick="selectRoomGift('heart')" style="margin:0;padding:12px;background:#402448;">❤️<br>Heart<br><small>25 Coins</small></button>
+   <button type="button" data-gift="teddy" onclick="selectRoomGift('teddy')" style="margin:0;padding:12px;background:#402448;">🧸<br>Teddy<br><small>50 Coins</small></button>
+   <button type="button" data-gift="crown" onclick="selectRoomGift('crown')" style="margin:0;padding:12px;background:#402448;">👑<br>Crown<br><small>100 Coins</small></button>
+  </div>
+  <div id="roomGiftStatus" aria-live="polite" style="min-height:22px;margin-top:12px;font-size:12px;color:#f6d6ff;"></div>
+  <button id="roomGiftSendButton" onclick="sendRoomGift()" disabled style="width:100%;margin:8px 0 0;padding:13px;background:linear-gradient(90deg,#a45bea,#e14c9a);">Send Gift 🎁</button>
+ </div>
+</div>
+<div id="roomGiftAnimation" style="display:none;position:fixed;inset:0;z-index:10030;pointer-events:none;align-items:center;justify-content:center;background:#12091d99;">
+ <div id="roomGiftAnimationContent" style="text-align:center;font-size:26px;font-weight:bold;text-shadow:0 3px 15px #000;padding:24px;"></div>
+</div>
+
 <div id="dailyRewardsScreen" role="dialog" aria-modal="true" aria-label="Daily Rewards">
   <div class="daily-rewards-shell">
     <div class="daily-rewards-top">
@@ -8161,6 +8182,7 @@ roomMembersChannel = db
   })
   .subscribe();
 
+  await setupRoomGiftsRealtime();
   await startRoomVoice();
 }
 
@@ -8171,6 +8193,7 @@ function minimizeJoinedRoom(){
 }
 
   async function leaveJoinedRoom(){
+  if(roomGiftsChannel){await db.removeChannel(roomGiftsChannel);roomGiftsChannel=null;}
   if(roomChatChannel){
   await db.removeChannel(roomChatChannel);
   roomChatChannel = null;
@@ -10275,6 +10298,80 @@ function handleJabzyAndroidBack(){
   });
   window.addEventListener("pageshow",addBackGuard);
 })();;
+
+let selectedRoomGift = null;
+let roomGiftsChannel = null;
+const ROOM_GIFT_CATALOG = {
+ rose:{name:"Rose",emoji:"🌹",cost:10},
+ heart:{name:"Heart",emoji:"❤️",cost:25},
+ teddy:{name:"Teddy",emoji:"🧸",cost:50},
+ crown:{name:"Crown",emoji:"👑",cost:100}
+};
+async function openRoomGift(){
+ if(!currentJoinedRoom || !me?.id){alert("Pehle Room join karein.");return;}
+ const picker=document.getElementById("roomGiftPicker");
+ const recipient=document.getElementById("roomGiftRecipient");
+ const status=document.getElementById("roomGiftStatus");
+ const send=document.getElementById("roomGiftSendButton");
+ if(!picker||!recipient)return;
+ selectedRoomGift=null;send.disabled=true;status.textContent="Room members load ho rahe hain…";
+ recipient.innerHTML='<option value="">Choose room member</option>';
+ picker.style.display="block";
+ const [{data:members,error:memberError},{data:wallet,error:walletError}]=await Promise.all([
+  db.from("live_room_members").select("user_id").eq("room_id",currentJoinedRoom.id),
+  db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle()
+ ]);
+ if(memberError){status.textContent="Members load nahi hue: "+memberError.message;return;}
+ if(walletError){status.textContent="Coin balance load nahi hua. SQL setup check karein.";return;}
+ const ids=[...new Set([currentJoinedRoom.created_by,...(members||[]).map(x=>x.user_id)])].filter(id=>id!==me.id);
+ const {data:profiles,error}=ids.length?await db.from("profiles").select("id,username").in("id",ids):{data:[],error:null};
+ if(error){status.textContent="Members load nahi hue: "+error.message;return;}
+ (profiles||[]).forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent="@"+(p.username||"Member");recipient.appendChild(o);});
+ document.getElementById("roomGiftBalance").textContent="🪙 Coins: "+Number(wallet?.balance||0);
+ if(!ids.length)status.textContent="Gift bhejne ke liye Room mein doosra member hona chahiye.";
+ else status.textContent="Gift chunein aur member select karein.";
+}
+function closeRoomGift(){document.getElementById("roomGiftPicker").style.display="none";}
+function selectRoomGift(key){
+ if(!ROOM_GIFT_CATALOG[key])return;
+ selectedRoomGift=key;
+ document.querySelectorAll("#roomGiftChoices button").forEach(b=>{b.style.outline=b.dataset.gift===key?"2px solid #ffd166":"none";});
+ document.getElementById("roomGiftSendButton").disabled=false;
+}
+async function sendRoomGift(){
+ const recipient=document.getElementById("roomGiftRecipient").value;
+ const status=document.getElementById("roomGiftStatus");
+ const btn=document.getElementById("roomGiftSendButton");
+ if(!recipient||!selectedRoomGift){status.textContent="Member aur Gift dono select karein.";return;}
+ const gift=ROOM_GIFT_CATALOG[selectedRoomGift];
+ btn.disabled=true;status.textContent="Gift bheja ja raha hai…";
+ const {data,error}=await db.rpc("send_room_gift",{p_room_id:currentJoinedRoom.id,p_recipient_id:recipient,p_gift_code:selectedRoomGift});
+ if(error){status.textContent=error.message.includes("INSUFFICIENT_COINS")?"Aapke paas enough Coins nahi hain.":error.message;btn.disabled=false;return;}
+ const bal=await db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle();
+ if(!bal.error)document.getElementById("roomGiftBalance").textContent="🪙 Coins: "+Number(bal.data?.balance||0);
+ status.textContent=gift.emoji+" Gift successfully sent!";
+ btn.disabled=false;
+ setTimeout(closeRoomGift,900);
+}
+function showRoomGiftAnimation(row){
+ const gift=ROOM_GIFT_CATALOG[row.gift_code];if(!gift)return;
+ const box=document.getElementById("roomGiftAnimation"),content=document.getElementById("roomGiftAnimationContent");
+ if(!box||!content)return;
+ content.textContent=gift.emoji+" "+(row.sender_name||"Someone")+" sent a "+gift.name+"!";
+ box.style.display="flex";
+ setTimeout(()=>{box.style.display="none";},2800);
+}
+async function setupRoomGiftsRealtime(){
+ if(roomGiftsChannel){await db.removeChannel(roomGiftsChannel);roomGiftsChannel=null;}
+ if(!currentJoinedRoom)return;
+ roomGiftsChannel=db.channel("room-gifts-"+currentJoinedRoom.id)
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_gifts",filter:"room_id=eq."+currentJoinedRoom.id},async payload=>{
+   const gift=payload.new;
+   if(gift.recipient_id!==me?.id)return;
+   const {data}=await db.from("profiles").select("username").eq("id",gift.sender_id).maybeSingle();
+   showRoomGiftAnimation({...gift,sender_name:data?.username||"A room member"});
+  }).subscribe();
+}
 
 async function loadDailyRewardsWallet(){
   const balanceEl=document.getElementById("dailyRewardsCoinBalance");
