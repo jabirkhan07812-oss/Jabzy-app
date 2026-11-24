@@ -3982,60 +3982,73 @@ document.getElementById("myFollowing").innerText=following||0;
 
 async function loadFriendRequests(){
   const box=document.getElementById("friendRequestsList");
-  box.innerText="Loading...";
-
-  const {data:requests,error}=await db
-    .from("friend_requests")
-    .select("id,sender_id,created_at")
-    .eq("receiver_id",me.id)
-    .eq("status","pending")
-    .order("created_at",{ascending:false});
-
-  if(error){
-    box.innerText=error.message;
-    return;
+  if(!box||!me)return;
+  box.innerHTML='<div class="jabzy-friend-loading">Loading friend requests...</div>';
+  try{
+    const {data:requests,error}=await db.from("friend_requests")
+      .select("id,sender_id,created_at")
+      .eq("receiver_id",me.id)
+      .eq("status","pending")
+      .order("created_at",{ascending:false});
+    if(error)throw error;
+    const tab=document.getElementById("friendsRequestsTab");
+    if(tab)tab.textContent=requests&&requests.length?"Requests ("+requests.length+")":"Requests";
+    box.replaceChildren();
+    if(!requests||requests.length===0){
+      const empty=document.createElement("div");
+      empty.className="jabzy-friend-empty";
+      empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span>';
+      box.appendChild(empty);
+      return;
+    }
+    const ids=[...new Set(requests.map(r=>r.sender_id))];
+    const {data:profiles,error:profileError}=await db.from("profiles")
+      .select("id,username,photo_url,bio")
+      .in("id",ids);
+    if(profileError)throw profileError;
+    requests.forEach(request=>{
+      const person=(profiles||[]).find(p=>p.id===request.sender_id);
+      if(!person)return;
+      const card=document.createElement("article");
+      card.className="jabzy-friend-request-card";
+      const main=document.createElement("div");
+      main.className="jabzy-friend-request-main";
+      const avatar=document.createElement("button");
+      avatar.type="button";avatar.className="jabzy-friend-request-avatar";
+      if(person.photo_url){
+        const photo=document.createElement("img");photo.src=person.photo_url;photo.alt="";
+        avatar.appendChild(photo);
+      }else avatar.textContent=(person.username||"J").trim().charAt(0).toUpperCase();
+      avatar.onclick=()=>openPublicProfile(person.id);
+      const details=document.createElement("div");
+      details.className="jabzy-friend-request-details";
+      const name=document.createElement("button");
+      name.type="button";name.className="jabzy-friend-request-name";
+      name.textContent=person.username||"JABZY User";
+      name.onclick=()=>openPublicProfile(person.id);
+      const note=document.createElement("div");
+      note.className="jabzy-friend-request-note";
+      note.textContent="Wants to be your friend";
+      details.append(name,note);
+      main.append(avatar,details);
+      const actions=document.createElement("div");
+      actions.className="jabzy-friend-request-actions";
+      const confirm=document.createElement("button");
+      confirm.type="button";confirm.className="jabzy-friend-confirm";
+      confirm.textContent="Confirm";
+      confirm.onclick=async()=>{confirm.disabled=true;await respondFriendRequest(request.id,"accepted");};
+      const remove=document.createElement("button");
+      remove.type="button";remove.className="jabzy-friend-delete";
+      remove.textContent="Delete";
+      remove.onclick=async()=>{remove.disabled=true;await respondFriendRequest(request.id,"rejected");};
+      actions.append(confirm,remove);
+      card.append(main,actions);
+      box.appendChild(card);
+    });
+  }catch(error){
+    console.error("Friend requests load error:",error);
+    box.textContent=error.message||"Friend requests load nahi ho sake.";
   }
-
-  box.innerHTML="";
-
-  if(!requests || requests.length===0){
-    box.innerText="No new friend requests ❤️";
-    return;
-  }
-
-  const ids=requests.map(r=>r.sender_id);
-
-  const {data:profiles,error:profileError}=await db
-    .from("profiles")
-    .select("id,username,photo_url")
-    .in("id",ids);
-
-  if(profileError){
-    box.innerText=profileError.message;
-    return;
-  }
-
-  requests.forEach(request=>{
-    const person=(profiles||[]).find(p=>p.id===request.sender_id);
-    if(!person)return;
-
-    const row=document.createElement("div");
-    row.style.cssText="padding:12px;margin:10px 0;background:#ffffff12;border-radius:12px;";
-
-    const name=document.createElement("h3");
-    name.innerText=person.username||"JABZY User";
-
-    const accept=document.createElement("button");
-    accept.innerText="✓ Accept";
-    accept.onclick=()=>respondFriendRequest(request.id,"accepted");
-
-    const reject=document.createElement("button");
-    reject.innerText="✕ Reject";
-    reject.onclick=()=>respondFriendRequest(request.id,"rejected");
-
-    row.append(name,accept,reject);
-    box.appendChild(row);
-  });
 }
 
 async function respondFriendRequest(requestId,status){
@@ -10773,6 +10786,28 @@ body.light-theme #roomsScreen #roomsActionButtons #privateRoomsTab{
  #roomsScreen #roomsActionButtons #createLiveRoomButton span:last-child{font-size:11px!important}
 }
 </style>
+
+<style id="jabzy-facebook-style-friend-requests">
+#friendsScreen #friendRequestsList{display:flex;flex-direction:column;gap:11px}
+#friendsScreen .jabzy-friend-request-card{display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid rgba(160,120,190,.24);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));box-shadow:0 5px 18px rgba(0,0,0,.10)}
+#friendsScreen .jabzy-friend-request-main{display:flex;align-items:center;gap:12px;min-width:0}
+#friendsScreen .jabzy-friend-request-avatar{width:58px;height:58px;flex:0 0 58px;padding:0;margin:0;border:0;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#ff55a8,#a45bea);color:#fff;font-size:22px;font-weight:900}
+#friendsScreen .jabzy-friend-request-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+#friendsScreen .jabzy-friend-request-details{display:flex;flex-direction:column;gap:5px;min-width:0}
+#friendsScreen .jabzy-friend-request-name{padding:0;margin:0;background:none;border:0;color:inherit;text-align:left;font-size:16px;font-weight:850}
+#friendsScreen .jabzy-friend-request-note{font-size:12px;opacity:.72}
+#friendsScreen .jabzy-friend-request-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#friendsScreen .jabzy-friend-request-actions button{min-height:42px;margin:0;border:0;border-radius:10px;font-size:14px;font-weight:850}
+#friendsScreen .jabzy-friend-confirm{background:#1877f2!important;color:white!important}
+#friendsScreen .jabzy-friend-delete{background:rgba(145,145,155,.22)!important;color:inherit!important}
+#friendsScreen .jabzy-friend-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:35px 18px;text-align:center;border:1px dashed rgba(160,120,190,.35);border-radius:16px;opacity:.85}
+#friendsScreen .jabzy-friend-empty-icon{font-size:34px}
+#friendsScreen .jabzy-friend-empty span{font-size:12px;opacity:.72}
+#friendsScreen .jabzy-friend-loading{padding:20px;text-align:center;opacity:.7}
+body.light-theme #friendsScreen .jabzy-friend-request-card{background:linear-gradient(145deg,#fff,#f7f2fb);border-color:#e6d9ed;box-shadow:0 5px 18px rgba(50,25,70,.07);color:#30233b}
+body.light-theme #friendsScreen .jabzy-friend-delete{background:#e9e9ed!important;color:#303039!important}
+</style>
+
 </body>
   </html>
   
