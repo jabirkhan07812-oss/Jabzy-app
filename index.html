@@ -2220,6 +2220,7 @@ box-sizing:border-box;
     <input id="message" placeholder="Message..." oninput="updateTypingStatus()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
 
     <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
+    <button type="button" onclick="openChatGift()" title="Send a Gift" aria-label="Send a Gift" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:19px;">🎁</button>
 
     <button type="button" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">
 ➤</button>
@@ -2512,6 +2513,19 @@ box-sizing:border-box;
  <div id="roomGiftAnimationContent" style="text-align:center;font-size:26px;font-weight:bold;text-shadow:0 3px 15px #000;padding:24px;"></div>
 </div>
 
+<div id="chatGiftPicker" style="display:none;position:fixed;inset:0;z-index:10040;background:rgba(8,5,14,.88);padding:12px;overflow:hidden;color:white;align-items:center;justify-content:center;">
+ <div style="width:100%;max-width:440px;max-height:94dvh;margin:auto;background:linear-gradient(145deg,#302044,#160f22);border:1px solid #8d58b4;border-radius:22px;padding:16px;box-shadow:0 18px 60px #0009;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+   <div id="chatGiftBalance" style="margin:0;color:#f4d58a;background:rgba(244,213,138,.12);border:1px solid rgba(244,213,138,.3);border-radius:12px;padding:8px 11px;font-size:13px;font-weight:800;white-space:nowrap;">🪙 My Coins: loading…</div>
+   <b style="font-size:17px;flex:1;text-align:center;">🎁 Send a Gift</b>
+   <button onclick="closeChatGift()" style="width:34px;min-width:34px;margin:0;padding:6px;">✕</button>
+  </div>
+  <div id="chatGiftRecipientName" style="margin-top:10px;font-size:12px;color:#d9c5e8;text-align:center;"></div>
+  <div id="chatGiftChoices" style="margin-top:12px;min-height:0;max-height:58dvh;overflow-y:auto;overflow-x:hidden;padding:0 4px 8px 0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;"></div>
+  <div id="chatGiftStatus" aria-live="polite" style="min-height:22px;margin-top:10px;font-size:12px;color:#f6d6ff;"></div>
+  <button id="chatGiftSendButton" onclick="sendChatGift()" disabled style="width:100%;margin:8px 0 0;padding:13px;background:linear-gradient(90deg,#a45bea,#e14c9a);">Send Gift 🎁</button>
+ </div>
+</div>
 <div id="dailyRewardsScreen" role="dialog" aria-modal="true" aria-label="Daily Rewards">
   <div class="daily-rewards-shell">
     <div class="daily-rewards-top">
@@ -10536,6 +10550,47 @@ function showRoomGiftAnimation(row){
  content.append(burst,emoji,title,sender,value);box.style.display="flex";
  if(window.roomGiftAnimationTimer)clearTimeout(window.roomGiftAnimationTimer);
  window.roomGiftAnimationTimer=setTimeout(()=>{box.style.display="none";content.replaceChildren();},duration);
+}
+let selectedChatGift = null;
+function renderChatGiftChoices(){
+ const box=document.getElementById("chatGiftChoices");if(!box)return;
+ const categories=[...new Set(Object.values(ROOM_GIFT_CATALOG).map(g=>g.category))];
+ box.innerHTML=categories.map(category=>'<section class="room-gift-category"><div class="room-gift-category-title">'+category+'</div><div class="room-gift-category-grid">'+Object.entries(ROOM_GIFT_CATALOG).filter(([,g])=>g.category===category).map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectChatGift(\''+key+'\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div></section>').join("");
+}
+async function openChatGift(){
+ if(!me?.id||!selected){appStatus("Pehle chat open karein.");return;}
+ const picker=document.getElementById("chatGiftPicker");
+ const status=document.getElementById("chatGiftStatus");
+ const send=document.getElementById("chatGiftSendButton");
+ selectedChatGift=null;send.disabled=true;status.textContent="Wallet load ho raha hai…";
+ renderChatGiftChoices();
+ document.getElementById("chatGiftRecipientName").textContent="Gift recipient: "+(document.getElementById("chatTitle")?.textContent||"Chat");
+ picker.style.display="flex";
+ const {data:wallet,error}=await db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle();
+ if(error){status.textContent="Coin balance load nahi hua. SQL setup check karein.";return;}
+ document.getElementById("chatGiftBalance").textContent="🪙 My Coins: "+Number(wallet?.balance||0);
+ status.textContent="Gift chunein aur Send Gift dabayein.";
+}
+function closeChatGift(){document.getElementById("chatGiftPicker").style.display="none";}
+function selectChatGift(key){
+ if(!ROOM_GIFT_CATALOG[key])return;
+ selectedChatGift=key;
+ document.querySelectorAll("#chatGiftChoices button").forEach(b=>{b.style.outline=b.dataset.gift===key?"2px solid #ffd166":"none";});
+ document.getElementById("chatGiftSendButton").disabled=false;
+}
+async function sendChatGift(){
+ const status=document.getElementById("chatGiftStatus");
+ const btn=document.getElementById("chatGiftSendButton");
+ if(!selected||!selectedChatGift){status.textContent="Gift select karein.";return;}
+ const gift=ROOM_GIFT_CATALOG[selectedChatGift];
+ btn.disabled=true;status.textContent="Gift bheja ja raha hai…";
+ const {data,error}=await db.rpc("send_chat_gift",{p_recipient_id:selected,p_gift_code:selectedChatGift});
+ if(error){status.textContent=error.message.includes("INSUFFICIENT_COINS")?"Aapke paas enough Coins nahi hain.":error.message;btn.disabled=false;return;}
+ const bal=await db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle();
+ if(!bal.error)document.getElementById("chatGiftBalance").textContent="🪙 My Coins: "+Number(bal.data?.balance||0);
+ status.textContent=gift.emoji+" Gift successfully sent!";
+ btn.disabled=false;
+ setTimeout(closeChatGift,900);
 }
 async function setupRoomGiftsRealtime(){
  if(roomGiftsChannel){await db.removeChannel(roomGiftsChannel);roomGiftsChannel=null;}
