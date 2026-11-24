@@ -1323,6 +1323,28 @@ body.light-theme #discoverScreen #swipeCard img{
 @media(max-width:360px){#dailyRewardsScreen{padding:12px 10px}#dailyRewardsScreen .daily-reward-tile{padding:11px 9px;min-height:138px}#dailyRewardsScreen .daily-reward-name{font-size:13px}}
 
 .room-gift-category{margin:0 0 13px}.room-gift-category-title{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#e9b7ff;margin:0 0 8px;padding:0 2px}.room-gift-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.room-gift-category-grid button{margin:0;min-width:0;min-height:94px;padding:9px 4px;background:linear-gradient(145deg,#402448,#251a37);border:1px solid #76558c;border-radius:13px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.room-gift-category-grid button .room-gift-emoji{font-size:25px;line-height:1.2}.room-gift-category-grid button .room-gift-name{font-size:11px;font-weight:700;line-height:1.2;text-align:center}.room-gift-category-grid button small{font-size:10px;color:#f4d58a}@media(max-width:360px){.room-gift-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Gift effects scale by coin value */
+#roomGiftAnimation.room-gift-show{background:radial-gradient(circle at center,#32105ddd,#100719ee 72%);backdrop-filter:blur(3px);overflow:hidden}
+.room-gift-animation-content{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;width:min(92vw,520px);padding:28px 18px!important;border-radius:28px;background:linear-gradient(145deg,#392052ee,#140d24f5);border:1px solid #d98cff;box-shadow:0 0 28px #c65cff88,0 0 90px #8c35ff55;color:#fff;animation:jabzyGiftIn .55s cubic-bezier(.16,1.4,.4,1) both}
+.room-gift-animation-emoji{font-size:clamp(58px,17vw,100px);line-height:1.2;filter:drop-shadow(0 0 18px #ffb9ff);animation:jabzyGiftFloat 1.3s ease-in-out infinite alternate}
+.room-gift-animation-title{font-size:clamp(22px,6vw,34px);font-weight:900;color:#ffe6a8;text-shadow:0 0 16px #ff8bdb}
+.room-gift-animation-sender{font-size:15px;color:#f4dfff}.room-gift-animation-value{font-size:12px;font-weight:800;letter-spacing:1.5px;color:#f8d77b}
+.room-gift-burst{position:absolute;inset:0;pointer-events:none}.room-gift-burst span{position:absolute;left:50%;top:45%;font-size:22px;color:#ffe88a;text-shadow:0 0 12px #ff8bdc;animation:jabzyGiftBurst 1.5s ease-out infinite}
+.room-gift-burst span:nth-child(3n){color:#83f5ff;animation-delay:.18s}.room-gift-burst span:nth-child(3n + 1){color:#ff91d9;animation-delay:.35s}
+.room-gift-burst span:nth-child(1){--gx:-150px;--gy:-110px}.room-gift-burst span:nth-child(2){--gx:140px;--gy:-125px}.room-gift-burst span:nth-child(3){--gx:-170px;--gy:40px}.room-gift-burst span:nth-child(4){--gx:165px;--gy:55px}.room-gift-burst span:nth-child(5){--gx:-90px;--gy:145px}.room-gift-burst span:nth-child(6){--gx:95px;--gy:145px}
+.room-gift-big .room-gift-animation-content{box-shadow:0 0 45px #ffb52caa,0 0 110px #ff5d9c77;border-color:#ffd77a;animation:jabzyGiftIn .6s cubic-bezier(.16,1.4,.4,1) both,jabzyGiftGlow 1.2s ease-in-out infinite alternate}.room-gift-big .room-gift-animation-emoji{font-size:clamp(82px,23vw,130px)}
+.room-gift-grand .room-gift-animation-content{width:min(96vw,570px);min-height:55vh;background:radial-gradient(circle,#69308ddd,#1b0b2cf5 68%);border:2px solid #ffe18b;box-shadow:0 0 55px #ffbd42,0 0 150px #e94cffaa;animation:jabzyGiftIn .7s cubic-bezier(.16,1.4,.4,1) both,jabzyGiftGlow 1s ease-in-out infinite alternate}
+.room-gift-grand .room-gift-animation-emoji{font-size:clamp(110px,32vw,180px);animation:jabzyGiftFloat .8s ease-in-out infinite alternate,jabzyGiftSpin 5s linear infinite}.room-gift-grand .room-gift-burst span{font-size:30px;animation-duration:1s}
+.room-gift-mega .room-gift-animation-content{width:100vw;min-height:100dvh;max-width:none;justify-content:center;border:0;border-radius:0;background:radial-gradient(circle at center,#7c1f91dd,#280b4aee 45%,#080412f5 100%);box-shadow:inset 0 0 90px #ffcf5c99,0 0 100px #ff45d4}
+.room-gift-mega .room-gift-animation-emoji{font-size:clamp(150px,42vw,240px);animation:jabzyGiftFloat .55s ease-in-out infinite alternate,jabzyGiftSpin 7s linear infinite;filter:drop-shadow(0 0 35px #ffe47a)}
+.room-gift-mega .room-gift-animation-title{font-size:clamp(34px,9vw,56px);color:#fff0a8;text-shadow:0 0 25px #ff5de4,0 0 45px #ffcf55}.room-gift-mega .room-gift-burst span{font-size:38px;animation-duration:.75s}
+@keyframes jabzyGiftIn{0%{opacity:0;transform:scale(.25) rotate(-9deg)}70%{transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:scale(1)}}
+@keyframes jabzyGiftFloat{from{transform:translateY(8px) scale(.96)}to{transform:translateY(-12px) scale(1.06)}}
+@keyframes jabzyGiftBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}35%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--gx,120px)),calc(-50% + var(--gy,-120px))) scale(1.5) rotate(180deg)}}
+@keyframes jabzyGiftGlow{from{filter:brightness(1);box-shadow:0 0 25px #ffbd42aa}to{filter:brightness(1.25);box-shadow:0 0 75px #ffbd42,0 0 150px #e94cffaa}}
+@keyframes jabzyGiftSpin{to{rotate:360deg}}
+@media(prefers-reduced-motion:reduce){.room-gift-animation-content,.room-gift-animation-emoji,.room-gift-burst span{animation:none!important}}
+
 </style>
   <link rel="icon" type="image/svg+xml" href="./jabzy-app-icon.svg">
   <link rel="apple-touch-icon" href="./jabzy-app-icon.svg">
@@ -10499,9 +10521,18 @@ function showRoomGiftAnimation(row){
  const gift=ROOM_GIFT_CATALOG[row.gift_code];if(!gift)return;
  const box=document.getElementById("roomGiftAnimation"),content=document.getElementById("roomGiftAnimationContent");
  if(!box||!content)return;
- content.textContent=gift.emoji+" "+(row.sender_name||"Someone")+" sent a "+gift.name+"!";
- box.style.display="flex";
- setTimeout(()=>{box.style.display="none";},2800);
+ const cost=Number(gift.cost)||0,tier=cost>=10000?"mega":cost>=1000?"grand":cost>=100?"big":"small";
+ const duration=tier==="mega"?7600:tier==="grand"?5600:tier==="big"?3900:2600;
+ box.className="room-gift-show room-gift-"+tier;content.className="room-gift-animation-content room-gift-"+tier;content.replaceChildren();
+ const burst=document.createElement("div");burst.className="room-gift-burst";
+ for(let i=0;i<(tier==="mega"?28:tier==="grand"?20:tier==="big"?12:6);i++){const s=document.createElement("span");s.textContent=i%3===0?"✦":i%3===1?"✧":"•";burst.appendChild(s);}
+ const emoji=document.createElement("div");emoji.className="room-gift-animation-emoji";emoji.textContent=gift.emoji;
+ const title=document.createElement("div");title.className="room-gift-animation-title";title.textContent=gift.name;
+ const sender=document.createElement("div");sender.className="room-gift-animation-sender";sender.textContent=(row.sender_name||"Someone")+" sent a gift!";
+ const value=document.createElement("div");value.className="room-gift-animation-value";value.textContent=cost.toLocaleString("en-IN")+" Coins";
+ content.append(burst,emoji,title,sender,value);box.style.display="flex";
+ if(window.roomGiftAnimationTimer)clearTimeout(window.roomGiftAnimationTimer);
+ window.roomGiftAnimationTimer=setTimeout(()=>{box.style.display="none";content.replaceChildren();},duration);
 }
 async function setupRoomGiftsRealtime(){
  if(roomGiftsChannel){await db.removeChannel(roomGiftsChannel);roomGiftsChannel=null;}
@@ -10509,7 +10540,6 @@ async function setupRoomGiftsRealtime(){
  roomGiftsChannel=db.channel("room-gifts-"+currentJoinedRoom.id)
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_gifts",filter:"room_id=eq."+currentJoinedRoom.id},async payload=>{
    const gift=payload.new;
-   if(gift.recipient_id!==me?.id)return;
    const {data}=await db.from("profiles").select("username").eq("id",gift.sender_id).maybeSingle();
    showRoomGiftAnimation({...gift,sender_name:data?.username||"A room member"});
   }).subscribe();
