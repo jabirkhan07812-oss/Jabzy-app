@@ -6,7 +6,7 @@ create table if not exists public.room_gifts (
   room_id uuid not null references public.live_rooms(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
   recipient_id uuid not null references auth.users(id) on delete cascade,
-  gift_code text not null check (gift_code in ('rose','heart','teddy','crown')),
+  gift_code text not null check (gift_code in ('rose','heart','teddy','crown','diamond','trophy','super_car','royal_crown','private_jet','rocket')),
   coin_cost integer not null check (coin_cost > 0),
   created_at timestamptz not null default now(),
   constraint room_gifts_no_self_gift check (sender_id <> recipient_id)
@@ -65,6 +65,12 @@ begin
     when 'heart' then 25
     when 'teddy' then 50
     when 'crown' then 100
+    when 'diamond' then 250
+    when 'trophy' then 500
+    when 'super_car' then 1000
+    when 'royal_crown' then 2000
+    when 'private_jet' then 5000
+    when 'rocket' then 10000
     else null
   end;
   if v_cost is null then raise exception 'INVALID_GIFT'; end if;
