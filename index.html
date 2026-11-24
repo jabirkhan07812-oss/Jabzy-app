@@ -6439,7 +6439,20 @@ p.style.whiteSpace="pre-wrap";
 p.style.overflowWrap="anywhere";
 p.textContent="";
 
-if(m.message.startsWith("PHOTO:")){
+if(m.message.startsWith("GIFT:")){
+ const gift=ROOM_GIFT_CATALOG[m.message.slice(5)];
+ if(gift){
+  p.textContent=gift.emoji+" "+gift.name+" Gift\n🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
+  p.style.padding="10px 13px";
+  p.style.margin="2px 0";
+  p.style.borderRadius="13px";
+  p.style.background="linear-gradient(135deg,rgba(164,91,234,.28),rgba(225,76,154,.22))";
+  p.style.border="1px solid rgba(222,157,255,.35)";
+  p.style.color="#ffe4a8";
+  p.style.fontWeight="700";
+ }else{p.textContent="🎁 Gift";}
+ row.appendChild(p);
+}else if(m.message.startsWith("PHOTO:")){
 p.textContent+="📷 Photo";
 row.appendChild(p);
 
