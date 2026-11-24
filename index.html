@@ -10633,6 +10633,66 @@ body:not(.light-theme) #matchesScreen #chatWindow #chatOptionsMenu{background:#2
 }
 #matchesScreen #chatWindow #message::placeholder{color:#c0b1cd!important;opacity:1}
 </style>
+
+<style id="jabzy-chat-theme-follow-system">
+/* Light appearance */
+body.light-theme #matchesScreen #chatWindow{
+ background:linear-gradient(160deg,#fff 0%,#f7f1fb 100%)!important;
+ color:#30233b!important;
+}
+body.light-theme #matchesScreen #chatWindow>div:first-child{
+ background:linear-gradient(110deg,#fff,#f3eafa)!important;
+ border-bottom:1px solid #e4d6ed!important;
+ box-shadow:0 5px 18px rgba(50,25,70,.08)!important;
+}
+body.light-theme #matchesScreen #chatWindow #chatTitle{color:#30213c!important}
+body.light-theme #matchesScreen #chatWindow #chatProfileInfo{color:#766581!important}
+body.light-theme #matchesScreen #chatWindow #typingStatus{color:#a34b91!important}
+body.light-theme #matchesScreen #chatWindow #messages{
+ background:linear-gradient(180deg,#fff 0%,#f8f4fb 100%)!important;
+ color:#30233b!important;
+}
+body.light-theme #matchesScreen #chatWindow #messages [data-message-id]{
+ border:1px solid #e8dced!important;
+ box-shadow:0 4px 13px rgba(55,30,75,.08)!important;
+ color:#30233b!important;
+}
+body.light-theme #matchesScreen #chatWindow #messages [data-message-id][data-own-message="true"]{
+ background:linear-gradient(135deg,#d9b9f0,#c7a3e7)!important;
+ border-color:#c49bdd!important;color:#352344!important;
+}
+body.light-theme #matchesScreen #chatWindow #messages [data-message-id][data-own-message="false"]{
+ background:linear-gradient(145deg,#fff,#f0e8f6)!important;
+ border-color:#e1d2e9!important;color:#352344!important;
+}
+body.light-theme #matchesScreen #chatWindow #messages [data-message-id] p{color:#352344!important}
+body.light-theme #matchesScreen #chatWindow #messages [data-message-id] small{color:#776482!important}
+body.light-theme #matchesScreen #chatWindow #chatComposer{
+ background:linear-gradient(120deg,#fff,#f3eafa)!important;
+ border:1px solid #ddc9e9!important;
+ box-shadow:0 5px 17px rgba(55,30,75,.10)!important;
+}
+body.light-theme #matchesScreen #chatWindow #message{
+ background:#fff!important;color:#30233b!important;border:1px solid #e5d8ed!important;
+}
+body.light-theme #matchesScreen #chatWindow #message::placeholder{color:#897b93!important;opacity:1}
+body.light-theme #matchesScreen #chatWindow #chatComposer label{color:#8655a4!important}
+body.light-theme #matchesScreen #chatWindow #chatOptionsMenu{
+ background:#fff!important;color:#30233b!important;border-color:#e1d2e9!important;
+}
+body.light-theme #matchesScreen #chatWindow .chat-menu-item{color:#39264a!important;border-bottom-color:#eee5f3!important}
+
+/* Dark appearance */
+body:not(.light-theme) #matchesScreen #chatWindow #messages{
+ background:radial-gradient(ellipse at 50% 0%,rgba(117,70,151,.18),transparent 55%),linear-gradient(180deg,#1b1625 0%,#14111c 100%)!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id][data-own-message="true"]{
+ background:linear-gradient(135deg,#9650c2,#563786)!important;color:#fff!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id][data-own-message="false"]{
+ background:linear-gradient(145deg,#393047,#292337)!important;color:#fff!important;
+}
+</style>
 </body>
   </html>
   
