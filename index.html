@@ -5629,6 +5629,15 @@ row.addEventListener("contextmenu",e=>{
 });
 
 
+// Realtime updates can trigger overlapping loads. Check the live DOM
+// immediately before append so the same database message is never rendered twice.
+if(incremental && Array.from(box.children).some(existing=>
+  existing.dataset.messageId===String(m.id)
+)){
+  actionMenu.remove();
+  continue;
+}
+
 fragment.appendChild(row);
       }
 
