@@ -5853,7 +5853,14 @@ if(error)appStatus(error.message);
 }
   
 async function sendChatPhoto(){
-  if(!me || !selected)return;
+  if(!me){
+    appStatus("Login session nahi mili. Dobara login karein.");
+    return;
+  }
+  if(!selected){
+    appStatus("Chat user select nahi hai. Chat list se dobara chat kholein.");
+    return;
+  }
 
   const input=document.getElementById("chatPhotoFile");
   const files=Array.from(input.files || []);
