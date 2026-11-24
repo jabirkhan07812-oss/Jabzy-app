@@ -6377,6 +6377,9 @@ const messageMap=new Map(
 );
 
 const messageIds=(data||[]).map(x=>x.id);
+const giftSenderIds=[...new Set((data||[]).filter(x=>String(x.message||"").startsWith("GIFT:")).map(x=>x.sender_id).filter(Boolean))];
+const {data:giftSenderProfiles}=giftSenderIds.length?await db.from("profiles").select("id,username").in("id",giftSenderIds):{data:[],error:null};
+const giftSenderNames=new Map((giftSenderProfiles||[]).map(x=>[String(x.id),x.username||"JABZY Member"]));
 const [reactionResult,starResult,pinResult,inviteResult]=await Promise.all([
   messageIds.length
     ? db.from("chat_message_reactions").select("*").in("message_id",messageIds)
@@ -6461,18 +6464,26 @@ p.style.overflowWrap="anywhere";
 p.textContent="";
 
 if(m.message.startsWith("GIFT:")){
- const gift=ROOM_GIFT_CATALOG[m.message.slice(5)];
+ const giftParts=m.message.slice(5).split("|");
+ const gift=ROOM_GIFT_CATALOG[giftParts[0]];
  if(gift){
-  p.textContent=gift.emoji+" "+gift.name+" Gift\n🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
-  p.style.padding="10px 13px";
-  p.style.margin="2px 0";
-  p.style.borderRadius="13px";
-  p.style.background="linear-gradient(135deg,rgba(164,91,234,.28),rgba(225,76,154,.22))";
-  p.style.border="1px solid rgba(222,157,255,.35)";
-  p.style.color="#ffe4a8";
-  p.style.fontWeight="700";
- }else{p.textContent="🎁 Gift";}
- row.appendChild(p);
+  const senderName=own?"You":giftSenderNames.get(String(m.sender_id))||"JABZY Member";
+  const giftCard=document.createElement("div");
+  giftCard.className="jabzy-chat-gift-card";
+  giftCard.setAttribute("role","button");
+  giftCard.setAttribute("tabindex","0");
+  giftCard.setAttribute("aria-label","Open "+gift.name+" gift celebration");
+  const art=document.createElement("div");art.className="jabzy-chat-gift-art";art.textContent=gift.emoji;
+  const sender=document.createElement("div");sender.className="jabzy-chat-gift-sender";sender.textContent=senderName+" sent you a Gift";
+  const giftName=document.createElement("div");giftName.className="jabzy-chat-gift-name";giftName.textContent=gift.name;
+  const price=document.createElement("div");price.className="jabzy-chat-gift-price";price.textContent="🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
+  giftCard.append(art,sender,giftName,price);
+  if(giftParts[1]){const note=document.createElement("div");note.className="jabzy-chat-gift-note";note.textContent="“"+giftParts.slice(1).join("|")+"”";giftCard.appendChild(note);}
+  const reveal=()=>showChatGiftAnimation({gift_code:giftParts[0],sender_name:senderName});
+  giftCard.addEventListener("click",e=>{e.stopPropagation();reveal();});
+  giftCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal();}});
+  row.appendChild(giftCard);
+ }else{p.textContent="🎁 Gift";row.appendChild(p);}
 }else if(m.message.startsWith("PHOTO:")){
 p.textContent+="📷 Photo";
 row.appendChild(p);
@@ -10634,6 +10645,10 @@ async function sendChatGift(){
  btn.disabled=false;
  setTimeout(closeChatGift,900);
 }
+function showChatGiftAnimation(row){
+ const gift=ROOM_GIFT_CATALOG[row.gift_code];if(!gift)return;
+ showRoomGiftAnimation(row);
+}
 async function setupRoomGiftsRealtime(){
  if(roomGiftsChannel){await db.removeChannel(roomGiftsChannel);roomGiftsChannel=null;}
  if(!currentJoinedRoom)return;
@@ -11304,6 +11319,19 @@ body.light-theme .jabzy-profile-topbar,body.light-theme #profileView .jabzy-prof
 #profileView .jabzy-profile-right{flex:1!important;min-width:0;}
 #profileView .jabzy-profile-summary #viewAge{margin:3px 0 0!important;}
 
+/* Premium gift cards inside chat; picker dimensions remain unchanged */
+.jabzy-chat-gift-card{width:min(220px,65vw);min-width:150px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 13px 11px;margin:2px 0;border-radius:17px;border:1px solid rgba(245,204,255,.55);background:radial-gradient(circle at 50% 5%,rgba(255,220,151,.24),transparent 38%),linear-gradient(145deg,#392052,#21142f 62%,#4a2356);box-shadow:0 5px 18px rgba(12,4,24,.34),inset 0 1px 0 rgba(255,255,255,.12);color:#fff;text-align:center;cursor:pointer;overflow:hidden;position:relative}
+.jabzy-chat-gift-card:before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,220,160,.18);border-radius:13px;pointer-events:none}
+.jabzy-chat-gift-art{width:100%;min-height:76px;display:grid;place-items:center;font-size:54px;line-height:1.2;filter:drop-shadow(0 5px 8px rgba(255,203,111,.38));text-shadow:0 0 18px rgba(255,207,120,.35);animation:jabzyGiftFloat 2.8s ease-in-out infinite}
+.jabzy-chat-gift-sender{font-size:11px;font-weight:750;color:#f7dfff;line-height:1.25}
+.jabzy-chat-gift-name{font-size:15px;font-weight:900;color:#ffe4a2;letter-spacing:.2px}
+.jabzy-chat-gift-price{font-size:11px;font-weight:850;color:#ffd56f;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.28);border-radius:20px;padding:4px 9px}
+.jabzy-chat-gift-note{font-size:11px;line-height:1.35;color:#fff0fb;overflow-wrap:anywhere}
+@keyframes jabzyGiftFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.035)}}
+body.light-theme .jabzy-chat-gift-card{background:radial-gradient(circle at 50% 5%,rgba(255,215,125,.3),transparent 38%),linear-gradient(145deg,#fff8e9,#f3e7ff 65%,#fce5f1);border-color:#d6b5e8;box-shadow:0 5px 17px #59346a22;color:#49305e}
+body.light-theme .jabzy-chat-gift-sender{color:#68447b}
+body.light-theme .jabzy-chat-gift-name{color:#80551b}
+body.light-theme .jabzy-chat-gift-note{color:#61476d}
 /* Compact premium gift picker: fixed header/categories, scroll only the gift cards */
 .gift-picker-overlay{display:none;position:fixed;inset:0;z-index:10040;padding:8px 10px max(26px,calc(env(safe-area-inset-bottom) + 18px));overflow:hidden;align-items:flex-end;justify-content:center;background:rgba(8,5,14,.28);color:var(--text-color,#fff);box-sizing:border-box}
 .room-gift-overlay{z-index:10020}
