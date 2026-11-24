@@ -6054,6 +6054,10 @@ if(!message)return;
 // cannot pass the guard while getBlockedIds() is still loading.
 chatSendInProgress=true;
 const sendButton=document.querySelector('button[onclick="sendMessage()"]');
+// Keep the message field focused so Android's keyboard stays open after Send.
+if(input && document.activeElement!==input){
+  input.focus({preventScroll:true});
+}
 if(sendButton)sendButton.disabled=true;
 
 try{
@@ -6079,7 +6083,9 @@ try{
 
   if(input.value.trim()===message)input.value="";
   cancelChatReply();
+  if(input)input.focus({preventScroll:true});
   await loadMessages();
+  if(input)input.focus({preventScroll:true});
 }catch(e){
   appStatus("ERROR: "+e.message);
   console.error(e);
