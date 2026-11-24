@@ -3082,6 +3082,7 @@ async function initHomePostComposer(){
   const {data,isAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:me.id});
   jabzyOfficialAdminSession=!isAdminError&&data===true;
   if(tools)tools.style.display=jabzyOfficialAdminSession?"flex":"none";
+  if(jabzyOfficialAdminSession)await loadHomePosts();
   if(avatar){
     const {data:profile}=await db.from("profiles").select("photo_url").eq("id",me.id).maybeSingle();
     if(profile?.photo_url){
@@ -3100,6 +3101,7 @@ function previewHomePostMedia(event){
     event.target.value="";appStatus("Sirf photo ya video select karein.");return;
   }
   name.textContent=file.name;
+  const captionBox=document.getElementById("homePostText");if(captionBox)captionBox.placeholder="Add a caption for your photo/video...";
   const url=URL.createObjectURL(file);
   const media=document.createElement(file.type.startsWith("image/")?"img":"video");
   media.src=url;if(media.tagName==="VIDEO"){media.controls=true;media.playsInline=true;}
@@ -3132,7 +3134,7 @@ async function handleHomePost(){
     }
     const {error}=await db.from("posts").insert({user_id:me.id,content,media_url:mediaUrl,media_type:mediaType});
     if(error)throw error;
-    textBox.value="";fileInput.value="";
+    textBox.value="";textBox.placeholder="What's on your mind?";fileInput.value="";
     document.getElementById("homePostPreview").replaceChildren();
     document.getElementById("homePostPreview").style.display="none";
     document.getElementById("homePostFileName").textContent="";
@@ -3208,6 +3210,37 @@ async function loadHomePosts(){
     shareButton.textContent="↗ Share";
     shareButton.onclick=()=>openPostShare(post);
     actions.append(likeButton,commentButton,shareButton);
+    if(jabzyOfficialAdminSession&&post.user_id===me.id){
+      const adminActions=document.createElement("div");
+      adminActions.style.cssText="display:flex;gap:8px;margin-top:8px;";
+      const editPostButton=document.createElement("button");
+      editPostButton.type="button";editPostButton.textContent="✏️ Edit Post";
+      editPostButton.style.cssText="flex:1;width:auto;margin:0;padding:9px;border-radius:12px;background:#3a2850;font-size:12px;";
+      editPostButton.onclick=async()=>{
+        const nextContent=window.prompt("Edit post caption:",post.content||"");
+        if(nextContent===null)return;
+        editPostButton.disabled=true;
+        const {error}=await db.from("posts").update({content:nextContent.trim()}).eq("id",post.id);
+        editPostButton.disabled=false;
+        if(error){appStatus("Post edit nahi ho payi: "+error.message);return;}
+        appStatus("Post updated successfully ❤️");
+        await loadHomePosts();
+      };
+      const deletePostButton=document.createElement("button");
+      deletePostButton.type="button";deletePostButton.textContent="🗑️ Delete Post";
+      deletePostButton.style.cssText="flex:1;width:auto;margin:0;padding:9px;border-radius:12px;background:#57283f;font-size:12px;";
+      deletePostButton.onclick=async()=>{
+        if(!window.confirm("Kya aap ye post delete karna chahte hain?"))return;
+        deletePostButton.disabled=true;
+        const {error}=await db.from("posts").delete().eq("id",post.id);
+        deletePostButton.disabled=false;
+        if(error){appStatus("Post delete nahi hui: "+error.message);return;}
+        appStatus("Post deleted successfully.");
+        await loadHomePosts();
+      };
+      adminActions.append(editPostButton,deletePostButton);
+      card.appendChild(adminActions);
+    }
     card.appendChild(actions);
 
     const commentArea=document.createElement("div");
