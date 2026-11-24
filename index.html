@@ -3204,14 +3204,19 @@ function backSignupStep1(){
 }
 
 async function signinWithGoogle(){
-  const {error}=await db.auth.signInWithOAuth({
-    provider:"google",
-    options:{
-      redirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/"
-    }
-  });
-
-  if(error) status(error.message);
+ const button=Array.from(document.querySelectorAll("#welcomeScreen button")).find(b=>b.textContent.includes("Continue with Google"));
+ if(button){button.disabled=true;button.textContent="Connecting to Google…";}
+ status("Google login khul raha hai…");
+ try{
+  if(!db?.auth)throw new Error("Login service load nahi hui. Page refresh karke dobara try karein.");
+  const {data,error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:"https://jabirkhan07812-oss.github.io/Jabzy-app/",queryParams:{prompt:"select_account"}}});
+  if(error)throw error;
+  if(!data?.url)throw new Error("Google sign-in URL nahi mila. Supabase Google provider settings check karein.");
+ }catch(error){
+  console.error("JABZY Google Login Error:",error);
+  status("Google login error: "+(error.message||"Unknown error"));
+  if(button){button.disabled=false;button.textContent="🌐 Continue with Google";}
+ }
 }
 
 async function saveGoogleAccountPassword(){
@@ -3242,6 +3247,7 @@ async function saveGoogleAccountPassword(){
 }
 
 async function createJabzyAccount(){
+ try{
   const username=document.getElementById("signupName").value.trim();
   const dob=document.getElementById("signupDob").value;
   const bio=document.getElementById("signupBio").value.trim();
@@ -3321,28 +3327,28 @@ async function createJabzyAccount(){
   });
 
   status(error ? error.message : "Account created. Check your email for confirmation.");
-  }
-    
-
+  
+ }catch(error){console.error('JABZY Create Account Error:',error);status('Account create nahi hua: '+(error.message||'Please try again.'));}
+}
 async function signin(){
-
-const email=document.getElementById("loginEmail").value.trim();
-const password=document.getElementById("loginPassword").value;
-
-try{
-const {data,error}=await db.auth.signInWithPassword({email,password});
-
-if(error){
-status(error.message);
-return;
-}
-
-me=data.user;
-await startApp();
-
-}catch(error){
-status("Internet connection nahi hai. Please check your internet and try again.");
-}
+ const email=document.getElementById("loginEmail").value.trim();
+ const password=document.getElementById("loginPassword").value;
+ if(!email||!password){status("Email aur password dono dalein.");return;}
+ const button=document.querySelector("#login button[onclick='signin()']");
+ if(button){button.disabled=true;button.textContent="Logging in…";}
+ status("Login ho raha hai…");
+ try{
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  if(!data?.user)throw new Error("User session nahi mili. Dobara try karein.");
+  me=data.user;
+  await startApp();
+ }catch(error){
+  console.error("JABZY Email Login Error:",error);
+  status("Login nahi hua: "+(error.message||"Internet connection check karein."));
+ }finally{
+  if(button){button.disabled=false;button.textContent="Login";}
+ }
 }
 
 async function forgotPassword(){
