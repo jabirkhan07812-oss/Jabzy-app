@@ -1319,6 +1319,22 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
       </div>
       <div style="display:grid;grid-template-columns:1fr;gap:10px;">
         <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Username</div><div id="accountInfoUsername" style="font-size:14px;font-weight:700;overflow-wrap:anywhere;">Loading...</div></div>
+        <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;">
+          <div style="font-size:11px;color:#bba9ce;margin-bottom:7px;">Date of Birth</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span id="accountInfoDob" style="font-size:14px;font-weight:700;">Loading...</span>
+            <button type="button" onclick="openAccountDobEditor()" style="width:auto;flex:0 0 auto;margin:0;padding:7px 10px;border:1px solid #a45bd0;border-radius:10px;background:#4a2864;color:white;font-size:11px;font-weight:800;">✏️ Edit</button>
+          </div>
+          <div id="accountDobEditor" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #ffffff20;">
+            <label for="accountNewDob" style="display:block;font-size:11px;color:#d8c5e8;margin-bottom:5px;">New Date of Birth (18+ only)</label>
+            <input id="accountNewDob" type="date" style="width:100%;padding:11px;border-radius:10px;border:1px solid #76519a;background:#fff;color:#241b30;font-size:15px;box-sizing:border-box;">
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button id="accountDobSave" type="button" onclick="saveAccountDob()" style="flex:1;margin:0;padding:10px;border-radius:10px;background:linear-gradient(100deg,#ff55a8,#8954e8);color:white;font-size:12px;">Save DOB</button>
+              <button type="button" onclick="closeAccountDobEditor()" style="flex:1;margin:0;padding:10px;border-radius:10px;background:#51415f;color:white;font-size:12px;">Cancel</button>
+            </div>
+            <div id="accountDobStatus" style="font-size:11px;margin-top:8px;color:#e8cfff;"></div>
+          </div>
+        </div>
         <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Account ID</div><div id="accountInfoUserId" style="font-size:11px;color:#e4d7ef;overflow-wrap:anywhere;line-height:1.5;"></div></div>
         <div style="padding:11px 12px;border-radius:12px;background:#0d0a17;border:1px solid #ffffff12;"><div style="font-size:11px;color:#bba9ce;margin-bottom:5px;">Member since</div><div id="accountInfoCreated" style="font-size:13px;font-weight:650;">Loading...</div></div>
       </div>
@@ -2477,9 +2493,61 @@ async function openAccountInformation(){
   document.getElementById("accountInfoUserId").textContent=me.id||"";
   document.getElementById("accountInfoCreated").textContent=me.created_at?new Date(me.created_at).toLocaleString():"Not available";
   document.getElementById("accountInfoUsername").textContent="Loading...";
-  const {data,error}=await db.from("profiles").select("username").eq("id",me.id).maybeSingle();
-  if(error){appStatus("Username load nahi hua: "+error.message);return;}
+  document.getElementById("accountInfoDob").textContent="Loading...";
+  const {data,error}=await db.from("profiles").select("username,date_of_birth,age").eq("id",me.id).maybeSingle();
+  if(error){appStatus("Account details load nahi hue: "+error.message);return;}
   document.getElementById("accountInfoUsername").textContent=data&&data.username?data.username:"Not set";
+  document.getElementById("accountInfoDob").textContent=data&&data.date_of_birth?data.date_of_birth:"Not added";
+  const dobInput=document.getElementById("accountNewDob");
+  if(dobInput){
+    const today=new Date();
+    const maxDate=new Date(today.getFullYear()-18,today.getMonth(),today.getDate());
+    dobInput.max=maxDate.getFullYear()+"-"+String(maxDate.getMonth()+1).padStart(2,"0")+"-"+String(maxDate.getDate()).padStart(2,"0");
+    dobInput.value=data&&data.date_of_birth?data.date_of_birth:"";
+  }
+  closeAccountDobEditor();
+}
+function openAccountDobEditor(){
+  if(!me)return;
+  const editor=document.getElementById("accountDobEditor");
+  const status=document.getElementById("accountDobStatus");
+  if(status)status.textContent="";
+  if(editor)editor.style.display="block";
+}
+function closeAccountDobEditor(){
+  const editor=document.getElementById("accountDobEditor");
+  if(editor)editor.style.display="none";
+}
+async function saveAccountDob(){
+  if(!me){appStatus("Pehle login karein.");return;}
+  const input=document.getElementById("accountNewDob");
+  const dob=input?input.value:"";
+  const status=document.getElementById("accountDobStatus");
+  const button=document.getElementById("accountDobSave");
+  if(!dob){if(status)status.textContent="Apni Date of Birth select karein.";return;}
+  const today=new Date();
+  const cutoff=new Date(today.getFullYear()-18,today.getMonth(),today.getDate());
+  const maxDob=cutoff.getFullYear()+"-"+String(cutoff.getMonth()+1).padStart(2,"0")+"-"+String(cutoff.getDate()).padStart(2,"0");
+  if(dob>maxDob){if(status)status.textContent="JABZY par sirf 18 saal ya usse zyada umar ke users allowed hain.";return;}
+  if(button)button.disabled=true;
+  if(status)status.textContent="Saving...";
+  try{
+    const {error}=await db.from("profiles").update({date_of_birth:dob}).eq("id",me.id);
+    if(error)throw error;
+    const {error:metadataError}=await db.auth.updateUser({data:{date_of_birth:dob}});
+    document.getElementById("accountInfoDob").textContent=dob;
+    closeAccountDobEditor();
+    if(metadataError){
+      appStatus("DOB profile mein save ho gayi, lekin account metadata sync nahi hua: "+metadataError.message);
+    }else{
+      appStatus("Date of Birth successfully saved ❤️");
+    }
+    await loadProfile();
+  }catch(error){
+    if(status)status.textContent=error.message||"DOB save nahi hui. Dobara try karein.";
+  }finally{
+    if(button)button.disabled=false;
+  }
 }
 function closeAccountInformation(){
   const modal=document.getElementById("accountInformationModal");
