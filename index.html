@@ -732,6 +732,38 @@ body:not(.light-theme) #jabzySettingsModal .jabzy-security-tip strong{
   color:#d6f7e9!important;
 }
 
+/* Account Information field cards: readable in Light Mode */
+body.light-theme #accountInformationModal>div>div[style*="padding:15px"],
+body.light-theme #accountInformationModal>div>div[style*="padding:11px"],
+body.light-theme #accountInformationModal>div>div[style*="padding:12px"]{
+  background:#f7f2fa!important;
+  background-image:none!important;
+  border-color:#e4d9eb!important;
+  color:#30233b!important;
+}
+body.light-theme #accountInformationModal #accountInfoEmail,
+body.light-theme #accountInformationModal #accountInfoUsername,
+body.light-theme #accountInformationModal #accountInfoDob,
+body.light-theme #accountInformationModal #accountInfoUserId,
+body.light-theme #accountInformationModal #accountInfoCreated{
+  color:#30233b!important;
+}
+body.light-theme #accountInformationModal>div>div>div[style*="color:#bba9ce"],
+body.light-theme #accountInformationModal label[for="accountNewDob"]{
+  color:#6d5a78!important;
+}
+body.light-theme #accountInformationModal>div>div[style*="padding:15px"]>div:first-child{
+  color:#493653!important;
+}
+body.light-theme #accountInformationModal #accountDobEditor{
+  border-color:#e2d6ea!important;
+}
+body.light-theme #accountInformationModal>div>div[style*="background:#12332655"]{
+  background:#eaf7f0!important;
+  border-color:#b9dfca!important;
+  color:#24543d!important;
+}
+
 /* SETTINGS + INFORMATION MODALS: FOLLOW THE SELECTED APP THEME */
 body.light-theme #jabzySettingsModal,
 body.light-theme #accountInformationModal,
