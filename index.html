@@ -2745,9 +2745,10 @@ function openJabzySettings(section){
       jabzySettingToggle("notify_matches","Matches","When you get a new match.")+
       jabzySettingToggle("notify_follows","New followers","When someone starts following you.")+
       jabzySettingToggle("notify_messages","Messages","When you receive a new message.")+
-      '<button type="button" onclick="enableJabzyNotifications()" style="margin-top:16px;background:linear-gradient(120deg,#ff4d9d,#8755e8);border:1px solid #ffffff30;border-radius:14px;">📲 Enable Mobile Notifications</button>'+
+      '<button id="jabzyMobileNotificationToggle" type="button" onclick="toggleJabzyMobileNotifications()" style="margin-top:16px;background:linear-gradient(120deg,#ff4d9d,#8755e8);border:1px solid #ffffff30;border-radius:14px;">📲 Enable Mobile Notifications</button>'+
       '<div id="jabzyPushPermissionStatus" style="font-size:12px;color:#d9c9e8;padding:8px 2px;">Allow notifications to receive alerts while JABZY is open.</div>'+
       '<div style="display:flex;align-items:flex-start;gap:9px;padding:12px;margin-top:8px;border-radius:12px;background:#252039;border:1px solid #49385f;color:#cfc3df;font-size:11px;line-height:1.5;"><span>⚙️</span><span>Activity controls manage which alerts appear in JABZY. Background alerts when the app is fully closed need push-server setup.</span></div>';
+      refreshJabzyMobileNotificationToggle();
     }else{
       body.innerHTML=
       '<div style="padding:15px;margin-bottom:16px;border:1px solid #3b3154;border-radius:16px;background:linear-gradient(135deg,#302044,#1b1930);">'+
@@ -3705,6 +3706,37 @@ async function registerJabzyServiceWorker(){
   }
 }
 
+function jabzyMobileNotificationKey(){
+  return "jabzy_mobile_notifications_"+(me&&me.id?me.id:"guest");
+}
+function isJabzyMobileNotificationsEnabled(){
+  if(!("Notification" in window)||Notification.permission!=="granted")return false;
+  try{
+    const saved=localStorage.getItem(jabzyMobileNotificationKey());
+    if(saved==="false")return false;
+    if(saved==="true")return true;
+    localStorage.setItem(jabzyMobileNotificationKey(),"true");
+    return true;
+  }catch(error){return Notification.permission==="granted";}
+}
+function refreshJabzyMobileNotificationToggle(){
+  const button=document.getElementById("jabzyMobileNotificationToggle");
+  const statusBox=document.getElementById("jabzyPushPermissionStatus");
+  if(!button||!statusBox)return;
+  const enabled=isJabzyMobileNotificationsEnabled();
+  button.textContent=enabled?"🔕 Turn Off Mobile Notifications":"📲 Enable Mobile Notifications";
+  button.style.background=enabled?"linear-gradient(120deg,#64748b,#475569)":"linear-gradient(120deg,#ff4d9d,#8755e8)";
+  statusBox.textContent=enabled?"✅ Mobile notifications are ON. Your choice stays saved after refresh.":(Notification.permission==="denied"?"Notifications are blocked in browser settings. Allow them from site settings.":"Mobile notifications are OFF. Turn them on whenever you want.");
+}
+async function toggleJabzyMobileNotifications(){
+  if(isJabzyMobileNotificationsEnabled()){
+    try{localStorage.setItem(jabzyMobileNotificationKey(),"false");}catch(error){}
+    refreshJabzyMobileNotificationToggle();
+    appStatus("Mobile notifications band kar diye gaye.");
+    return;
+  }
+  await enableJabzyNotifications();
+}
 async function enableJabzyNotifications(){
   const statusBox=document.getElementById("jabzyPushPermissionStatus");
   if(!("Notification" in window)){
@@ -3722,7 +3754,9 @@ async function enableJabzyNotifications(){
       return;
     }
     await registerJabzyServiceWorker();
-    if(statusBox)statusBox.textContent="✅ Mobile notifications allowed. JABZY open ya active rahega to alerts milenge.";
+    try{localStorage.setItem(jabzyMobileNotificationKey(),"true");}catch(error){}
+    refreshJabzyMobileNotificationToggle();
+    if(statusBox)statusBox.textContent="✅ Mobile notifications ON. Ye setting refresh ke baad bhi saved rahegi.";
     if(jabzyServiceWorkerRegistration){
       await jabzyServiceWorkerRegistration.showNotification("JABZY notifications enabled",{
         body:"Ab JABZY ke alerts yahan dikh sakte hain.",
@@ -3737,7 +3771,7 @@ async function enableJabzyNotifications(){
 }
 
 async function jabzyShowMobileAlert(title,body,tag){
-  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  if(!isJabzyMobileNotificationsEnabled())return;
   try{
     if(!jabzyServiceWorkerRegistration)await registerJabzyServiceWorker();
     const options={body:body||"You have a new update.",icon:"./jabzy-app-icon.svg",badge:"./jabzy-app-icon.svg",tag:tag||("jabzy-"+Date.now()),renotify:false};
