@@ -10520,7 +10520,7 @@ function renderRoomGiftChoices(){
  const box=document.getElementById("roomGiftChoices");if(!box)return;
  const categories=[...new Set(Object.values(ROOM_GIFT_CATALOG).map(g=>g.category))];
  const items=Object.entries(ROOM_GIFT_CATALOG).filter(([,g])=>activeRoomGiftCategory==="All"||g.category===activeRoomGiftCategory);
- box.innerHTML='<div class="room-gift-tabs">'+['All',...categories].map(category=>'<button type="button" class="'+(activeRoomGiftCategory===category?'active':'')+'" onclick="showRoomGiftCategory(\\''+category+'\\')">'+category+'</button>').join("")+'</div><div class="room-gift-category-grid">'+items.map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectRoomGift(\\''+key+'\\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div>';
+ box.innerHTML='<div class="room-gift-tabs">'+['All',...categories].map(category=>'<button type="button" class="'+(activeRoomGiftCategory===category?'active':'')+'" onclick="showRoomGiftCategory(\''+category+'\')">'+category+'</button>').join("")+'</div><div class="room-gift-category-grid">'+items.map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectRoomGift(\''+key+'\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div>';
 }
 async function openRoomGift(){
  if(!currentJoinedRoom || !me?.id){alert("Pehle Room join karein.");return;}
@@ -10592,7 +10592,7 @@ function renderChatGiftChoices(){
  const box=document.getElementById("chatGiftChoices");if(!box)return;
  const categories=[...new Set(Object.values(ROOM_GIFT_CATALOG).map(g=>g.category))];
  const items=Object.entries(ROOM_GIFT_CATALOG).filter(([,g])=>activeChatGiftCategory==="All"||g.category===activeChatGiftCategory);
- box.innerHTML='<div class="room-gift-tabs">'+['All',...categories].map(category=>'<button type="button" class="'+(activeChatGiftCategory===category?'active':'')+'" onclick="showChatGiftCategory(\\''+category+'\\')">'+category+'</button>').join("")+'</div><div class="room-gift-category-grid">'+items.map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectChatGift(\\''+key+'\\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div>';
+ box.innerHTML='<div class="room-gift-tabs">'+['All',...categories].map(category=>'<button type="button" class="'+(activeChatGiftCategory===category?'active':'')+'" onclick="showChatGiftCategory(\''+category+'\')">'+category+'</button>').join("")+'</div><div class="room-gift-category-grid">'+items.map(([key,g])=>'<button type="button" data-gift="'+key+'" onclick="selectChatGift(\''+key+'\')"><span class="room-gift-emoji">'+g.emoji+'</span><span class="room-gift-name">'+g.name+'</span><small>'+g.cost.toLocaleString("en-IN")+' Coins</small></button>').join("")+'</div>';
 }
 async function openChatGift(){
  if(!me?.id||!selected){appStatus("Pehle chat open karein.");return;}
