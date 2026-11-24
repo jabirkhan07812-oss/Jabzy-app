@@ -9088,14 +9088,12 @@ function toggleRoomSpeaker(){
     if(msg.kind==="gift"){
       const gift=ROOM_GIFT_CATALOG[msg.gift_code];if(!gift)return;
       const card=document.createElement("div");card.className="jabzy-chat-gift-card";card.style.width="min(220px,65vw)";
-      card.setAttribute("role","button");card.setAttribute("tabindex","0");
       const art=document.createElement("div");art.className="jabzy-chat-gift-art";art.textContent=gift.emoji;
       const sender=document.createElement("div");sender.className="jabzy-chat-gift-sender";sender.textContent=senderName(msg.sender_id)+" sent a Gift";
       const name=document.createElement("div");name.className="jabzy-chat-gift-name";name.textContent=gift.name;
+      const recipient=document.createElement("div");recipient.className="jabzy-chat-gift-sender";recipient.textContent="For "+(profileMap.get(String(msg.recipient_id))||"Room member");
       const price=document.createElement("div");price.className="jabzy-chat-gift-price";price.textContent="🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
-      card.append(art,sender,name,price);
-      card.addEventListener("click",()=>showRoomGiftAnimation({gift_code:msg.gift_code,sender_name:profileMap.get(String(msg.sender_id))||"A room member"}));
-      card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showRoomGiftAnimation({gift_code:msg.gift_code,sender_name:profileMap.get(String(msg.sender_id))||"A room member"});}});
+      card.append(art,sender,name,recipient,price);
       item.appendChild(card);
     }else{
       const sender=document.createElement("b");sender.textContent=senderName(msg.user_id)+": ";
@@ -10643,6 +10641,9 @@ async function setupRoomGiftsRealtime(){
  if(!currentJoinedRoom)return;
  roomGiftsChannel=db.channel("room-gifts-"+currentJoinedRoom.id)
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_gifts",filter:"room_id=eq."+currentJoinedRoom.id},async payload=>{
+   const giftRow=payload.new||{};
+   const {data:profile}=await db.from("profiles").select("username").eq("id",giftRow.sender_id).maybeSingle();
+   showRoomGiftAnimation({gift_code:giftRow.gift_code,sender_name:profile?.username||"A room member"});
    await loadRoomChatMessages();
   }).subscribe();
 }
