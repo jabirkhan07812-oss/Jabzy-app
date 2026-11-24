@@ -81,6 +81,11 @@ begin
   insert into public.chat_gifts(sender_id, recipient_id, gift_code, coin_cost)
   values (v_sender_id, p_recipient_id, p_gift_code, v_cost)
   returning id into v_gift_id;
+
+  -- Also add a normal chat event so both people see the gift in their conversation.
+  insert into public.messages(sender_id, receiver_id, message)
+  values (v_sender_id, p_recipient_id, 'GIFT:' || p_gift_code);
+
   return v_gift_id;
 end;
 $$;
