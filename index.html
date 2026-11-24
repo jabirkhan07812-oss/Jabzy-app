@@ -1590,16 +1590,16 @@ body.light-theme #discoverScreen #swipeCard img{
   </div>
   <section class="jabzy-profile-identity">
     <img id="myPhoto" class="photo hidden" alt="Your profile photo">
-    <div class="jabzy-profile-summary">
-      <h3 id="viewUsername">Your Name</h3>
-      <p id="viewAge"></p>
-      <p id="viewBio"></p>
+    <div class="profile-stats jabzy-profile-stats">
+      <div><strong id="myPostCount">0</strong><span>Posts</span></div>
+      <div role="button" tabindex="0" onclick="openFollowList(me.id,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'followers')}" style="cursor:pointer;"><strong id="myFollowers">0</strong><span>Followers</span></div>
+      <div role="button" tabindex="0" onclick="openFollowList(me.id,'following')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'following')}" style="cursor:pointer;"><strong id="myFollowing">0</strong><span>Following</span></div>
     </div>
   </section>
-  <div class="profile-stats jabzy-profile-stats">
-    <div><strong id="myPostCount">0</strong><span>Posts</span></div>
-    <div role="button" tabindex="0" onclick="openFollowList(me.id,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'followers')}" style="cursor:pointer;"><strong id="myFollowers">0</strong><span>Followers</span></div>
-    <div role="button" tabindex="0" onclick="openFollowList(me.id,'following')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(me.id,'following')}" style="cursor:pointer;"><strong id="myFollowing">0</strong><span>Following</span></div>
+  <div class="jabzy-profile-summary">
+    <h3 id="viewUsername">Your Name</h3>
+    <p id="viewAge"></p>
+    <p id="viewBio"></p>
   </div>
   <div class="jabzy-profile-actions">
     <button type="button" onclick="openEditProfile()">✏️ Edit Profile</button>
@@ -11064,6 +11064,31 @@ body.light-theme #profileScreen{background:linear-gradient(160deg,#fff,#f4eafa)!
 body.light-theme .jabzy-profile-topbar,body.light-theme #profileView .jabzy-profile-stats,body.light-theme .jabzy-profile-actions,body.light-theme .jabzy-profile-tabs,body.light-theme .jabzy-profile-grid{background:rgba(255,255,255,.78)!important;border-color:#d9c3e7!important;}
 </style>
 
+
+<style id="jabzy-profile-instagram-layout-fix">
+#profileScreen{padding:14px 0 100px!important;}
+.jabzy-profile-topbar{height:58px!important;margin:0 0 18px!important;padding:0 16px!important;border-radius:22px!important;}
+.jabzy-profile-topbar strong{font-size:24px!important;}
+.jabzy-profile-topbar button{width:44px!important;height:42px!important;font-size:20px!important;border-radius:13px!important;}
+.jabzy-profile-identity{display:flex!important;align-items:center!important;gap:18px!important;min-height:104px!important;padding:0 16px!important;margin:0!important;}
+#profileView #myPhoto{width:92px!important;height:92px!important;min-width:92px!important;}
+#profileView .jabzy-profile-stats{flex:1!important;display:flex!important;align-items:center!important;justify-content:space-around!important;min-height:0!important;margin:0!important;padding:8px 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;gap:4px!important;}
+#profileView .jabzy-profile-stats div{padding:4px 2px!important;gap:3px!important;font-size:12px!important;}
+#profileView .jabzy-profile-stats strong{font-size:19px!important;line-height:1.15!important;}
+#profileView .jabzy-profile-stats span{font-size:11px!important;white-space:nowrap!important;}
+.jabzy-profile-summary{padding:8px 16px 12px!important;}
+.jabzy-profile-summary h3{font-size:17px!important;margin:0 0 3px!important;line-height:1.25!important;}
+.jabzy-profile-summary p{font-size:12px!important;line-height:1.35!important;margin:2px 0!important;white-space:pre-wrap!important;}
+.jabzy-profile-actions{gap:8px!important;margin:0 0 12px!important;padding:10px 14px!important;border-radius:18px!important;}
+.jabzy-profile-actions button{min-height:42px!important;padding:8px 5px!important;font-size:13px!important;border-radius:11px!important;}
+.jabzy-profile-tabs{margin:0 0 12px!important;padding:8px 12px 0!important;border-radius:18px!important;}
+.jabzy-profile-tabs button{min-height:62px!important;padding:7px 3px 10px!important;}
+.jabzy-profile-tabs button span{font-size:22px!important;}
+.jabzy-profile-tabs button small{font-size:10px!important;}
+.jabzy-profile-grid{min-height:80px!important;margin:0 0 12px!important;padding:10px 6px!important;border-radius:18px!important;}
+.jabzy-profile-empty{padding:24px 10px!important;font-size:12px!important;}
+@media(max-width:360px){#profileView #myPhoto{width:78px!important;height:78px!important;min-width:78px!important;}.jabzy-profile-identity{gap:10px!important;padding:0 12px!important;}#profileView .jabzy-profile-stats strong{font-size:17px!important;}#profileView .jabzy-profile-stats span{font-size:10px!important;}}
+</style>
 </body>
   </html>
   
