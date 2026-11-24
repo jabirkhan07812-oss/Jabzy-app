@@ -10426,7 +10426,7 @@ async function openRoomGift(){
  if(!picker||!recipient)return;
  selectedRoomGift=null;send.disabled=true;status.textContent="Room members load ho rahe hain…";renderRoomGiftChoices();
  recipient.innerHTML='<option value="">Choose room member</option>';
- picker.style.display="block";
+ picker.style.display="flex";
  const [{data:members,error:memberError},{data:wallet,error:walletError}]=await Promise.all([
   db.from("live_room_members").select("user_id").eq("room_id",currentJoinedRoom.id),
   db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle()
