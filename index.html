@@ -732,6 +732,48 @@ body:not(.light-theme) #jabzySettingsModal .jabzy-security-tip strong{
   color:#d6f7e9!important;
 }
 
+/* Reliable Light Mode contrast for notification toggles and account detail values */
+body.light-theme #jabzySettingsBody label{
+  background:#f7f2fa!important;
+  background-image:none!important;
+  border-color:#e3d8eb!important;
+  color:#30233b!important;
+}
+body.light-theme #jabzySettingsBody label span,
+body.light-theme #jabzySettingsBody label strong{
+  color:#30233b!important;
+}
+body.light-theme #jabzySettingsBody label small{
+  color:#6b5a76!important;
+}
+body.light-theme #jabzySettingsBody>div[style*="letter-spacing"]{
+  color:#76558a!important;
+}
+body.light-theme #accountInformationModal [style*="background:#0d0a17"],
+body.light-theme #accountInformationModal [style*="background: #0d0a17"]{
+  background:#f7f2fa!important;
+  background-image:none!important;
+  border-color:#e3d8eb!important;
+  color:#30233b!important;
+}
+body.light-theme #accountInformationModal [style*="color:#bba9ce"],
+body.light-theme #accountInformationModal [style*="color: #bba9ce"]{
+  color:#6b5a76!important;
+}
+body.light-theme #accountInformationModal #accountInfoEmail,
+body.light-theme #accountInformationModal #accountInfoUsername,
+body.light-theme #accountInformationModal #accountInfoDob,
+body.light-theme #accountInformationModal #accountInfoUserId,
+body.light-theme #accountInformationModal #accountInfoCreated{
+  color:#30233b!important;
+  opacity:1!important;
+}
+body.light-theme #accountInformationModal>div>div:nth-of-type(2){
+  background:#fff!important;
+  background-image:none!important;
+  border-color:#e3d8eb!important;
+}
+
 /* Account Information field cards: readable in Light Mode */
 body.light-theme #accountInformationModal>div>div[style*="padding:15px"],
 body.light-theme #accountInformationModal>div>div[style*="padding:11px"],
