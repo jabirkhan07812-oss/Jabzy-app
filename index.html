@@ -2536,6 +2536,7 @@ box-sizing:border-box;
     <button class="gift-picker-close" onclick="closeChatGift()" aria-label="Close gifts">✕</button>
    </div>
   </div>
+  <input id="chatGiftPersonalNote" type="text" maxlength="100" placeholder="Add a short message (optional)" aria-label="Gift personal message" style="flex:0 0 auto;width:100%;box-sizing:border-box;margin:3px 0 5px;padding:7px 10px;border-radius:9px;border:1px solid #8d58b4;background:#21152f;color:#fff;font-size:11px;">
   <div id="chatGiftCategoryTabs" class="room-gift-tabs gift-picker-tabs"></div>
   <div id="chatGiftChoices" class="gift-picker-list"></div>
   <div id="chatGiftStatus" class="gift-picker-status" aria-live="polite"></div>
@@ -9066,66 +9067,44 @@ function toggleRoomSpeaker(){
     (members || []).length;
 }
   async function loadRoomChatMessages(){
-  if(!currentJoinedRoom) return;
-
-  const box = document.getElementById("roomChatMessages");
-
-  const {data, error} = await db
-    .from("live_room_messages")
-    .select("user_id,message,created_at")
-    .eq("room_id", currentJoinedRoom.id)
-    .order("created_at", {ascending:true});
-
-  if(error){
-    box.textContent = error.message;
-    return;
-  }
-
-  const senderIds = [...new Set([
-    ...(data || []).map(msg => msg.user_id),
-    currentJoinedRoom.created_by
-  ])];
-
-  const {data:senderProfiles, error:senderProfileError} = await db
-    .from("profiles")
-    .select("id,username")
-    .in("id", senderIds);
-
-  if(senderProfileError){
-    box.textContent = senderProfileError.message;
-    return;
-  }
-
-  const senderName = userId => {
-    if(userId === currentJoinedRoom.created_by){
-      const owner = (senderProfiles || []).find(p => p.id === userId);
-      return (owner?.username || "Room Owner") + " 👑 (Owner)";
-    }
-    if(userId === me.id){
-      const own = (senderProfiles || []).find(p => p.id === userId);
-      return (own?.username || "You") + " (You)";
-    }
-    const profile = (senderProfiles || []).find(p => p.id === userId);
-    return profile?.username || "Member";
-  };
-
+  if(!currentJoinedRoom)return;
+  const box=document.getElementById("roomChatMessages");
+  const roomId=currentJoinedRoom.id;
+  const [{data:messages,error},{data:gifts,error:giftError}]=await Promise.all([
+    db.from("live_room_messages").select("user_id,message,created_at").eq("room_id",roomId).order("created_at",{ascending:true}),
+    db.from("room_gifts").select("sender_id,recipient_id,gift_code,created_at").eq("room_id",roomId).order("created_at",{ascending:true})
+  ]);
+  if(error){box.textContent=error.message;return;}
+  if(giftError){box.textContent=giftError.message;return;}
+  const allIds=[...new Set([...(messages||[]).map(x=>x.user_id),...(gifts||[]).flatMap(x=>[x.sender_id,x.recipient_id]),currentJoinedRoom.created_by].filter(Boolean))];
+  const {data:profiles,error:profileError}=await db.from("profiles").select("id,username").in("id",allIds);
+  if(profileError){box.textContent=profileError.message;return;}
+  const profileMap=new Map((profiles||[]).map(p=>[String(p.id),p.username||"Member"]));
+  const senderName=id=>id===me.id?(profileMap.get(String(id))||"You")+" (You)":id===currentJoinedRoom.created_by?(profileMap.get(String(id))||"Room Owner")+" 👑 (Owner)":profileMap.get(String(id))||"Member";
+  const feed=[...(messages||[]).map(x=>({...x,kind:"message"})),...(gifts||[]).map(x=>({...x,kind:"gift"}))].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
   box.replaceChildren();
-
-  (data || []).forEach(msg => {
-    const item = document.createElement("div");
-    item.style.marginBottom = "10px";
-
-    const sender = document.createElement("b");
-    sender.textContent = senderName(msg.user_id) + ": ";
-
-    const content = document.createElement("span");
-    content.textContent = msg.message;
-
-    item.append(sender, content);
+  feed.forEach(msg=>{
+    const item=document.createElement("div");item.style.marginBottom="10px";
+    if(msg.kind==="gift"){
+      const gift=ROOM_GIFT_CATALOG[msg.gift_code];if(!gift)return;
+      const card=document.createElement("div");card.className="jabzy-chat-gift-card";card.style.width="min(220px,65vw)";
+      card.setAttribute("role","button");card.setAttribute("tabindex","0");
+      const art=document.createElement("div");art.className="jabzy-chat-gift-art";art.textContent=gift.emoji;
+      const sender=document.createElement("div");sender.className="jabzy-chat-gift-sender";sender.textContent=senderName(msg.sender_id)+" sent a Gift";
+      const name=document.createElement("div");name.className="jabzy-chat-gift-name";name.textContent=gift.name;
+      const price=document.createElement("div");price.className="jabzy-chat-gift-price";price.textContent="🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
+      card.append(art,sender,name,price);
+      card.addEventListener("click",()=>showRoomGiftAnimation({gift_code:msg.gift_code,sender_name:profileMap.get(String(msg.sender_id))||"A room member"}));
+      card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showRoomGiftAnimation({gift_code:msg.gift_code,sender_name:profileMap.get(String(msg.sender_id))||"A room member"});}});
+      item.appendChild(card);
+    }else{
+      const sender=document.createElement("b");sender.textContent=senderName(msg.user_id)+": ";
+      const content=document.createElement("span");content.textContent=msg.message;
+      item.append(sender,content);
+    }
     box.appendChild(item);
   });
-
-  box.scrollTop = box.scrollHeight;
+  box.scrollTop=box.scrollHeight;
 }
 
 async function sendRoomChatMessage(){
@@ -10616,6 +10595,7 @@ async function openChatGift(){
  const status=document.getElementById("chatGiftStatus");
  const send=document.getElementById("chatGiftSendButton");
  selectedChatGift=null;send.disabled=true;status.textContent="Wallet load ho raha hai…";
+ const noteInput=document.getElementById("chatGiftPersonalNote");if(noteInput)noteInput.value="";
  renderChatGiftChoices();
  document.getElementById("chatGiftRecipientName").textContent="Gift recipient: "+(document.getElementById("chatTitle")?.textContent||"Chat");
  picker.style.display="flex";
@@ -10636,9 +10616,18 @@ async function sendChatGift(){
  const btn=document.getElementById("chatGiftSendButton");
  if(!selected||!selectedChatGift){status.textContent="Gift select karein.";return;}
  const gift=ROOM_GIFT_CATALOG[selectedChatGift];
+ const personalNote=(document.getElementById("chatGiftPersonalNote")?.value||"").trim().slice(0,100);
+ const sendStartedAt=new Date().toISOString();
  btn.disabled=true;status.textContent="Gift bheja ja raha hai…";
  const {data,error}=await db.rpc("send_chat_gift",{p_recipient_id:selected,p_gift_code:selectedChatGift});
  if(error){status.textContent=error.message.includes("INSUFFICIENT_COINS")?"Aapke paas enough Coins nahi hain.":error.message;btn.disabled=false;return;}
+ if(personalNote){
+  const {data:giftMessage}=await db.from("messages").select("id").eq("sender_id",me.id).eq("receiver_id",selected).eq("message","GIFT:"+selectedChatGift).gte("created_at",sendStartedAt).order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(giftMessage?.id){
+   const {error:noteError}=await db.from("messages").update({message:"GIFT:"+selectedChatGift+"|"+personalNote}).eq("id",giftMessage.id);
+   if(noteError)status.textContent="Gift sent, but note could not be attached.";
+  }else{status.textContent="Gift sent, but note could not be attached.";}
+ }
  const bal=await db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle();
  if(!bal.error)document.getElementById("chatGiftBalance").textContent="🪙 My Coins: "+Number(bal.data?.balance||0);
  status.textContent=gift.emoji+" Gift successfully sent!";
@@ -10654,9 +10643,7 @@ async function setupRoomGiftsRealtime(){
  if(!currentJoinedRoom)return;
  roomGiftsChannel=db.channel("room-gifts-"+currentJoinedRoom.id)
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_gifts",filter:"room_id=eq."+currentJoinedRoom.id},async payload=>{
-   const gift=payload.new;
-   const {data}=await db.from("profiles").select("username").eq("id",gift.sender_id).maybeSingle();
-   showRoomGiftAnimation({...gift,sender_name:data?.username||"A room member"});
+   await loadRoomChatMessages();
   }).subscribe();
 }
 
