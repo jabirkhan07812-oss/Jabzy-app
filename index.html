@@ -5070,7 +5070,20 @@ async function startVoiceCall(){
       channel.subscribe(value=>{if(value==="SUBSCRIBED"){clearTimeout(timer);resolve(value);}else if(value==="CHANNEL_ERROR"||value==="TIMED_OUT"){clearTimeout(timer);resolve(value);}});
     });
     if(status!=="SUBSCRIBED")throw new Error("Call connection nahi ban paya. Dobara try karein.");
-    await jabzyVoiceListener?.send({type:"broadcast",event:"incoming-call",payload:{callId:call.id,callerId:me.id,calleeId,callerName:profile?.username||"JABZY user"}});
+    const notifyChannel=db.channel("jabzy-voice-user:"+calleeId,{config:{broadcast:{self:false}}});
+    const notifyStatus=await new Promise(resolve=>{
+      const timer=setTimeout(()=>resolve("TIMEOUT"),10000);
+      notifyChannel.subscribe(value=>{
+        if(value==="SUBSCRIBED"){clearTimeout(timer);resolve(value);}
+        else if(value==="CHANNEL_ERROR"||value==="TIMED_OUT"){clearTimeout(timer);resolve(value);}
+      });
+    });
+    if(notifyStatus!=="SUBSCRIBED"){
+      await db.removeChannel(notifyChannel);
+      throw new Error("Dusre user tak call notification nahi pahunchi.");
+    }
+    await notifyChannel.send({type:"broadcast",event:"incoming-call",payload:{callId:call.id,callerId:me.id,calleeId,callerName:profile?.username||"JABZY user"}});
+    await db.removeChannel(notifyChannel);
     const started=Date.now();
     jabzyVoiceCall.ringTimer=setInterval(async()=>{
       if(!jabzyVoiceCall||jabzyVoiceCall.id!==call.id)return;
@@ -5109,7 +5122,6 @@ async function acceptVoiceCall(){
     });
     if(status!=="SUBSCRIBED")throw new Error("Call channel connect nahi hua.");
     await prepareVoicePeer(false);
-    await channel.send({type:"broadcast",event:"signal",payload:{kind:"ready"}});
   }catch(error){
     console.error("Accept voice call:",error);
     await endVoiceCall("ended");
