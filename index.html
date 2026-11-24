@@ -1166,19 +1166,37 @@ body.light-theme #discoverScreen #swipeCard img{
   </div>
 </div>
 
-<!-- JABZY HOME CREATE POST -->
+<!-- JABZY HOME CREATE POST ENTRY -->
 <div id="homePostComposer" style="padding:12px 0;margin-bottom:14px;border-bottom:1px solid #382744;">
-  <div style="display:flex;align-items:center;gap:8px;">
-    <div id="homePostAvatar" style="width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👤</div>
-    <div id="adminPostTools" style="display:none;align-items:center;gap:5px;flex:0 0 auto;">
-      <label for="homePostMedia" title="Choose photo or video" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;background:#30203f;color:#f3dfff;font-size:17px;border:1px solid #69427f;">📷</label>
-      <input id="homePostMedia" type="file" accept="image/*,video/*" style="display:none;" onchange="previewHomePostMedia(event)">
-      <span id="homePostFileName" style="max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#cbb8df;"></span>
-    </div>
-    <textarea id="homePostText" rows="1" placeholder="What's on your mind?" style="flex:1;min-width:0;height:38px;min-height:38px;padding:10px 13px;margin:0;border-radius:22px;resize:none;font-size:12px;background:#21172e;color:white;border:1px solid #49315d;"></textarea>
-    <button id="homePostButton" type="button" onclick="handleHomePost()" style="width:auto;padding:9px 13px;margin:0;border:0;border-radius:20px;background:linear-gradient(90deg,#ff55a8,#9657e8);color:white;font-size:12px;">Post</button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div id="homePostAvatar" style="width:40px;height:40px;flex:0 0 40px;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👤</div>
+    <button id="homePostTrigger" type="button" onclick="openHomePostComposer()" style="flex:1;text-align:left;width:auto;margin:0;padding:13px 16px;border-radius:24px;background:#21172e;border:1px solid #49315d;color:#cbb8df;font-size:13px;font-weight:500;">What's on your mind?</button>
   </div>
-  <div id="homePostPreview" style="display:none;margin:10px 0 0 48px;"></div>
+</div>
+
+<!-- FACEBOOK-STYLE FULL SCREEN POST COMPOSER -->
+<div id="homePostModal" style="display:none;position:fixed;inset:0;z-index:100300;background:#100b19;color:#fff;overflow-y:auto;box-sizing:border-box;">
+  <div style="position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(20,13,31,.97);border-bottom:1px solid #49315d;backdrop-filter:blur(14px);">
+    <button type="button" onclick="closeHomePostComposer()" aria-label="Close" style="width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#30203f;color:#fff;font-size:18px;">✕</button>
+    <strong style="font-size:17px;letter-spacing:.2px;">Create post</strong>
+    <button id="homePostButton" type="button" onclick="handleHomePost()" style="width:auto;margin:0;padding:9px 19px;border:0;border-radius:22px;background:linear-gradient(100deg,#ff55a8,#9657e8);color:white;font-size:13px;font-weight:800;box-shadow:0 5px 18px #a044b455;">Post</button>
+  </div>
+  <div style="padding:18px 16px 120px;max-width:680px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:20px;">
+      <div id="homePostModalAvatar" style="width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
+      <div><div style="font-size:14px;font-weight:800;">JABZY Official <span style="color:#55aaff;">✓</span></div><div style="font-size:11px;color:#bba9ca;margin-top:3px;">Public · Anyone can see this post</div></div>
+    </div>
+    <textarea id="homePostText" rows="5" maxlength="5000" placeholder="What's on your mind?" style="display:block;width:100%;min-height:150px;padding:12px 2px;margin:0;border:0;outline:0;resize:vertical;background:transparent;color:#fff;font-size:19px;line-height:1.5;box-sizing:border-box;"></textarea>
+    <div id="homePostPreview" style="display:none;margin:18px 0 0;padding:8px;border-radius:18px;border:1px solid #49315d;background:#1b1327;"></div>
+    <div id="homePostFileName" style="margin-top:8px;color:#cbb8df;font-size:11px;overflow-wrap:anywhere;"></div>
+  </div>
+  <div style="position:sticky;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:rgba(24,16,36,.98);border-top:1px solid #49315d;backdrop-filter:blur(16px);">
+    <div style="max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #69427f;border-radius:16px;background:linear-gradient(135deg,#261936,#1b1427);">
+      <div><div style="font-size:13px;font-weight:800;">Add to your post</div><div style="font-size:10px;color:#bba9ca;margin-top:3px;">Share a photo or video</div></div>
+      <label for="homePostMedia" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:13px;background:#30203f;color:#f3dfff;border:1px solid #80539a;font-size:13px;font-weight:700;cursor:pointer;"><span style="font-size:20px;">▧</span> Photo / Video</label>
+      <input id="homePostMedia" type="file" accept="image/*,video/*" style="display:none;" onchange="previewHomePostMedia(event)">
+    </div>
+  </div>
 </div>
 
 
@@ -3081,7 +3099,12 @@ async function initHomePostComposer(){
   if(!me)return;
   const {data,isAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:me.id});
   jabzyOfficialAdminSession=!isAdminError&&data===true;
-  if(tools)tools.style.display=jabzyOfficialAdminSession?"flex":"none";
+  if(tools)tools.style.display="none";
+  const trigger=document.getElementById("homePostTrigger");
+  if(trigger)trigger.style.display=jabzyOfficialAdminSession?"block":"none";
+  const modalAvatar=document.getElementById("homePostModalAvatar");
+  if(modalAvatar&&avatar&&avatar.querySelector("img")){modalAvatar.replaceChildren(avatar.querySelector("img").cloneNode(true));modalAvatar.firstChild.style.cssText="width:100%;height:100%;object-fit:cover;";}
+
   if(jabzyOfficialAdminSession)await loadHomePosts();
   if(avatar){
     const {data:profile}=await db.from("profiles").select("photo_url").eq("id",me.id).maybeSingle();
@@ -3090,6 +3113,17 @@ async function initHomePostComposer(){
       const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;";avatar.appendChild(img);
     }
   }
+}
+function openHomePostComposer(){
+  if(!me){appStatus("Please login first.");return;}
+  if(!jabzyOfficialAdminSession){appStatus("Create Post feature coming soon ❤️");return;}
+  const modal=document.getElementById("homePostModal");
+  if(modal){modal.style.display="block";document.body.style.overflow="hidden";const caption=document.getElementById("homePostText");if(caption)caption.focus();}
+}
+function closeHomePostComposer(){
+  const modal=document.getElementById("homePostModal");
+  if(modal)modal.style.display="none";
+  document.body.style.overflow="";
 }
 function previewHomePostMedia(event){
   const file=event.target.files&&event.target.files[0];
@@ -3138,6 +3172,7 @@ async function handleHomePost(){
     document.getElementById("homePostPreview").replaceChildren();
     document.getElementById("homePostPreview").style.display="none";
     document.getElementById("homePostFileName").textContent="";
+    closeHomePostComposer();
     appStatus("Post shared successfully ❤️");
     await loadHomePosts();
   }catch(error){
