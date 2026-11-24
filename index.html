@@ -5006,7 +5006,7 @@ let jabzyVoiceListener=null;
 let jabzyVoiceCall=null;
 let jabzyVoiceIncomingCall=null;
 
-function voiceCallPanel(title,subtitle,buttons){
+function voiceCallPanel(title,subtitle,buttons,profilePhoto=null,displayName=''){
   let panel=document.getElementById("jabzyVoiceCallPanel");
   if(!panel){
     panel=document.createElement("div");
@@ -5017,13 +5017,14 @@ function voiceCallPanel(title,subtitle,buttons){
   panel.innerHTML="";
   const card=document.createElement("div");
   card.style.cssText="position:relative;overflow:hidden;width:min(370px,100%);box-sizing:border-box;background:linear-gradient(155deg,#30213f 0%,#171321 75%);border:1px solid #a77ac455;border-radius:30px;padding:34px 24px 26px;text-align:center;color:#fff;box-shadow:0 25px 80px #000a,inset 0 1px #ffffff18;";
-  const glow=document.createElement("div");glow.style.cssText="width:112px;height:112px;border-radius:50%;margin:0 auto 24px;background:radial-gradient(circle,#b78ad8 0%,#704a91 48%,#39264c 72%);box-shadow:0 0 0 12px #a77ac414,0 0 55px #a77ac455;display:flex;align-items:center;justify-content:center;font-size:42px;";
-  glow.textContent="☎";
+  const glow=document.createElement("div");glow.style.cssText="width:112px;height:112px;border-radius:50%;margin:0 auto 18px;background:radial-gradient(circle,#b78ad8 0%,#704a91 48%,#39264c 72%);box-shadow:0 0 0 12px #a77ac414,0 0 55px #a77ac455;display:flex;align-items:center;justify-content:center;font-size:42px;overflow:hidden;border:2px solid #d9b9f0;";
+  if(profilePhoto){const photo=document.createElement("img");photo.src=profilePhoto;photo.alt="Caller profile photo";photo.style.cssText="width:100%;height:100%;object-fit:cover;";photo.onerror=()=>{photo.remove();glow.textContent="☎";};glow.appendChild(photo);}else{glow.textContent="☎";}
   const brand=document.createElement("div");brand.textContent="J A B Z Y";brand.style.cssText="font-size:10px;letter-spacing:5px;color:#c9a9e4;font-weight:800;margin-bottom:13px;";
-  const heading=document.createElement("div");heading.style.cssText="font-size:25px;font-weight:800;letter-spacing:-.5px;margin-bottom:9px";heading.textContent=title;
+  const heading=document.createElement("div");heading.style.cssText="font-size:25px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px";heading.textContent=title;
+  const name=document.createElement("div");name.style.cssText="font-size:19px;font-weight:750;color:#fff;margin:0 auto 9px;";name.textContent=displayName;
   const detail=document.createElement("div");detail.style.cssText="font-size:14px;line-height:1.5;color:#d5c9df;margin:0 auto 28px;max-width:260px";detail.textContent=subtitle;
   const actions=document.createElement("div");actions.style.cssText="display:flex;gap:12px;justify-content:center;flex-wrap:wrap";
-  card.append(glow,brand,heading,detail,actions);
+  card.append(glow,brand,heading);if(displayName)card.append(name);card.append(detail,actions);
   buttons.forEach(item=>{
     const b=document.createElement("button");b.type="button";b.textContent=item.label;
     b.style.cssText="border:1px solid #ffffff18;border-radius:16px;padding:14px 20px;background:"+item.color+";color:white;font-size:14px;font-weight:800;min-width:125px;box-shadow:0 8px 22px #0004;";
@@ -5043,11 +5044,12 @@ async function setupVoiceCallListener(){
       if(jabzyVoiceCall||jabzyVoiceIncomingCall)return;
       const {data:call,error}=await db.from("voice_calls").select("id,status,caller_id,callee_id").eq("id",payload.callId).maybeSingle();
       if(error||!call||call.status!=="ringing"||call.callee_id!==me.id)return;
-      jabzyVoiceIncomingCall={...payload};
-      voiceCallPanel("Incoming voice call",payload.callerName||"JABZY user",[
-        {label:"Accept",color:"#16834b",onClick:()=>acceptVoiceCall()},
-        {label:"Reject",color:"#b83255",onClick:()=>rejectVoiceCall()}
-      ]);
+      const {data:callerProfile}=await db.from("profiles").select("username,photo_url").eq("id",payload.callerId).maybeSingle();
+      jabzyVoiceIncomingCall={...payload,callerName:callerProfile?.username||payload.callerName||"JABZY user",callerPhoto:callerProfile?.photo_url||null};
+      voiceCallPanel("Incoming voice call","Aapko JABZY par voice call aa rahi hai",[
+        {label:"✓  Accept",color:"linear-gradient(135deg,#19a86b,#087a50)",onClick:()=>acceptVoiceCall()},
+        {label:"✕  Reject",color:"linear-gradient(135deg,#e34b68,#a91f43)",onClick:()=>rejectVoiceCall()}
+      ],jabzyVoiceIncomingCall.callerPhoto,jabzyVoiceIncomingCall.callerName);
     })
     .subscribe();
 }
@@ -5059,7 +5061,7 @@ async function startVoiceCall(){
   try{
     const blocked=await getBlockedIds();
     if(blocked.has(calleeId)){appStatus("Blocked user ko call nahi kar sakte.");return;}
-    const {data:profile}=await db.from("profiles").select("username").eq("id",me.id).maybeSingle();
+    const {data:profile}=await db.from("profiles").select("username,photo_url").eq("id",me.id).maybeSingle();
     const {data:call,error}=await db.from("voice_calls").insert({caller_id:me.id,callee_id:calleeId}).select("id").single();
     if(error)throw error;
     const channel=db.channel("jabzy-voice-call:"+call.id,{config:{broadcast:{self:false}}});
@@ -5085,7 +5087,7 @@ async function startVoiceCall(){
       await db.removeChannel(notifyChannel);
       throw new Error("Dusre user tak call notification nahi pahunchi.");
     }
-    await notifyChannel.send({type:"broadcast",event:"incoming-call",payload:{callId:call.id,callerId:me.id,calleeId,callerName:profile?.username||"JABZY user"}});
+    await notifyChannel.send({type:"broadcast",event:"incoming-call",payload:{callId:call.id,callerId:me.id,calleeId,callerName:profile?.username||"JABZY user",callerPhoto:profile?.photo_url||null}});
     await db.removeChannel(notifyChannel);
     const started=Date.now();
     jabzyVoiceCall.ringTimer=setInterval(async()=>{
