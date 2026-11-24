@@ -3,7 +3,7 @@
 alter table public.room_gifts drop constraint if exists room_gifts_gift_code_check;
 alter table public.room_gifts
   add constraint room_gifts_gift_code_check
-  check (gift_code in ('rose','tulip','daisy','bouquet','sunflower','heart','crystal_heart','diamond_necklace','love_carousel','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','superbike','royal_palace','rocket','golden_phoenix','treasure_chest','magic_dragon','shooting_star','golden_guitar','moon','clover','music_note','galaxy','golden_star','magic_wand'));
+  check (gift_code in ('rose','tulip','daisy','bouquet','sunflower','heart','mini_bouquet','chocolate_box','love_mug','cupcake','starry_lamp','music_box','pearl_bracelet','mini_teddy','heart_balloon','rose_basket','crystal_heart','diamond_necklace','love_carousel','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','superbike','royal_palace','rocket','golden_phoenix','treasure_chest','magic_dragon','shooting_star','golden_guitar','moon','clover','music_note','galaxy','golden_star','magic_wand'));
 
 -- JABZY Room Gifts: atomic coin debit + room gift event
 -- Run this migration in Supabase SQL Editor before using the Room Gift button.
@@ -13,7 +13,7 @@ create table if not exists public.room_gifts (
   room_id uuid not null references public.live_rooms(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
   recipient_id uuid not null references auth.users(id) on delete cascade,
-  gift_code text not null check (gift_code in ('rose','tulip','daisy','bouquet','sunflower','heart','crystal_heart','diamond_necklace','love_carousel','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','superbike','royal_palace','rocket','golden_phoenix','treasure_chest','magic_dragon','shooting_star','golden_guitar','moon','clover','music_note','galaxy','golden_star','magic_wand')),
+  gift_code text not null check (gift_code in ('rose','tulip','daisy','bouquet','sunflower','heart','mini_bouquet','chocolate_box','love_mug','cupcake','starry_lamp','music_box','pearl_bracelet','mini_teddy','heart_balloon','rose_basket','crystal_heart','diamond_necklace','love_carousel','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','superbike','royal_palace','rocket','golden_phoenix','treasure_chest','magic_dragon','shooting_star','golden_guitar','moon','clover','music_note','galaxy','golden_star','magic_wand')),
   coin_cost integer not null check (coin_cost > 0),
   created_at timestamptz not null default now(),
   constraint room_gifts_no_self_gift check (sender_id <> recipient_id)
@@ -74,6 +74,16 @@ begin
       when 'bouquet' then 30
     when 'sunflower' then 40
       when 'heart' then 25
+  when 'mini_bouquet' then 25
+  when 'chocolate_box' then 30
+  when 'love_mug' then 35
+  when 'cupcake' then 20
+  when 'starry_lamp' then 40
+  when 'music_box' then 50
+  when 'pearl_bracelet' then 60
+  when 'mini_teddy' then 70
+  when 'heart_balloon' then 80
+  when 'rose_basket' then 100
   when 'crystal_heart' then 350
   when 'diamond_necklace' then 1800
   when 'love_carousel' then 900
