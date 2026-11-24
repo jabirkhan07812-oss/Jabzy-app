@@ -1382,7 +1382,7 @@ body.light-theme #discoverScreen #swipeCard img{
     </div>
     <input id="signupName" placeholder="Your Name">
     <input id="signupDob" type="date">
-    <textarea id="signupBio" placeholder="About yourself (Optional)"></textarea>
+    <textarea id="signupBio" maxlength="100" placeholder="About yourself (Optional, max 100 characters)" oninput="this.nextElementSibling.textContent=this.value.length+'/100'"></textarea><small>0/100</small>
 
     <p style="font-size:13px;color:#ddd;line-height:1.6;">
       <strong>JABZY Privacy Notice 🔒</strong><br>
@@ -1629,7 +1629,7 @@ accept="image/jpeg,image/png,image/webp">
 
 <input id="username" placeholder="Your name">
 <input id="age" type="number" placeholder="Your age (18+)">
-<textarea id="bio" placeholder="About yourself"></textarea>
+<textarea id="bio" maxlength="100" placeholder="About yourself (max 100 characters)" oninput="this.nextElementSibling.textContent=this.value.length+'/100'"></textarea><small>0/100</small>
 
 <button onclick="saveProfile()">Save Profile</button>
 <button onclick="cancelEditProfile()">Cancel</button>
@@ -3205,6 +3205,7 @@ async function createJabzyAccount(){
   const username=document.getElementById("signupName").value.trim();
   const dob=document.getElementById("signupDob").value;
   const bio=document.getElementById("signupBio").value.trim();
+  if(bio.length>100){status("Bio 100 characters se zyada nahi ho sakti.");return;}
   const accepted=document.getElementById("privacyConsent").checked;
 
   if(!username || !dob){
@@ -3975,6 +3976,7 @@ document.getElementById("profileView").style.display="block";
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
 const bio=document.getElementById("bio").value;
+if(bio.length>100){appStatus("Bio 100 characters se zyada nahi ho sakti.");return;}
 if(!username){
 appStatus("Username zaroori hai.");
 return;
