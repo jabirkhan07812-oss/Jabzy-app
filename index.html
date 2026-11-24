@@ -10508,6 +10508,58 @@ body:not(.light-theme) #chatWindow #appStatus{color:#d5b8e9!important}
   body:not(.light-theme) #chatWindow #messages > div[data-message-id]{max-width:82%!important}
 }
 </style>
+
+<style id="jabzy-premium-chat-dark-v3">
+/* Dark chat surfaces — include the parent screen that was exposing black gaps */
+body:not(.light-theme) #matchesScreen{
+ background:linear-gradient(160deg,#171321 0%,#100e18 62%,#171121 100%)!important;
+ color:#f7f1fc!important;
+}
+body:not(.light-theme) #matchesScreen #chatList{
+ background:transparent!important;color:#f7f1fc!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow{
+ background:radial-gradient(ellipse at 50% -10%,rgba(145,83,190,.20),transparent 48%),linear-gradient(160deg,#191422,#110f19 65%,#171121)!important;
+ color:#f7f1fc!important;min-height:100vh!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow>div:first-child{
+ background:linear-gradient(115deg,#352546,#261d35)!important;
+ border-bottom:1px solid #684b7c!important;
+ box-shadow:0 7px 22px #0005!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #chatTitle{color:#fff!important;font-weight:800!important}
+body:not(.light-theme) #matchesScreen #chatWindow #chatProfileInfo{color:#d0bfdf!important}
+body:not(.light-theme) #matchesScreen #chatWindow #chatProfilePhoto{
+ border:2px solid #c18ce8!important;box-shadow:0 0 0 3px #a45bea30,0 4px 15px #0006!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages{
+ background:linear-gradient(180deg,#191422,#14111c)!important;
+ padding:16px 13px 20px!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id]{
+ box-shadow:0 5px 17px #0005!important;border:1px solid #ffffff16!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id][data-own-message="true"]{
+ background:linear-gradient(135deg,#9850c5,#633c9c)!important;color:#fff!important;border-color:#d6a6f044!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id][data-own-message="false"]{
+ background:linear-gradient(140deg,#382d49,#292236)!important;color:#fff!important;border-color:#b99bc522!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #messages [data-message-id] small{color:#dfd0e9!important}
+body:not(.light-theme) #matchesScreen #chatWindow #replyPreview{
+ background:linear-gradient(110deg,#382a49,#292137)!important;color:#fff!important;border:1px solid #a77bc044!important;border-left:3px solid #e77bc2!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #chatComposer{
+ background:linear-gradient(120deg,#352744,#281f36)!important;border:1px solid #a77bc066!important;
+ box-shadow:0 7px 22px #0006!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #message{
+ background:#211a2c!important;color:#fff!important;border:1px solid #a77bc033!important;
+}
+body:not(.light-theme) #matchesScreen #chatWindow #message::placeholder{color:#bfaecc!important;opacity:1}
+body:not(.light-theme) #matchesScreen #chatWindow #chatComposer label{color:#e4c8fa!important}
+body:not(.light-theme) #matchesScreen #chatWindow #chatOptionsMenu{background:#2d2340!important;border-color:#76568e!important}
+</style>
 </body>
   </html>
   
