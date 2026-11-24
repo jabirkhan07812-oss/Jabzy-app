@@ -3,7 +3,7 @@
 alter table public.room_gifts drop constraint if exists room_gifts_gift_code_check;
 alter table public.room_gifts
   add constraint room_gifts_gift_code_check
-  check (gift_code in ('rose','bouquet','sunflower','lotus','heart','love_letter','couple_ring','love_bear','teddy','puppy','kitten','bunny','birthday_cake','party_popper','fireworks','champagne','crown','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','rocket','galaxy','golden_star','magic_wand'));
+  check (gift_code in ('rose','tulip','daisy','lavender','bouquet','sunflower','lotus','heart','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','rocket','moon','clover','music_note','galaxy','golden_star','magic_wand'));
 
 -- JABZY Room Gifts: atomic coin debit + room gift event
 -- Run this migration in Supabase SQL Editor before using the Room Gift button.
@@ -13,7 +13,7 @@ create table if not exists public.room_gifts (
   room_id uuid not null references public.live_rooms(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
   recipient_id uuid not null references auth.users(id) on delete cascade,
-  gift_code text not null check (gift_code in ('rose','bouquet','sunflower','lotus','heart','love_letter','couple_ring','love_bear','teddy','puppy','kitten','bunny','birthday_cake','party_popper','fireworks','champagne','crown','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','rocket','galaxy','golden_star','magic_wand')),
+  gift_code text not null check (gift_code in ('rose','tulip','daisy','lavender','bouquet','sunflower','lotus','heart','kiss','hug','pink_heart','love_letter','couple_ring','love_bear','teddy','paw_print','chick','puppy','kitten','bunny','birthday_cake','balloon','confetti','party_popper','fireworks','champagne','crown','sparkle','diamond','trophy','royal_crown','super_car','private_jet','yacht','luxury_villa','rocket','moon','clover','music_note','galaxy','golden_star','magic_wand')),
   coin_cost integer not null check (coin_cost > 0),
   created_at timestamptz not null default now(),
   constraint room_gifts_no_self_gift check (sender_id <> recipient_id)
@@ -69,22 +69,33 @@ begin
 
   v_cost := case p_gift_code
     when 'rose' then 10
+    when 'tulip' then 10
+    when 'daisy' then 10
+    when 'lavender' then 10
     when 'bouquet' then 30
     when 'sunflower' then 40
     when 'lotus' then 60
     when 'heart' then 25
+    when 'kiss' then 10
+    when 'hug' then 10
+    when 'pink_heart' then 10
     when 'love_letter' then 75
     when 'couple_ring' then 300
     when 'love_bear' then 450
     when 'teddy' then 50
+    when 'paw_print' then 10
+    when 'chick' then 10
     when 'puppy' then 80
     when 'kitten' then 90
     when 'bunny' then 120
     when 'birthday_cake' then 150
+    when 'balloon' then 10
+    when 'confetti' then 10
     when 'party_popper' then 100
     when 'fireworks' then 350
     when 'champagne' then 250
     when 'crown' then 100
+    when 'sparkle' then 10
     when 'diamond' then 250
     when 'trophy' then 500
     when 'royal_crown' then 2000
@@ -93,6 +104,9 @@ begin
     when 'yacht' then 7000
     when 'luxury_villa' then 8000
     when 'rocket' then 10000
+    when 'moon' then 10
+    when 'clover' then 10
+    when 'music_note' then 10
     when 'galaxy' then 12000
     when 'golden_star' then 1500
     when 'magic_wand' then 750
