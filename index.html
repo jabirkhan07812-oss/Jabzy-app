@@ -6184,6 +6184,7 @@ const own=m.sender_id===me.id;
 const row=document.createElement("div");
 row.dataset.createdAt = m.created_at;
 row.dataset.messageId = String(m.id);
+row.dataset.ownMessage=own?"true":"false";
 row.style.position="relative";
 row.style.display="flex";
 row.style.flexDirection="column";
@@ -10412,6 +10413,100 @@ body.light-theme #homeScreen{background:linear-gradient(160deg,#fff 0%,#f7f1fb 5
 #homePostModal{overflow-anchor:none;overscroll-behavior:contain;}
 #homePostModal>div:nth-child(2){overflow-anchor:none;}
 #homePostText{overflow-anchor:none;scroll-margin:0!important;}
+</style>
+
+
+<style id="jabzy-premium-chat-dark-v2">
+/* JABZY PREMIUM CHAT — dark theme */
+body:not(.light-theme) #chatWindow{
+  background:
+    radial-gradient(ellipse at 50% -12%,rgba(139,76,190,.22),transparent 48%),
+    linear-gradient(160deg,#171321 0%,#100e18 58%,#15101e 100%)!important;
+  color:#f7f1fc!important;
+}
+body:not(.light-theme) #chatWindow > div:first-child{
+  background:linear-gradient(115deg,rgba(48,34,65,.98),rgba(35,27,49,.98))!important;
+  border-bottom:1px solid rgba(190,145,225,.22)!important;
+  box-shadow:0 7px 24px rgba(0,0,0,.22)!important;
+  padding:13px 12px!important;
+}
+body:not(.light-theme) #chatWindow #chatProfilePhoto{
+  border:2px solid #bd83e8!important;
+  box-shadow:0 0 0 3px rgba(166,105,210,.16),0 4px 14px rgba(0,0,0,.3)!important;
+}
+body:not(.light-theme) #chatWindow #chatTitle{
+  color:#fff!important;font-size:15px!important;font-weight:800!important;letter-spacing:.15px;
+}
+body:not(.light-theme) #chatWindow #chatProfileInfo{
+  color:#c8b6d8!important;
+}
+body:not(.light-theme) #chatWindow #typingStatus{
+  color:#f18acb!important;
+}
+body:not(.light-theme) #chatWindow #messages{
+  background:
+    radial-gradient(ellipse at 0% 0%,rgba(120,75,155,.10),transparent 42%),
+    linear-gradient(180deg,#171321 0%,#13101b 100%)!important;
+  padding:16px 13px 18px!important;
+  scrollbar-color:#59416c transparent;
+}
+body:not(.light-theme) #chatWindow #messages > div[data-message-id]{
+  border:1px solid rgba(255,255,255,.075)!important;
+  box-shadow:0 5px 16px rgba(0,0,0,.19)!important;
+  line-height:1.48!important;
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+body:not(.light-theme) #chatWindow #messages > div[data-own-message="true"]{
+  background:linear-gradient(135deg,#8d45bd 0%,#6938a0 58%,#57358d 100%)!important;
+  border-color:rgba(221,176,255,.25)!important;
+  color:#fff!important;
+  border-radius:17px 5px 17px 17px!important;
+}
+body:not(.light-theme) #chatWindow #messages > div[data-own-message="false"]{
+  background:linear-gradient(145deg,#30283d 0%,#252033 100%)!important;
+  border-color:rgba(190,157,220,.15)!important;
+  color:#f5effa!important;
+  border-radius:5px 17px 17px 17px!important;
+}
+body:not(.light-theme) #chatWindow #messages > div[data-message-id] small{
+  color:#d5c6e1!important;opacity:.82;
+}
+body:not(.light-theme) #chatWindow #chatComposer{
+  background:linear-gradient(120deg,#30243e,#251d32)!important;
+  border:1px solid rgba(190,145,225,.30)!important;
+  border-radius:30px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05)!important;
+  padding:7px 9px 7px 13px!important;
+}
+body:not(.light-theme) #chatWindow #message{
+  background:linear-gradient(135deg,#211b2d,#292137)!important;
+  border:1px solid rgba(190,145,225,.12)!important;
+  border-radius:23px!important;
+  color:#fff!important;
+  min-height:44px;
+}
+body:not(.light-theme) #chatWindow #message::placeholder{color:#b7a8c5!important;opacity:1}
+body:not(.light-theme) #chatWindow #chatComposer label{
+  color:#dfc1f4!important;padding:3px 2px;
+}
+body:not(.light-theme) #chatWindow #chatComposer button{
+  background:linear-gradient(135deg,#e35cae,#9855d6)!important;
+  box-shadow:0 4px 13px rgba(177,83,204,.28)!important;
+}
+body:not(.light-theme) #chatWindow #replyPreview{
+  background:linear-gradient(110deg,#30243e,#251d32)!important;
+  border:1px solid rgba(190,145,225,.22)!important;
+  border-left:3px solid #df79c2!important;
+  border-radius:14px!important;
+}
+body:not(.light-theme) #chatWindow #chatOptionsMenu{
+  background:#292137!important;border-color:#624878!important;
+}
+body:not(.light-theme) #chatWindow #appStatus{color:#d5b8e9!important}
+@media(max-width:420px){
+  body:not(.light-theme) #chatWindow #messages{padding-left:11px!important;padding-right:11px!important}
+  body:not(.light-theme) #chatWindow #messages > div[data-message-id]{max-width:82%!important}
+}
 </style>
 </body>
   </html>
