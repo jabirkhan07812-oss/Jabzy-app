@@ -2496,8 +2496,11 @@ box-sizing:border-box;
 <!-- ROOM GIFT PICKER -->
 <div id="roomGiftPicker" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(8,5,14,.88);padding:12px;overflow:hidden;color:white;align-items:center;justify-content:center;">
  <div style="width:100%;max-width:440px;max-height:94dvh;margin:auto;background:linear-gradient(145deg,#302044,#160f22);border:1px solid #8d58b4;border-radius:22px;padding:16px;box-shadow:0 18px 60px #0009;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
-  <div style="display:flex;align-items:center;justify-content:space-between;"><b style="font-size:19px;">🎁 Send a Gift</b><button onclick="closeRoomGift()" style="width:34px;margin:0;padding:6px;">✕</button></div>
-  <div id="roomGiftBalance" style="margin:10px 0 14px;color:#f4d58a;">🪙 Coins: loading…</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+   <div id="roomGiftBalance" style="margin:0;color:#f4d58a;background:rgba(244,213,138,.12);border:1px solid rgba(244,213,138,.3);border-radius:12px;padding:8px 11px;font-size:13px;font-weight:800;white-space:nowrap;">🪙 My Coins: loading…</div>
+   <b style="font-size:17px;flex:1;text-align:center;">🎁 Send a Gift</b>
+   <button onclick="closeRoomGift()" style="width:34px;min-width:34px;margin:0;padding:6px;">✕</button>
+  </div>
   <label style="display:block;margin:8px 0 5px;">Gift kisko bhejna hai?</label>
   <select id="roomGiftRecipient" style="width:100%;padding:12px;border-radius:12px;background:#21152f;color:white;border:1px solid #68447d;"><option value="">Choose room member</option></select>
   <div id="roomGiftChoices" style="margin-top:12px;min-height:0;max-height:42dvh;overflow-y:auto;overflow-x:hidden;padding:0 4px 8px 0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;"></div>
@@ -10491,7 +10494,7 @@ async function openRoomGift(){
  const {data:profiles,error}=ids.length?await db.from("profiles").select("id,username").in("id",ids):{data:[],error:null};
  if(error){status.textContent="Members load nahi hue: "+error.message;return;}
  (profiles||[]).forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent="@"+(p.username||"Member");recipient.appendChild(o);});
- document.getElementById("roomGiftBalance").textContent="🪙 Coins: "+Number(wallet?.balance||0);
+ document.getElementById("roomGiftBalance").textContent="🪙 My Coins: "+Number(wallet?.balance||0);
  if(!ids.length)status.textContent="Gift bhejne ke liye Room mein doosra member hona chahiye.";
  else status.textContent="Gift chunein aur member select karein.";
 }
@@ -10512,7 +10515,7 @@ async function sendRoomGift(){
  const {data,error}=await db.rpc("send_room_gift",{p_room_id:currentJoinedRoom.id,p_recipient_id:recipient,p_gift_code:selectedRoomGift});
  if(error){status.textContent=error.message.includes("INSUFFICIENT_COINS")?"Aapke paas enough Coins nahi hain.":error.message;btn.disabled=false;return;}
  const bal=await db.from("user_coins").select("balance").eq("user_id",me.id).maybeSingle();
- if(!bal.error)document.getElementById("roomGiftBalance").textContent="🪙 Coins: "+Number(bal.data?.balance||0);
+ if(!bal.error)document.getElementById("roomGiftBalance").textContent="🪙 My Coins: "+Number(bal.data?.balance||0);
  status.textContent=gift.emoji+" Gift successfully sent!";
  btn.disabled=false;
  setTimeout(closeRoomGift,900);
