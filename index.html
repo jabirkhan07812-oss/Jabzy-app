@@ -1736,8 +1736,8 @@ box-sizing:border-box;
     </div>
 
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-      <button onclick="chatComingSoon('Voice Call')" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📞</button>
-      <button onclick="chatComingSoon('Video Call')" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📹</button>
+      <button onclick="startVoiceCall()" title="Voice Call" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📞</button>
+      <button onclick="chatComingSoon('Video Call')" title="Video Call" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📹</button>
       <button onclick="showChatMenu()" style="width:auto;background:transparent;color:white;border:0;font-size:23px;padding:5px;">⋮</button>
         </div>
   </div>
@@ -3063,6 +3063,7 @@ showTab("home");
 document.getElementById("app").classList.remove("hidden");
 
 Promise.resolve().then(async()=>{
+  await setupVoiceCallListener();
   await setupFriendsRealtime();
   await restoreJoinedRoom();
   await setupGlobalRoomRealtime();
@@ -4997,6 +4998,200 @@ function chatReportCurrent(){
 function muteChat(){
   document.getElementById("chatOptionsMenu").style.display="none";
   appStatus("Mute Notifications abhi available nahi hai.");
+}
+
+
+/* JABZY 1-to-1 voice calling */
+let jabzyVoiceListener=null;
+let jabzyVoiceCall=null;
+let jabzyVoiceIncomingCall=null;
+
+function voiceCallPanel(title,subtitle,buttons){
+  let panel=document.getElementById("jabzyVoiceCallPanel");
+  if(!panel){
+    panel=document.createElement("div");
+    panel.id="jabzyVoiceCallPanel";
+    panel.style.cssText="position:fixed;inset:0;z-index:99999;background:#100b18ee;display:flex;align-items:center;justify-content:center;padding:20px;";
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML="";
+  const card=document.createElement("div");
+  card.style.cssText="width:min(340px,100%);background:#30213e;border:1px solid #76518c;border-radius:22px;padding:25px 20px;text-align:center;color:white;box-shadow:0 12px 40px #0009;";
+  const heading=document.createElement("div");heading.style.cssText="font-size:21px;font-weight:700;margin-bottom:10px";heading.textContent=title;
+  const detail=document.createElement("div");detail.style.cssText="font-size:14px;color:#dbcce5;margin-bottom:22px";detail.textContent=subtitle;
+  const actions=document.createElement("div");actions.style.cssText="display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
+  card.append(heading,detail,actions);
+  buttons.forEach(item=>{
+    const b=document.createElement("button");b.type="button";b.textContent=item.label;
+    b.style.cssText="border:0;border-radius:12px;padding:12px 18px;background:"+item.color+";color:white;font-weight:700;min-width:105px;";
+    b.onclick=item.onClick;actions.appendChild(b);
+  });
+  panel.appendChild(card);
+}
+function closeVoiceCallPanel(){
+  document.getElementById("jabzyVoiceCallPanel")?.remove();
+}
+async function setupVoiceCallListener(){
+  if(!me)return;
+  if(jabzyVoiceListener)await db.removeChannel(jabzyVoiceListener);
+  jabzyVoiceListener=db.channel("jabzy-voice-user:"+me.id,{config:{broadcast:{self:false}}})
+    .on("broadcast",{event:"incoming-call"},async({payload})=>{
+      if(!payload?.callId||!payload?.callerId||payload.calleeId!==me.id)return;
+      if(jabzyVoiceCall||jabzyVoiceIncomingCall)return;
+      const {data:call,error}=await db.from("voice_calls").select("id,status,caller_id,callee_id").eq("id",payload.callId).maybeSingle();
+      if(error||!call||call.status!=="ringing"||call.callee_id!==me.id)return;
+      jabzyVoiceIncomingCall={...payload};
+      voiceCallPanel("Incoming voice call",payload.callerName||"JABZY user",[
+        {label:"Accept",color:"#16834b",onClick:()=>acceptVoiceCall()},
+        {label:"Reject",color:"#b83255",onClick:()=>rejectVoiceCall()}
+      ]);
+    })
+    .subscribe();
+}
+async function startVoiceCall(){
+  if(!me||!selected){appStatus("Pehle kisi user ki chat kholein.");return;}
+  if(jabzyVoiceCall||jabzyVoiceIncomingCall){appStatus("Ek call pehle se chal rahi hai.");return;}
+  const calleeId=selected;
+  if(calleeId===me.id){appStatus("Aap khud ko call nahi kar sakte.");return;}
+  try{
+    const blocked=await getBlockedIds();
+    if(blocked.has(calleeId)){appStatus("Blocked user ko call nahi kar sakte.");return;}
+    const {data:profile}=await db.from("profiles").select("username").eq("id",me.id).maybeSingle();
+    const {data:call,error}=await db.from("voice_calls").insert({caller_id:me.id,callee_id:calleeId}).select("id").single();
+    if(error)throw error;
+    const channel=db.channel("jabzy-voice-call:"+call.id,{config:{broadcast:{self:false}}});
+    jabzyVoiceCall={id:call.id,peerId:calleeId,channel,pc:null,stream:null,role:"caller",connected:false};
+    voiceCallPanel("Calling…","Waiting for the other user to answer",[
+      {label:"Cancel call",color:"#b83255",onClick:()=>endVoiceCall("ended")}
+    ]);
+    channel.on("broadcast",{event:"signal"},({payload})=>handleVoiceCallSignal(payload));
+    const status=await new Promise(resolve=>{
+      const timer=setTimeout(()=>resolve("TIMEOUT"),12000);
+      channel.subscribe(value=>{if(value==="SUBSCRIBED"){clearTimeout(timer);resolve(value);}else if(value==="CHANNEL_ERROR"||value==="TIMED_OUT"){clearTimeout(timer);resolve(value);}});
+    });
+    if(status!=="SUBSCRIBED")throw new Error("Call connection nahi ban paya. Dobara try karein.");
+    await jabzyVoiceListener?.send({type:"broadcast",event:"incoming-call",payload:{callId:call.id,callerId:me.id,calleeId,callerName:profile?.username||"JABZY user"}});
+    const started=Date.now();
+    jabzyVoiceCall.ringTimer=setInterval(async()=>{
+      if(!jabzyVoiceCall||jabzyVoiceCall.id!==call.id)return;
+      const {data}=await db.from("voice_calls").select("status").eq("id",call.id).maybeSingle();
+      if(!data||data.status==="rejected"||data.status==="ended"||data.status==="missed"){
+        await endVoiceCall(data?.status||"ended",false);
+      }else if(data.status==="accepted"){
+        clearInterval(jabzyVoiceCall.ringTimer);jabzyVoiceCall.ringTimer=null;
+        await prepareVoicePeer(true);
+      }else if(Date.now()-started>60000){
+        await endVoiceCall("missed");
+      }
+    },1800);
+  }catch(error){
+    console.error("Voice call start:",error);
+    await endVoiceCall("ended");
+    appStatus("Call start nahi hui: "+(error.message||"Unknown error"));
+  }
+}
+async function acceptVoiceCall(){
+  const incoming=jabzyVoiceIncomingCall;
+  if(!incoming)return;
+  try{
+    const {error}=await db.rpc("set_voice_call_status",{p_call_id:incoming.callId,p_status:"accepted"});
+    if(error)throw error;
+    const channel=db.channel("jabzy-voice-call:"+incoming.callId,{config:{broadcast:{self:false}}});
+    jabzyVoiceCall={id:incoming.callId,peerId:incoming.callerId,channel,pc:null,stream:null,role:"callee",connected:false};
+    jabzyVoiceIncomingCall=null;
+    voiceCallPanel("Connecting…","Starting secure microphone connection",[
+      {label:"End call",color:"#b83255",onClick:()=>endVoiceCall("ended")}
+    ]);
+    channel.on("broadcast",{event:"signal"},({payload})=>handleVoiceCallSignal(payload));
+    const status=await new Promise(resolve=>{
+      const timer=setTimeout(()=>resolve("TIMEOUT"),12000);
+      channel.subscribe(value=>{if(value==="SUBSCRIBED"){clearTimeout(timer);resolve(value);}else if(value==="CHANNEL_ERROR"||value==="TIMED_OUT"){clearTimeout(timer);resolve(value);}});
+    });
+    if(status!=="SUBSCRIBED")throw new Error("Call channel connect nahi hua.");
+    await prepareVoicePeer(false);
+    await channel.send({type:"broadcast",event:"signal",payload:{kind:"ready"}});
+  }catch(error){
+    console.error("Accept voice call:",error);
+    await endVoiceCall("ended");
+    appStatus("Call connect nahi hui: "+error.message);
+  }
+}
+async function rejectVoiceCall(){
+  const incoming=jabzyVoiceIncomingCall;
+  jabzyVoiceIncomingCall=null;closeVoiceCallPanel();
+  if(incoming)await db.rpc("set_voice_call_status",{p_call_id:incoming.callId,p_status:"rejected"});
+}
+async function prepareVoicePeer(makeOffer){
+  const call=jabzyVoiceCall;if(!call)return;
+  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection)throw new Error("Is device/browser mein voice calling supported nahi hai.");
+  call.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  call.pc=pc;
+  call.stream.getAudioTracks().forEach(track=>pc.addTrack(track,call.stream));
+  pc.ontrack=event=>{
+    let audio=document.getElementById("jabzyVoiceRemoteAudio");
+    if(!audio){audio=document.createElement("audio");audio.id="jabzyVoiceRemoteAudio";audio.autoplay=true;audio.playsInline=true;document.body.appendChild(audio);}
+    audio.srcObject=event.streams?.[0]||new MediaStream([event.track]);
+    audio.play().catch(()=>appStatus("Audio sunne ke liye screen par tap karein."));
+  };
+  pc.onicecandidate=event=>{
+    if(event.candidate&&jabzyVoiceCall?.id===call.id)call.channel.send({type:"broadcast",event:"signal",payload:{kind:"candidate",candidate:event.candidate}});
+  };
+  pc.onconnectionstatechange=()=>{
+    if(!jabzyVoiceCall||jabzyVoiceCall.id!==call.id)return;
+    if(pc.connectionState==="connected"){
+      call.connected=true;voiceCallPanel("Voice call connected","Aapki call chal rahi hai",[
+        {label:"Mute",color:"#76518c",onClick:toggleVoiceCallMute},
+        {label:"End call",color:"#b83255",onClick:()=>endVoiceCall("ended")}
+      ]);
+    }else if(["failed","disconnected"].includes(pc.connectionState)){
+      voiceCallPanel("Call connection lost","Network check karein",[
+        {label:"End call",color:"#b83255",onClick:()=>endVoiceCall("ended")}
+      ]);
+    }
+  };
+  if(makeOffer){
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    await call.channel.send({type:"broadcast",event:"signal",payload:{kind:"description",description:pc.localDescription}});
+  }
+}
+async function handleVoiceCallSignal(payload){
+  const call=jabzyVoiceCall;if(!call||!payload)return;
+  try{
+    if(payload.kind==="ready"&&call.role==="caller"&&!call.pc){await prepareVoicePeer(true);return;}
+    if(payload.kind==="description"&&payload.description&&call.pc){
+      await call.pc.setRemoteDescription(payload.description);
+      if(payload.description.type==="offer"){
+        const answer=await call.pc.createAnswer();await call.pc.setLocalDescription(answer);
+        await call.channel.send({type:"broadcast",event:"signal",payload:{kind:"description",description:call.pc.localDescription}});
+      }
+    }else if(payload.kind==="candidate"&&payload.candidate&&call.pc&&call.pc.remoteDescription){
+      await call.pc.addIceCandidate(payload.candidate);
+    }
+  }catch(error){console.error("Voice signal:",error);}
+}
+let jabzyVoiceMuted=false;
+function toggleVoiceCallMute(){
+  if(!jabzyVoiceCall?.stream)return;
+  jabzyVoiceMuted=!jabzyVoiceMuted;
+  jabzyVoiceCall.stream.getAudioTracks().forEach(track=>track.enabled=!jabzyVoiceMuted);
+  voiceCallPanel("Voice call connected",jabzyVoiceMuted?"Microphone muted":"Aapki call chal rahi hai",[
+    {label:jabzyVoiceMuted?"Unmute":"Mute",color:"#76518c",onClick:toggleVoiceCallMute},
+    {label:"End call",color:"#b83255",onClick:()=>endVoiceCall("ended")}
+  ]);
+}
+async function endVoiceCall(status="ended",updateServer=true){
+  const call=jabzyVoiceCall;
+  jabzyVoiceCall=null;
+  if(call){
+    if(call.ringTimer)clearInterval(call.ringTimer);
+    try{call.pc?.close();}catch(e){}
+    call.stream?.getTracks().forEach(track=>track.stop());
+    const audio=document.getElementById("jabzyVoiceRemoteAudio");if(audio){audio.pause();audio.srcObject=null;audio.remove();}
+    if(updateServer)await db.rpc("set_voice_call_status",{p_call_id:call.id,p_status:status});
+    try{await db.removeChannel(call.channel);}catch(e){}
+  }
+  jabzyVoiceIncomingCall=null;closeVoiceCallPanel();
 }
 
 function chatComingSoon(feature){
