@@ -2772,6 +2772,11 @@ async function createJabzyAccount(){
     if(googlePassword.length<6){status("JABZY password kam se kam 6 characters ka hona chahiye.");return;}
     if(googlePassword!==googleConfirm){status("Dono JABZY password match nahi karte.");return;}
 
+    const {error:metadataError}=await db.auth.updateUser({
+      data:{username:username,date_of_birth:dob,bio:bio}
+    });
+    if(metadataError){status("Date of Birth save nahi hua: "+metadataError.message);return;}
+
     const {error:profileError}=await db.rpc("complete_google_profile",{
       p_username:username,
       p_dob:dob,
@@ -3263,38 +3268,25 @@ document.getElementById("profileView").style.display="block";
 
 async function saveProfile(){
 const username=document.getElementById("username").value.trim();
-const age=Number(document.getElementById("age").value);
 const bio=document.getElementById("bio").value;
-
-if(!username||age<18){
-appStatus("Name aur age 18+ zaroori hai.");
+if(!username){
+appStatus("Username zaroori hai.");
 return;
 }
-
-const {error}=await db.from("profiles").upsert({
-id:me.id,
-username,
-age,
-bio
-});
-
+const {error}=await db.from("profiles")
+.update({username,bio})
+.eq("id",me.id);
 if(error){
 appStatus(error.message);
 return;
 }
-
 document.getElementById("viewUsername").innerText=username;
-document.getElementById("viewAge").innerText=age+" years";
 document.getElementById("viewBio").innerText=bio;
-
 document.getElementById("profileEdit").style.display="none";
 document.getElementById("profileView").style.display="block";
-
 appStatus("Profile saved!");
-
 await loadPeople();
-  }
-  
+}
 
 async function loadProfile(){
 const {data,error}=await db.from("profiles")
