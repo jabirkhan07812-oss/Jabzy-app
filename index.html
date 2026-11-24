@@ -1786,7 +1786,7 @@ box-sizing:border-box;
     placeholder="Add a caption..."
     style="flex:1;min-width:0;background:transparent;border:0;color:white;outline:none;padding:10px;">
 
-    <button onclick="sendChatPhoto()" style="
+    <button id="sendChatPhotoButton" onclick="sendChatPhoto()" style="
     width:44px;
     height:44px;
     flex-shrink:0;
@@ -2140,6 +2140,7 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let me=null;
 let selected=null;
 let replyingTo=null;
+let chatSendInProgress=false;
 let chatChannel=null;
 let globalRoomRealtimeChannel = null;
 let globalRoomRealtimeUserId = null;
@@ -5853,6 +5854,7 @@ if(error)appStatus(error.message);
 }
   
 async function sendChatPhoto(){
+  if(chatSendInProgress)return;
   if(!me){
     appStatus("Login session nahi mili. Dobara login karein.");
     return;
@@ -5871,70 +5873,53 @@ async function sendChatPhoto(){
     return;
   }
 
-  let blocked;
-  try{blocked=await getBlockedIds()}
-  catch(e){appStatus(e.message);return}
+  chatSendInProgress=true;
+  const sendButton=document.getElementById("sendChatPhotoButton");
+  if(sendButton)sendButton.disabled=true;
 
-  if(blocked.has(selected)){
-    appStatus("Blocked user ko photo nahi bhej sakte.");
-    return;
-  }
-
-  appStatus("Photos upload ho rahi hain...");
-
-  const rows=[];
-
-  for(let i=0;i<files.length;i++){
-    const file=files[i];
-    const ext={
-      "image/jpeg":"jpg",
-      "image/png":"png",
-      "image/webp":"webp"
-    }[file.type];
-
-    if(!ext || file.size>10*1024*1024){
-      appStatus("Har photo JPG, PNG ya WEBP aur 10 MB se chhoti honi chahiye.");
+  try{
+    const blocked=await getBlockedIds();
+    if(blocked.has(selected)){
+      appStatus("Blocked user ko photo nahi bhej sakte.");
       return;
     }
 
-    const path=me.id+"/"+selected+"/"+Date.now()+"_"+i+"."+ext;
-
-    const {error:uploadError}=await db.storage
-      .from("chat-photos")
-      .upload(path,file,{contentType:file.type});
-
-    if(uploadError){
-      appStatus(uploadError.message);
-      return;
+    for(const file of files){
+      if(!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size>10*1024*1024){
+        appStatus("Har photo JPG, PNG ya WEBP aur 10 MB se chhoti honi chahiye.");
+        return;
+      }
     }
 
-    rows.push({
-      sender_id:me.id,
-      receiver_id:selected,
-      message:"PHOTO:"+path
-    });
+    appStatus("Photos upload ho rahi hain...");
+    const rows=[];
+
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[file.type];
+      const path=me.id+"/"+selected+"/"+Date.now()+"_"+i+"."+ext;
+      const {error:uploadError}=await db.storage.from("chat-photos").upload(path,file,{contentType:file.type});
+      if(uploadError)throw uploadError;
+
+      rows.push({sender_id:me.id,receiver_id:selected,message:"PHOTO:"+path});
+    }
+
+    if(caption)rows.push({sender_id:me.id,receiver_id:selected,message:caption});
+
+    const {error}=await db.from("messages").insert(rows);
+    if(error)throw error;
+
+    cancelChatPhotoPreview();
+    appStatus("Photos send ho gayi!");
+    await loadMessages();
+  }catch(e){
+    appStatus("Photo send nahi hui: "+(e.message||"Unknown error"));
+    console.error(e);
+  }finally{
+    chatSendInProgress=false;
+    if(sendButton)sendButton.disabled=false;
   }
-
-  if(caption){
-    rows.push({
-      sender_id:me.id,
-      receiver_id:selected,
-      message:caption
-    });
-  }
-
-  const {error}=await db.from("messages").insert(rows);
-
-  if(error){
-    appStatus(error.message);
-    return;
-  }
-
-  cancelChatPhotoPreview();
-  appStatus("Photos send ho gayi!");
-  await loadMessages();
-  }
-
+}
  let chatPhotoPreviewIndex=0;
 let chatPhotoPreviewUrls=[];
 
@@ -6041,14 +6026,11 @@ function previewChatPhotos(input){
 async function sendMessage(){
 const photoInput=document.getElementById("chatPhotoFile");
 
-
-try{
-
 if(photoInput.files.length>0){
 await sendChatPhoto();
 return;
 }
-
+if(chatSendInProgress)return;
 if(!selected){
 appStatus("Pehle kisi user ko Chat select karein.");
 return;
@@ -6065,6 +6047,11 @@ const input=document.getElementById("message");
 const message=input.value.trim();
 if(!message)return;
 
+chatSendInProgress=true;
+const sendButton=document.querySelector('button[onclick="sendMessage()"]');
+if(sendButton)sendButton.disabled=true;
+
+try{
 const {error}=await db.from("messages").insert({
   sender_id:me.id,
   receiver_id:selected,
@@ -6084,7 +6071,10 @@ await loadMessages();
 }catch(e){
 appStatus("ERROR: "+e.message);
 console.error(e);
-  }
+}finally{
+chatSendInProgress=false;
+if(sendButton)sendButton.disabled=false;
+}
 }
   
   
