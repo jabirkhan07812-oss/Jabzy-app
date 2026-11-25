@@ -2591,27 +2591,25 @@ box-sizing:border-box;
 </div>
   
 
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.10.js"></script>
 <script>
 const SUPABASE_URL="https://rpgclomsjxvwhuwusvii.supabase.co";
 const SUPABASE_KEY="sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-  async function getAgoraToken(roomId, uid) {
+async function getAgoraToken(roomId) {
   const { data: { session }, error } = await db.auth.getSession();
-  if (error || !session) {
-    throw new Error("Please login first");
-  }
-
+  if (error || !session) throw new Error("Please login first");
   const { data, error: tokenError } = await db.functions.invoke("agora-token", {
-    body: { roomId, uid },
-    headers: {
-      Authorization: `Bearer ${session.access_token}`
-    }
+    body: { roomId },
+    headers: { Authorization: `Bearer ${session.access_token}` }
   });
-
   if (tokenError) throw tokenError;
-  return data;
+  if (!data || !data.token || !data.appId || !data.channel || data.uid === undefined) {
+    throw new Error("Agora token response incomplete");
   }
+  return data;
+}
 
 let me=null;
 let selected=null;
@@ -8426,299 +8424,107 @@ function minimizeJoinedRoom(){
   let roomMicOn = false;
 let roomMicPermissionAllowed = false;
 let roomSpeakerOn = true;
-let roomVoiceChannel = null;
-let roomVoiceClientId = null;
-let roomLocalStream = null;
+let roomVoiceClient = null;
+let roomLocalAudioTrack = null;
+let roomRemoteUsers = new Map();
 let roomStatusCheckTimer = null;
-const roomVoicePeers = new Map();
 
 async function stopRoomVoice(){
-  if(roomStatusCheckTimer){ clearInterval(roomStatusCheckTimer); roomStatusCheckTimer=null; }
-  if(roomVoiceChannel){
-    await db.removeChannel(roomVoiceChannel);
-    roomVoiceChannel = null;
-  }
-  roomVoicePeers.forEach(peer => {
-    peer.connection.close();
-    peer.audio.pause();
-    peer.audio.srcObject = null;
-    peer.audio.remove();
-  });
-  roomVoicePeers.clear();
-  if(roomLocalStream){
-    roomLocalStream.getTracks().forEach(track => track.stop());
-    roomLocalStream = null;
-  }
-  roomVoiceClientId = null;
-  roomMicOn = false;
-}
-
-async function sendRoomVoiceSignal(toClient, signal){
-  if(!roomVoiceChannel || !roomVoiceClientId) return;
-  await roomVoiceChannel.send({
-    type:"broadcast",
-    event:"signal",
-    payload:{fromClient:roomVoiceClientId,fromUser:me.id,toClient,signal}
-  });
-}
-
-async function ensureRoomVoicePeer(remoteClient){
-  if(roomVoicePeers.has(remoteClient)) return roomVoicePeers.get(remoteClient);
-  const pc = new RTCPeerConnection({
-    iceServers:[{urls:"stun:stun.l.google.com:19302"}],
-    iceCandidatePoolSize:10,
-    bundlePolicy:"max-bundle",
-    rtcpMuxPolicy:"require"
-  });
-  const audio = document.createElement("audio");
-  audio.autoplay = true;
-  audio.playsInline = true;
-  audio.style.display = "none";
-  document.body.appendChild(audio);
-  const peer = {
-    connection:pc,
-    audio,
-    makingOffer:false,
-    ignoreOffer:false,
-    settingRemoteAnswer:false,
-    pendingCandidates:[],
-    polite:roomVoiceClientId > remoteClient
-  };
-  roomVoicePeers.set(remoteClient,peer);
-  const transceiver = pc.addTransceiver("audio",{direction:"sendrecv"});
-  if(roomLocalStream){
-    const track = roomLocalStream.getAudioTracks()[0];
-    if(track) await transceiver.sender.replaceTrack(track);
-  }
-  pc.ontrack = event => {
-    const incomingStream = event.streams?.[0] || new MediaStream([event.track]);
-    audio.srcObject = incomingStream;
-    audio.volume = roomSpeakerOn ? 1 : 0;
-    audio.play().catch(error => console.warn("Room audio playback blocked:",error));
-  };
-  pc.onicecandidate = event => {
-    if(event.candidate) sendRoomVoiceSignal(remoteClient,{candidate:event.candidate});
-  };
-  return peer;
-}
-
-async function syncRoomVoicePeers(){
-  if(!currentJoinedRoom || !roomVoiceChannel || !roomVoiceClientId) return;
-  const {data:members,error} = await db.from("live_room_members")
-    .select("user_id,audio_role,mic_allowed")
-    .eq("room_id",currentJoinedRoom.id);
-  if(error){ console.error("Voice members error:",error); return; }
-
-  const allowedUsers = new Set([
-    currentJoinedRoom.created_by,
-    ...(members || []).filter(m =>
-      m.audio_role === "speaker" || m.mic_allowed === true
-    ).map(m => m.user_id)
-  ]);
-  const localCanSpeak = allowedUsers.has(me.id);
-  const presence = roomVoiceChannel.presenceState();
-  const active = new Set();
-
-  for(const clientId of Object.keys(presence)){
-    if(clientId === roomVoiceClientId) continue;
-    const remote = (presence[clientId] || [])[0];
-    if(!remote?.userId || remote.userId === me.id) continue;
-    if(!localCanSpeak && !allowedUsers.has(remote.userId)) continue;
-    active.add(clientId);
-    const peer = await ensureRoomVoicePeer(clientId);
-    if(roomVoiceClientId < clientId && !peer.initialOfferSent){
-      peer.initialOfferSent = true;
-      try{
-        peer.makingOffer = true;
-        await peer.connection.setLocalDescription();
-        await sendRoomVoiceSignal(clientId,{description:peer.connection.localDescription});
-      }catch(error){
-        console.error("Voice offer error:",error);
-      }finally{
-        peer.makingOffer = false;
-      }
-    }
-  }
-  for(const [clientId,peer] of roomVoicePeers){
-    if(!active.has(clientId)){
-      peer.connection.close();
-      peer.audio.remove();
-      roomVoicePeers.delete(clientId);
-    }
-  }
-}
-
-async function handleRoomVoiceSignal(message){
-  if(!message || message.toClient !== roomVoiceClientId ||
-     message.fromUser === me.id || !message.fromClient) return;
-  const {data:members,error} = await db.from("live_room_members")
-    .select("user_id,audio_role,mic_allowed")
-    .eq("room_id",currentJoinedRoom.id);
-  if(error) return;
-  const remoteAllowed = message.fromUser === currentJoinedRoom.created_by ||
-    (members || []).some(m => m.user_id === message.fromUser &&
-      (m.audio_role === "speaker" || m.mic_allowed === true));
-  if(!roomMicPermissionAllowed && !remoteAllowed) return;
-
-  const peer = await ensureRoomVoicePeer(message.fromClient);
-  const pc = peer.connection;
-  const signal = message.signal || {};
+  if(roomStatusCheckTimer){clearInterval(roomStatusCheckTimer);roomStatusCheckTimer=null;}
   try{
-    if(signal.description){
-      const description = signal.description;
-      const ready = !peer.makingOffer &&
-        (pc.signalingState === "stable" || peer.settingRemoteAnswer);
-      const collision = description.type === "offer" && !ready;
-      peer.ignoreOffer = !peer.polite && collision;
-      if(peer.ignoreOffer) return;
-      peer.settingRemoteAnswer = description.type === "answer";
-      if(collision && peer.polite) await pc.setLocalDescription({type:"rollback"});
-      await pc.setRemoteDescription(description);
-      peer.settingRemoteAnswer = false;
-      for(const candidate of peer.pendingCandidates.splice(0)){
-        try{ await pc.addIceCandidate(candidate); }
-        catch(candidateError){ console.warn("Queued ICE candidate failed:",candidateError); }
-      }
-      if(description.type === "offer"){
-        await pc.setLocalDescription();
-        await sendRoomVoiceSignal(message.fromClient,{description:pc.localDescription});
-      }
-    }else if(signal.candidate){
-      if(!pc.remoteDescription){
-        peer.pendingCandidates.push(signal.candidate);
-      }else{
-        try{ await pc.addIceCandidate(signal.candidate); }
-        catch(error){ if(!peer.ignoreOffer) throw error; }
-      }
+    if(roomVoiceClient){
+      if(roomLocalAudioTrack){try{await roomVoiceClient.unpublish(roomLocalAudioTrack);}catch(e){}}
+      try{await roomVoiceClient.leave();}catch(e){}
     }
-  }catch(error){
-    console.error("Voice signal error:",error);
+  }finally{
+    if(roomLocalAudioTrack){try{roomLocalAudioTrack.stop();roomLocalAudioTrack.close();}catch(e){}roomLocalAudioTrack=null;}
+    roomRemoteUsers.clear();
+    roomVoiceClient=null;
+    roomMicOn=false;
   }
 }
 
-async function checkJoinedRoomStillActive(){
-  if(!currentJoinedRoom) return;
-  const roomId = currentJoinedRoom.id;
-  const {data,error} = await db.from("live_rooms")
-    .select("status")
-    .eq("id",roomId)
-    .maybeSingle();
-  if(error){
-    console.warn("Room status check failed:",error.message);
-    return;
-  }
-  if(!data || data.status !== "active"){
-    if(!currentJoinedRoom || currentJoinedRoom.id !== roomId) return;
-    if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
-    if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
-    await stopRoomVoice();
-    currentJoinedRoom=null;
-    roomMicPermissionAllowed=false;
-    updateRoomMicButtonState();
-    const joinedScreen=document.getElementById("joinedRoomScreen");
-    const miniBar=document.getElementById("miniRoomBar");
-    if(joinedScreen) joinedScreen.style.display="none";
-    if(miniBar) miniBar.style.display="none";
-    showTab("rooms");
-    await loadActiveRooms();
-    await loadMyPrivateRooms();
-    alert("Host ne ye room close kar diya hai.");
-  }
-}
+async function syncRoomVoicePeers(){ return; }
 
 async function startRoomVoice(){
-  if(!currentJoinedRoom || !me) return;
+  if(!currentJoinedRoom||!me)return;
   await stopRoomVoice();
-  roomVoiceClientId = crypto.randomUUID();
-  roomVoiceChannel = db.channel("room-voice:" + currentJoinedRoom.id,{
-    config:{
-      private:false,
-      presence:{key:roomVoiceClientId},
-      broadcast:{self:false}
-    }
-  });
-  roomVoiceChannel
-    .on("broadcast",{event:"signal"},({payload})=>handleRoomVoiceSignal(payload))
-    .on("presence",{event:"sync"},()=>syncRoomVoicePeers())
-    .subscribe(async status=>{
-      if(status === "SUBSCRIBED"){
-        await roomVoiceChannel.track({userId:me.id});
-        await syncRoomVoicePeers();
-      }else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
-        console.error("Room voice channel:",status);
-      }
+  try{
+    if(!window.AgoraRTC)throw new Error("Agora SDK load nahi hua. Internet connection check karein.");
+    const roomId=currentJoinedRoom.id;
+    const tokenData=await getAgoraToken(roomId);
+    if(currentJoinedRoom?.id!==roomId)return;
+    roomVoiceClient=AgoraRTC.createClient({mode:"rtc",codec:"vp8"});
+    roomVoiceClient.on("user-published",async(user,mediaType)=>{
+      try{
+        await roomVoiceClient.subscribe(user,mediaType);
+        if(mediaType==="audio"&&user.audioTrack){
+          roomRemoteUsers.set(user.uid,user);
+          user.audioTrack.setVolume(roomSpeakerOn?100:0);
+          user.audioTrack.play();
+        }
+      }catch(error){console.error("Agora remote audio subscribe error:",error);}
     });
-  const watchedRoomId = currentJoinedRoom.id;
-  roomStatusCheckTimer = setInterval(()=>{
-    if(currentJoinedRoom?.id === watchedRoomId) checkJoinedRoomStillActive();
-  },2500);
+    roomVoiceClient.on("user-unpublished",(user,mediaType)=>{
+      if(mediaType==="audio")roomRemoteUsers.delete(user.uid);
+    });
+    roomVoiceClient.on("user-left",user=>roomRemoteUsers.delete(user.uid));
+    await roomVoiceClient.join(tokenData.appId,tokenData.channel,tokenData.token,tokenData.uid);
+    const watchedRoomId=roomId;
+    roomStatusCheckTimer=setInterval(()=>{
+      if(currentJoinedRoom?.id===watchedRoomId)checkJoinedRoomStillActive();
+    },5000);
+    console.log("JABZY Agora room connected:",roomId);
+  }catch(error){
+    console.error("Agora room voice start error:",error);
+    await stopRoomVoice();
+    alert("Room voice connect nahi hua: "+(error?.message||error));
+  }
 }
 
 function updateRoomMicButtonState(){
-  document.querySelectorAll('[onclick="toggleRoomMic()"]').forEach(btn => {
-    btn.disabled = !roomMicPermissionAllowed;
-    btn.textContent = roomMicPermissionAllowed
-      ? (roomMicOn ? "🎙️ Mic ON" : "🎤 Mic OFF")
-      : "🔒 Mic Locked";
-    btn.title = roomMicPermissionAllowed
-      ? "Turn your microphone on or off"
-      : "Room Owner se Mic permission maangein";
-    btn.style.opacity = roomMicPermissionAllowed ? "1" : ".6";
-    btn.style.background = roomMicPermissionAllowed
-      ? (roomMicOn ? "#b83255" : "#287a55")
-      : "#594b63";
+  document.querySelectorAll('[onclick="toggleRoomMic()"]').forEach(btn=>{
+    btn.disabled=!roomMicPermissionAllowed;
+    btn.textContent=roomMicPermissionAllowed?(roomMicOn?"🎙️ Mic ON":"🎤 Mic OFF"):"🔒 Mic Locked";
+    btn.title=roomMicPermissionAllowed?"Turn your microphone on or off":"Room Owner se Mic permission maangein";
+    btn.style.opacity=roomMicPermissionAllowed?"1":".6";
+    btn.style.background=roomMicPermissionAllowed?(roomMicOn?"#b83255":"#287a55"):"#594b63";
   });
 }
 
 async function toggleRoomMic(){
-  if(!roomMicPermissionAllowed){
-    alert("Mic permission Room Owner se leni hogi.");
-    return;
-  }
-  if(!currentJoinedRoom){ alert("Pehle Live Room join karein."); return; }
-  if(roomMicOn){
-    roomMicOn = false;
-    roomLocalStream?.getAudioTracks().forEach(track => track.enabled = false);
-    updateRoomMicButtonState();
-    return;
-  }
+  if(!roomMicPermissionAllowed){alert("Mic permission Room Owner se leni hogi.");return;}
+  if(!currentJoinedRoom){alert("Pehle Live Room join karein.");return;}
+  if(!roomVoiceClient){alert("Room voice abhi connect ho rahi hai. 2 second baad dobara try karein.");return;}
   try{
-    if(!navigator.mediaDevices?.getUserMedia){
-      throw new Error("Microphone access available nahi hai. HTTPS par app kholein.");
+    if(roomMicOn){
+      if(roomLocalAudioTrack)await roomLocalAudioTrack.setEnabled(false);
+      roomMicOn=false;
+      updateRoomMicButtonState();
+      return;
     }
-    if(!roomLocalStream){
-      roomLocalStream = await navigator.mediaDevices.getUserMedia({
-        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},
-        video:false
-      });
+    if(!roomLocalAudioTrack){
+      roomLocalAudioTrack=await AgoraRTC.createMicrophoneAudioTrack();
+      await roomVoiceClient.publish(roomLocalAudioTrack);
+    }else{
+      await roomLocalAudioTrack.setEnabled(true);
     }
-    const track = roomLocalStream.getAudioTracks()[0];
-    if(!track) throw new Error("Microphone audio track nahi mila.");
-    track.enabled = true;
-    for(const peer of roomVoicePeers.values()){
-      const sender = peer.connection.getTransceivers()
-        .find(item => item.receiver.track.kind === "audio")?.sender;
-      if(sender) await sender.replaceTrack(track);
-    }
-    roomMicOn = true;
+    roomMicOn=true;
     updateRoomMicButtonState();
   }catch(error){
-    roomMicOn = false;
+    roomMicOn=false;
     updateRoomMicButtonState();
-    alert("Microphone start nahi hua: " + error.message);
+    alert("Microphone start nahi hua: "+(error?.message||error));
   }
 }
 
 function toggleRoomSpeaker(){
-  roomSpeakerOn = !roomSpeakerOn;
-
-  document.querySelectorAll('[onclick="toggleRoomSpeaker()"]').forEach(btn => {
-    btn.textContent = roomSpeakerOn
-      ? "🔊 Speaker ON"
-      : "🔇 Speaker OFF";
+  roomSpeakerOn=!roomSpeakerOn;
+  document.querySelectorAll('[onclick="toggleRoomSpeaker()"]').forEach(btn=>{
+    btn.textContent=roomSpeakerOn?"🔊 Speaker ON":"🔇 Speaker OFF";
   });
-  roomVoicePeers.forEach(peer => {
-    peer.audio.volume = roomSpeakerOn ? 1 : 0;
+  roomRemoteUsers.forEach(user=>{
+    if(user.audioTrack)user.audioTrack.setVolume(roomSpeakerOn?100:0);
   });
 }
 
@@ -8871,16 +8677,8 @@ function toggleRoomSpeaker(){
     myMember?.mic_allowed === true;
 
   if(!roomMicPermissionAllowed){
-    roomMicOn = false;
-    if(roomLocalStream){
-      roomLocalStream.getTracks().forEach(track => track.stop());
-      roomLocalStream = null;
-    }
-    roomVoicePeers.forEach(peer => {
-      const sender = peer.connection.getTransceivers()
-        .find(item => item.receiver.track.kind === "audio")?.sender;
-      if(sender) sender.replaceTrack(null).catch(() => {});
-    });
+    roomMicOn=false;
+    if(roomLocalAudioTrack) await roomLocalAudioTrack.setEnabled(false).catch(()=>{});
   }
   updateRoomMicButtonState();
   syncRoomVoicePeers();
