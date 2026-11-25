@@ -1643,6 +1643,7 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
     </div>
   </section>
   <div class="jabzy-profile-actions">
+    <button type="button" onclick="openSavedPosts()">🔖 Saved</button>
     <button type="button" onclick="openEditProfile()">✏️ Edit Profile</button>
     <button type="button" onclick="shareMyProfile()">↗ Share Profile</button>
   </div>
@@ -3700,6 +3701,9 @@ async function loadHomePosts(){
   }
   const {data:profiles}=await db.from("profiles").select("id,username,photo_url").in("id",[...new Set(posts.map(p=>p.user_id))]);
   const map=new Map((profiles||[]).map(p=>[p.id,p]));
+  const {data:savedRows,error:savedLoadError}=await db.from("saved_posts").select("post_id").eq("user_id",me.id);
+  if(savedLoadError)console.warn("Saved posts loading:",savedLoadError.message);
+  const savedPostIds=new Set((savedRows||[]).map(row=>String(row.post_id)));
   for(const post of posts){
     const profile=map.get(post.user_id)||{};
     const card=document.createElement("article");card.style.cssText="padding:14px 12px;margin:0 0 12px;background:#21152f;border-bottom:1px solid #49315d;";
@@ -3710,7 +3714,24 @@ async function loadHomePosts(){
     name.textContent=profile.username||"JABZY Official";
     if(await isOfficialAdminUser(post.user_id))addOfficialAdminMark(name);
     const date=document.createElement("small");date.textContent=new Date(post.created_at).toLocaleString();date.style.cssText="display:block;color:#bba9ca;font-size:10px;font-weight:400;margin-top:3px;";
-    const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);card.appendChild(header);
+    const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
+    const saveButton=document.createElement("button");
+    saveButton.type="button";saveButton.textContent=savedPostIds.has(String(post.id))?"🔖":"♧";
+    saveButton.setAttribute("aria-label",savedPostIds.has(String(post.id))?"Unsave post":"Save post");
+    saveButton.title=savedPostIds.has(String(post.id))?"Unsave post":"Save post";
+    saveButton.style.cssText="width:36px;height:36px;flex:0 0 36px;margin:0 0 0 auto;padding:0;border:0;border-radius:50%;background:transparent;color:#f5eaff;font-size:24px;line-height:1;cursor:pointer;";
+    saveButton.onclick=async()=>{
+      saveButton.disabled=true;
+      const alreadySaved=savedPostIds.has(String(post.id));
+      const result=alreadySaved
+        ? await db.from("saved_posts").delete().eq("user_id",me.id).eq("post_id",post.id)
+        : await db.from("saved_posts").insert({user_id:me.id,post_id:post.id});
+      saveButton.disabled=false;
+      if(result.error){appStatus("Post save nahi hui: "+result.error.message);return;}
+      if(alreadySaved){savedPostIds.delete(String(post.id));saveButton.textContent="♧";saveButton.setAttribute("aria-label","Save post");saveButton.title="Save post";appStatus("Post Saved se hata di.");}
+      else{savedPostIds.add(String(post.id));saveButton.textContent="🔖";saveButton.setAttribute("aria-label","Unsave post");saveButton.title="Unsave post";appStatus("Post Saved Posts mein add ho gayi ❤️");}
+    };
+    header.appendChild(saveButton);card.appendChild(header);
     if(post.content){const body=document.createElement("p");body.textContent=post.content;body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
     if(post.media_url){
       const media=document.createElement(post.media_type==="video"?"video":"img");media.src=post.media_url;
@@ -3825,6 +3846,45 @@ async function loadHomePosts(){
     card.appendChild(commentArea);
     box.appendChild(card);
   }
+}
+async function openSavedPosts(){
+  if(!me){appStatus("Please login first.");return;}
+  let overlay=document.getElementById("jabzySavedPostsOverlay");
+  if(overlay)overlay.remove();
+  overlay=document.createElement("div");overlay.id="jabzySavedPostsOverlay";
+  overlay.style.cssText="position:fixed;inset:0;z-index:100250;background:#100a19;color:#fff;overflow-y:auto;padding:calc(14px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;";
+  const top=document.createElement("div");top.style.cssText="display:flex;align-items:center;gap:12px;max-width:620px;margin:0 auto 18px;";
+  const close=document.createElement("button");close.type="button";close.textContent="‹";close.setAttribute("aria-label","Back");close.style.cssText="width:38px;height:38px;flex:0 0 38px;margin:0;padding:0;border:1px solid #624477;border-radius:50%;background:#241632;color:white;font-size:27px;";
+  close.onclick=()=>overlay.remove();
+  const heading=document.createElement("strong");heading.textContent="🔖 Saved Posts";heading.style.cssText="font-size:20px;font-weight:850;";
+  top.append(close,heading);overlay.appendChild(top);
+  const list=document.createElement("div");list.style.cssText="max-width:620px;margin:0 auto;";
+  const loading=document.createElement("p");loading.textContent="Loading saved posts...";loading.style.cssText="text-align:center;color:#bba9ca;padding:28px 8px;";
+  list.appendChild(loading);overlay.appendChild(list);document.body.appendChild(overlay);
+  const {data:rows,error}=await db.from("saved_posts").select("post_id,created_at").eq("user_id",me.id).order("created_at",{ascending:false});
+  if(error){list.textContent="Saved posts load nahi ho payi: "+error.message;return;}
+  const ids=(rows||[]).map(row=>row.post_id);
+  if(!ids.length){list.replaceChildren();const empty=document.createElement("div");empty.style.cssText="text-align:center;padding:70px 15px;color:#c8b6d8;";empty.innerHTML='<div style="font-size:48px;margin-bottom:12px;">🔖</div><strong style="font-size:16px;">No saved posts yet</strong><p style="font-size:12px;color:#a997b8;">Feed par Bookmark icon dabakar posts save karein.</p>';list.appendChild(empty);return;}
+  const {data:posts,error:postError}=await db.from("posts").select("id,user_id,content,media_url,media_type,created_at").in("id",ids);
+  if(postError){list.textContent="Posts load nahi ho payi: "+postError.message;return;}
+  const profileIds=[...new Set((posts||[]).map(post=>post.user_id))];
+  const {data:profiles}=profileIds.length?await db.from("profiles").select("id,username,photo_url").in("id",profileIds):{data:[]};
+  const profileMap=new Map((profiles||[]).map(profile=>[profile.id,profile]));
+  const postMap=new Map((posts||[]).map(post=>[String(post.id),post]));
+  list.replaceChildren();
+  ids.forEach(id=>{
+    const post=postMap.get(String(id));if(!post)return;
+    const profile=profileMap.get(post.user_id)||{};
+    const card=document.createElement("article");card.style.cssText="padding:13px;margin:0 0 13px;border:1px solid #49315d;border-radius:15px;background:#21152f;";
+    const header=document.createElement("div");header.style.cssText="display:flex;align-items:center;gap:9px;margin-bottom:10px;";
+    const name=document.createElement("strong");name.textContent=profile.username||"JABZY User";name.style.cssText="font-size:13px;flex:1;";
+    const unsave=document.createElement("button");unsave.type="button";unsave.textContent="🔖";unsave.title="Unsave post";unsave.style.cssText="width:36px;height:36px;margin:0;padding:0;border:0;background:transparent;color:white;font-size:23px;";
+    unsave.onclick=async()=>{unsave.disabled=true;const result=await db.from("saved_posts").delete().eq("user_id",me.id).eq("post_id",post.id);if(result.error){unsave.disabled=false;appStatus(result.error.message);return;}card.remove();if(!list.querySelector("article")){list.innerHTML='<div style="text-align:center;padding:65px 12px;color:#c8b6d8;">🔖<p>No saved posts yet.</p></div>';}appStatus("Post unsaved.");};
+    header.append(name,unsave);card.appendChild(header);
+    if(post.content){const body=document.createElement("p");body.textContent=post.content;body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
+    if(post.media_url){const media=document.createElement(post.media_type==="video"?"video":"img");media.src=post.media_url;media.style.cssText="display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#100b1c;";if(post.media_type==="video"){media.controls=true;media.playsInline=true;}else media.alt="Saved JABZY post";card.appendChild(media);}
+    const stamp=document.createElement("small");stamp.textContent=new Date(post.created_at).toLocaleString();stamp.style.cssText="display:block;color:#bba9ca;font-size:10px;margin-top:9px;";card.appendChild(stamp);list.appendChild(card);
+  });
 }
 function buildPostShareText(post){
   const link=window.location.origin+window.location.pathname+"#post-"+post.id;
