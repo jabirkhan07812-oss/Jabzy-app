@@ -1357,7 +1357,7 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
 @keyframes jabzyGiftSpin{to{rotate:360deg}}
 @media(prefers-reduced-motion:reduce){.room-gift-animation-content,.room-gift-animation-emoji,.room-gift-burst span{animation:none!important}}
 
-</style>
+\n/* JABZY post cards: readable in both appearance modes */\n.jabzy-post-card{background:#21152f;color:#f5eaff;border-color:#49315d;}\n.jabzy-post-card .jabzy-post-caption{color:#f5eaff;}\n.jabzy-post-card .jabzy-post-date{color:#bba9ca;}\n.jabzy-post-card .jabzy-post-actions{border-color:#49315d;}\n.jabzy-post-card .jabzy-post-save{color:inherit;}\nbody.light-theme .jabzy-post-card{background:#fff!important;color:#30233b!important;border-color:#e5d9ec!important;box-shadow:0 2px 10px #39264a0d;}\nbody.light-theme .jabzy-post-card .jabzy-post-caption{color:#30233b!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-date{color:#756480!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-actions{border-color:#e5d9ec!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-save{color:#30233b!important;}\n</style>
   <link rel="icon" type="image/svg+xml" href="./jabzy-app-icon.svg">
   <link rel="apple-touch-icon" href="./jabzy-app-icon.svg">
 </head>
@@ -1561,9 +1561,9 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
   <div style="padding:18px 16px 120px;max-width:680px;margin:0 auto;">
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:20px;">
       <div id="homePostModalAvatar" style="width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
-      <div><div style="font-size:14px;font-weight:800;">JABZY Official <span style="color:#55aaff;">✓</span></div><select id="homePostAudience" aria-label="Post audience" onchange="updateHomePostAudienceHint()" style="width:auto;max-width:175px;margin:5px 0 0;padding:6px 28px 6px 10px;border:1px solid #69427f;border-radius:18px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="public">🌐 Public</option><option value="friends">👥 Friends</option><option value="private">🔒 Private</option></select><div id="homePostAudienceHint" style="font-size:10px;color:#bba9ca;margin-top:3px;">Anyone on JABZY can see this post.</div></div>
+      <div><div style="font-size:14px;font-weight:800;">JABZY Official <span style="color:#55aaff;">✓</span></div></div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;flex-wrap:wrap;"><span style="font-size:11px;color:#bba9ca;font-weight:700;">Post category</span><select id="homePostTopic" aria-label="Choose post category" style="width:auto;min-width:132px;max-width:190px;margin:0;padding:7px 30px 7px 11px;border:1px solid #69427f;border-radius:20px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="">General post</option><option value="Music">🎵 Music</option><option value="Gaming">🎮 Gaming</option><option value="Cricket">🏏 Cricket</option><option value="Memes">😂 Memes</option><option value="Travel">✈️ Travel</option><option value="Art">🎨 Art</option><option value="Technology">💻 Technology</option><option value="Fitness">💪 Fitness</option><option value="Food">🍔 Food</option><option value="Movies">🎬 Movies</option><option value="Education">📚 Education</option><option value="Fashion">👗 Fashion</option></select></div>
+    <div style="display:flex;align-items:center;gap:8px;margin:10px 0 14px;flex-wrap:wrap;"><select id="homePostAudience" aria-label="Post audience" onchange="updateHomePostAudienceHint()" style="width:auto;max-width:145px;margin:0;padding:7px 25px 7px 9px;border:1px solid #69427f;border-radius:18px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="public">🌐 Public</option><option value="friends">👥 Friends</option><option value="private">🔒 Private</option></select><select id="homePostTopic" aria-label="Choose post category" style="width:auto;min-width:118px;max-width:160px;margin:0;padding:7px 25px 7px 9px;border:1px solid #69427f;border-radius:18px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="">General post</option><option value="Music">🎵 Music</option><option value="Gaming">🎮 Gaming</option><option value="Cricket">🏏 Cricket</option><option value="Memes">😂 Memes</option><option value="Travel">✈️ Travel</option><option value="Art">🎨 Art</option><option value="Technology">💻 Technology</option><option value="Fitness">💪 Fitness</option><option value="Food">🍔 Food</option><option value="Movies">🎬 Movies</option><option value="Education">📚 Education</option><option value="Fashion">👗 Fashion</option></select><span id="homePostAudienceHint" style="font-size:10px;color:#bba9ca;">Anyone on JABZY can see this post.</span></div>
     <textarea id="homePostText" rows="1" maxlength="5000" oninput="autoResizeHomePostCaption(this)" placeholder="What's on your mind?" style="display:block;width:100%;height:30px;min-height:30px;padding:0;margin:0;border:none;outline:none;box-shadow:none;resize:none;overflow:hidden;overflow-anchor:none;scroll-margin:0;background:none;color:#fff;font-family:inherit;font-size:19px;line-height:1.5;appearance:none;-webkit-appearance:none;box-sizing:border-box;"></textarea>
     <div id="homePostPreview" style="display:none;margin:18px 0 0;padding:8px;border-radius:18px;border:1px solid #49315d;background:#1b1327;"></div>
     <div id="homePostFileName" style="margin-top:8px;color:#cbb8df;font-size:11px;overflow-wrap:anywhere;"></div>
@@ -3738,20 +3738,20 @@ async function loadHomePosts(){
   const savedPostIds=new Set((savedRows||[]).map(row=>String(row.post_id)));
   for(const post of posts){
     const profile=map.get(post.user_id)||{};
-    const card=document.createElement("article");card.style.cssText="padding:14px 12px;margin:0 0 12px;background:#21152f;border-bottom:1px solid #49315d;";
+    const card=document.createElement("article");card.className="jabzy-post-card";card.style.cssText="padding:14px 12px;margin:0 0 12px;border-bottom:1px solid #49315d;";
     const header=document.createElement("div");header.style.cssText="display:flex;align-items:center;gap:9px;margin-bottom:10px;";
     const avatar=document.createElement("div");avatar.style.cssText="width:38px;height:38px;flex:0 0 38px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#168cff,#8b55e9);display:flex;align-items:center;justify-content:center;";
     if(profile.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent="👤";
     const name=document.createElement("div");name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:800;";
     name.textContent=profile.username||"JABZY Official";
     if(await isOfficialAdminUser(post.user_id))addOfficialAdminMark(name);
-    const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.style.cssText="display:block;color:#bba9ca;font-size:10px;font-weight:400;margin-top:3px;";
+    const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.className="jabzy-post-date";date.style.cssText="display:block;font-size:10px;font-weight:400;margin-top:3px;";
     const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
     const saveButton=document.createElement("button");
-    saveButton.type="button";saveButton.textContent=savedPostIds.has(String(post.id))?"🔖":"♧";
+    saveButton.type="button";saveButton.className="jabzy-post-save";saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';
     saveButton.setAttribute("aria-label",savedPostIds.has(String(post.id))?"Unsave post":"Save post");
     saveButton.title=savedPostIds.has(String(post.id))?"Unsave post":"Save post";
-    saveButton.style.cssText="width:36px;height:36px;flex:0 0 36px;margin:0 0 0 auto;padding:0;border:0;border-radius:50%;background:transparent;color:#f5eaff;font-size:24px;line-height:1;cursor:pointer;";
+    saveButton.style.cssText="width:38px;height:38px;flex:0 0 38px;margin:0;padding:8px;border:0;border-radius:10px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;";
     saveButton.onclick=async()=>{
       saveButton.disabled=true;
       const alreadySaved=savedPostIds.has(String(post.id));
@@ -3760,11 +3760,11 @@ async function loadHomePosts(){
         : await db.from("saved_posts").insert({user_id:me.id,post_id:post.id});
       saveButton.disabled=false;
       if(result.error){appStatus("Post save nahi hui: "+result.error.message);return;}
-      if(alreadySaved){savedPostIds.delete(String(post.id));saveButton.textContent="♧";saveButton.setAttribute("aria-label","Save post");saveButton.title="Save post";appStatus("Post Saved se hata di.");}
-      else{savedPostIds.add(String(post.id));saveButton.textContent="🔖";saveButton.setAttribute("aria-label","Unsave post");saveButton.title="Unsave post";appStatus("Post Saved Posts mein add ho gayi ❤️");}
+      if(alreadySaved){savedPostIds.delete(String(post.id));saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Save post");saveButton.title="Save post";appStatus("Post Saved se hata di.");}
+      else{savedPostIds.add(String(post.id));saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Unsave post");saveButton.title="Unsave post";appStatus("Post Saved Posts mein add ho gayi ❤️");}
     };
-    header.appendChild(saveButton);card.appendChild(header);
-    if(post.content){const body=document.createElement("p");body.textContent=post.content;body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
+    card.appendChild(header);
+    if(post.content){const body=document.createElement("p");body.textContent=post.content;body.className="jabzy-post-caption";body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
     if(post.media_url){
       const media=document.createElement(post.media_type==="video"?"video":"img");media.src=post.media_url;
       media.style.cssText="display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#100b1c;";
@@ -3774,7 +3774,7 @@ async function loadHomePosts(){
     }
     // Post actions are rendered BELOW the post media/content.
     const actions=document.createElement("div");
-    actions.style.cssText="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:10px;border-top:1px solid #49315d;";
+    actions.className="jabzy-post-actions";actions.style.cssText="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:10px;border-top:1px solid #49315d;";
     const likeButton=document.createElement("button");
     likeButton.type="button";likeButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
     const commentButton=document.createElement("button");
@@ -3801,7 +3801,7 @@ async function loadHomePosts(){
     commentButton.onclick=()=>{const area=card.querySelector(".post-comment-area");if(area){area.style.display=area.style.display==="none"?"block":"none";const input=area.querySelector("input");if(input)input.focus();}};
     shareButton.textContent="↗ Share";
     shareButton.onclick=()=>openPostShare(post);
-    actions.append(likeButton,commentButton,shareButton);
+    actions.append(likeButton,commentButton,shareButton,saveButton);
     if(jabzyOfficialAdminSession&&post.user_id===me.id){
       const adminActions=document.createElement("div");
       adminActions.style.cssText="display:flex;gap:8px;margin-top:8px;";
