@@ -1561,7 +1561,7 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
   <div style="padding:18px 16px 120px;max-width:680px;margin:0 auto;">
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:20px;">
       <div id="homePostModalAvatar" style="width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
-      <div><div style="font-size:14px;font-weight:800;">JABZY Official <span style="color:#55aaff;">✓</span></div><div style="font-size:11px;color:#bba9ca;margin-top:3px;">Public · Anyone can see this post</div></div>
+      <div><div style="font-size:14px;font-weight:800;">JABZY Official <span style="color:#55aaff;">✓</span></div><select id="homePostAudience" aria-label="Post audience" onchange="updateHomePostAudienceHint()" style="width:auto;max-width:175px;margin:5px 0 0;padding:6px 28px 6px 10px;border:1px solid #69427f;border-radius:18px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="public">🌐 Public</option><option value="friends">👥 Friends</option><option value="private">🔒 Private</option></select><div id="homePostAudienceHint" style="font-size:10px;color:#bba9ca;margin-top:3px;">Anyone on JABZY can see this post.</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;flex-wrap:wrap;"><span style="font-size:11px;color:#bba9ca;font-weight:700;">Post category</span><select id="homePostTopic" aria-label="Choose post category" style="width:auto;min-width:132px;max-width:190px;margin:0;padding:7px 30px 7px 11px;border:1px solid #69427f;border-radius:20px;background:#21152f;color:#fff;font-size:12px;font-weight:700;"><option value="">General post</option><option value="Music">🎵 Music</option><option value="Gaming">🎮 Gaming</option><option value="Cricket">🏏 Cricket</option><option value="Memes">😂 Memes</option><option value="Travel">✈️ Travel</option><option value="Art">🎨 Art</option><option value="Technology">💻 Technology</option><option value="Fitness">💪 Fitness</option><option value="Food">🍔 Food</option><option value="Movies">🎬 Movies</option><option value="Education">📚 Education</option><option value="Fashion">👗 Fashion</option></select></div>
     <textarea id="homePostText" rows="1" maxlength="5000" oninput="autoResizeHomePostCaption(this)" placeholder="What's on your mind?" style="display:block;width:100%;height:30px;min-height:30px;padding:0;margin:0;border:none;outline:none;box-shadow:none;resize:none;overflow:hidden;overflow-anchor:none;scroll-margin:0;background:none;color:#fff;font-family:inherit;font-size:19px;line-height:1.5;appearance:none;-webkit-appearance:none;box-sizing:border-box;"></textarea>
@@ -3589,6 +3589,11 @@ function autoResizeHomePostCaption(field){
   pageScroller.scrollTop=pageScroll;
   requestAnimationFrame(()=>{pageScroller.scrollTop=pageScroll;});
 }
+function updateHomePostAudienceHint(){
+  const audience=document.getElementById("homePostAudience")?.value||"public";
+  const hint=document.getElementById("homePostAudienceHint");
+  if(hint)hint.textContent=audience==="friends"?"Only your accepted JABZY friends can see this post.":audience==="private"?"Only you can see this post.":"Anyone on JABZY can see this post.";
+}
 function openHomePostComposer(){
   if(!me){appStatus("Please login first.");return;}
   if(!jabzyOfficialAdminSession){appStatus("Create Post feature coming soon ❤️");return;}
@@ -3641,7 +3646,8 @@ async function handleHomePost(){
       mediaUrl=publicData.publicUrl;
       mediaType=file.type.startsWith("image/")?"image":"video";
     }
-    const {error}=await db.from("posts").insert({user_id:me.id,content,media_url:mediaUrl,media_type:mediaType,topic:document.getElementById('homePostTopic')?.value||null});
+    const audience=document.getElementById("homePostAudience")?.value||"public";
+    const {error}=await db.from("posts").insert({user_id:me.id,content,media_url:mediaUrl,media_type:mediaType,topic:document.getElementById('homePostTopic')?.value||null,audience});
     if(error)throw error;
     textBox.value="";textBox.placeholder="What's on your mind?";textBox.style.height="34px";fileInput.value="";
     document.getElementById("homePostPreview").replaceChildren();
@@ -3709,7 +3715,11 @@ async function ensureJabzyInterests(){const interests=await getJabzyMyInterests(
 async function loadHomePosts(){
   const box=document.getElementById("homeFeed");if(!box||!me)return;
   const interestsReady=await ensureJabzyInterests();if(!interestsReady)return;
-  const {data:posts,error}=await db.from("posts").select("id,user_id,content,media_url,media_type,created_at,topic").order("created_at",{ascending:false});
+  const {data:acceptedFriends,error:friendsError}=await db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+  if(friendsError){console.error("Friends audience lookup:",friendsError.message);box.textContent="Friends list load nahi ho payi.";return;}
+  const friendIds=[...new Set((acceptedFriends||[]).map(row=>row.sender_id===me.id?row.receiver_id:row.sender_id))];
+  let postsQuery=db.from("posts").select("id,user_id,content,media_url,media_type,created_at,topic,audience").or("audience.eq.public,user_id.eq."+me.id+(friendIds.length?",and(audience.eq.friends,user_id.in.("+friendIds.join(",")+"))":""));
+  const {data:posts,error}=await postsQuery.order("created_at",{ascending:false});
   if(error){console.error("Home posts loading:",error.message);box.textContent="Posts load nahi ho payi.";return;}
   const interestSet=jabzyMyInterestSet||new Set();
   (posts||[]).sort((a,b)=>Number(interestSet.has(b.topic))-Number(interestSet.has(a.topic)));
@@ -3735,7 +3745,7 @@ async function loadHomePosts(){
     const name=document.createElement("div");name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:800;";
     name.textContent=profile.username||"JABZY Official";
     if(await isOfficialAdminUser(post.user_id))addOfficialAdminMark(name);
-    const date=document.createElement("small");date.textContent=new Date(post.created_at).toLocaleString();date.style.cssText="display:block;color:#bba9ca;font-size:10px;font-weight:400;margin-top:3px;";
+    const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.style.cssText="display:block;color:#bba9ca;font-size:10px;font-weight:400;margin-top:3px;";
     const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
     const saveButton=document.createElement("button");
     saveButton.type="button";saveButton.textContent=savedPostIds.has(String(post.id))?"🔖":"♧";
