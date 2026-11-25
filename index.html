@@ -3676,11 +3676,33 @@ function showJabzyInterestPicker(){
   const heading=document.createElement("h2");heading.textContent="Choose your interests ✨";heading.style.cssText="margin:0 0 8px;color:#ff78b7;font-size:22px;";
   const intro=document.createElement("p");intro.textContent="Kam se kam 3 topics select karein. Home Feed mein aapke pasand ke topics pehle dikhenge.";intro.style.cssText="margin:0 0 18px;color:#cbb8df;font-size:13px;line-height:1.5;";
   const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;";
-  JABZY_INTEREST_OPTIONS.forEach(topic=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;padding:12px 10px;border:1px solid #604073;border-radius:12px;background:#21172e;font-size:13px;font-weight:700;";const input=document.createElement("input");input.type="checkbox";input.value=topic;input.style.cssText="width:17px;height:17px;accent-color:#ff55a8;margin:0;flex:0 0 auto;";const name=document.createElement("span");name.textContent=topic;label.append(input,name);grid.appendChild(label);});
-  const counter=document.createElement("div");counter.textContent="0 selected";counter.style.cssText="margin:14px 0;color:#cbb8df;font-size:12px;";
-  grid.addEventListener("change",()=>{const count=grid.querySelectorAll("input:checked").length;counter.textContent=count+" selected · "+Math.max(0,3-count)+" more required";});
+  JABZY_INTEREST_OPTIONS.forEach(topic=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;padding:12px 10px;border:1px solid #604073;border-radius:12px;background:#21172e;font-size:13px;font-weight:700;";const input=document.createElement("input");input.type="checkbox";input.value=topic;input.checked=!!(jabzyMyInterestSet&&jabzyMyInterestSet.has(topic));input.style.cssText="width:17px;height:17px;accent-color:#ff55a8;margin:0;flex:0 0 auto;";const name=document.createElement("span");name.textContent=topic;label.append(input,name);grid.appendChild(label);});
+  const counter=document.createElement("div");const updateCounter=()=>{const count=grid.querySelectorAll("input:checked").length;counter.textContent=count+" selected · "+Math.max(0,3-count)+" more required";};counter.style.cssText="margin:14px 0;color:#cbb8df;font-size:12px;";updateCounter();
+  grid.addEventListener("change",updateCounter);
   const save=document.createElement("button");save.type="button";save.textContent="Save interests";save.style.cssText="width:100%;margin:4px 0 0;padding:13px;border-radius:14px;background:linear-gradient(100deg,#ff55a8,#9657e8);";
-  save.onclick=async()=>{const selected=[...grid.querySelectorAll("input:checked")].map(input=>input.value);if(selected.length<3){appStatus("Kam se kam 3 interests select karein.");return;}save.disabled=true;save.textContent="Saving...";const rows=selected.map(interest=>({user_id:me.id,interest,sub_interest:null}));const {error}=await db.from("user_interests").insert(rows);if(error){save.disabled=false;save.textContent="Save interests";appStatus("Interests save nahi hue: "+error.message);return;}jabzyInterestModalOpen=false;overlay.remove();jabzyMyInterestSet=new Set(selected);appStatus("Interests saved ❤️");await loadHomePosts();};
+  save.onclick=async()=>{
+    const selected=[...grid.querySelectorAll("input:checked")].map(input=>input.value);
+    if(selected.length<3){appStatus("Kam se kam 3 interests select karein.");return;}
+    if(!me){appStatus("Please login karke dobara try karein.");return;}
+    save.disabled=true;save.textContent="Saving...";
+    try{
+      const {data:oldRows,error:readError}=await db.from("user_interests").select("interest,sub_interest").eq("user_id",me.id);
+      if(readError)throw readError;
+      const {error:deleteError}=await db.from("user_interests").delete().eq("user_id",me.id);
+      if(deleteError)throw deleteError;
+      const rows=selected.map(interest=>({user_id:me.id,interest,sub_interest:null}));
+      const {error:insertError}=await db.from("user_interests").insert(rows);
+      if(insertError){
+        if(oldRows&&oldRows.length)await db.from("user_interests").insert(oldRows.map(row=>({user_id:me.id,interest:row.interest,sub_interest:row.sub_interest??null})));
+        throw insertError;
+      }
+      jabzyMyInterestSet=new Set(selected);jabzyInterestModalOpen=false;overlay.remove();appStatus("Interests saved ❤️");await loadHomePosts();
+    }catch(error){
+      console.error("Save JABZY interests:",error);
+      save.disabled=false;save.textContent="Save interests";
+      appStatus("Interests save nahi hue: "+(error.message||"Please try again."));
+    }
+  };
   panel.append(heading,intro,grid,counter,save);overlay.appendChild(panel);document.body.appendChild(overlay);
 }
 async function ensureJabzyInterests(){const interests=await getJabzyMyInterests();if(!interests)return false;if(interests.size<3){showJabzyInterestPicker();return false;}return true;}
