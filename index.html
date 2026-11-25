@@ -3690,10 +3690,10 @@ function showJabzyInterestPicker(){
       if(readError)throw readError;
       const {error:deleteError}=await db.from("user_interests").delete().eq("user_id",me.id);
       if(deleteError)throw deleteError;
-      const rows=selected.map(interest=>({user_id:me.id,interest,sub_interest:null}));
+      const rows=selected.map(interest=>({user_id:me.id,interest,sub_interest:""}));
       const {error:insertError}=await db.from("user_interests").insert(rows);
       if(insertError){
-        if(oldRows&&oldRows.length)await db.from("user_interests").insert(oldRows.map(row=>({user_id:me.id,interest:row.interest,sub_interest:row.sub_interest??null})));
+        if(oldRows&&oldRows.length)await db.from("user_interests").insert(oldRows.map(row=>({user_id:me.id,interest:row.interest,sub_interest:row.sub_interest??""})));
         throw insertError;
       }
       jabzyMyInterestSet=new Set(selected);jabzyInterestModalOpen=false;overlay.remove();appStatus("Interests saved ❤️");await loadHomePosts();
