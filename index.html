@@ -3677,14 +3677,14 @@ function showJabzyInterestPicker(){
   const intro=document.createElement("p");intro.textContent="Kam se kam 3 topics select karein. Home Feed mein aapke pasand ke topics pehle dikhenge.";intro.style.cssText="margin:0 0 18px;color:#cbb8df;font-size:13px;line-height:1.5;";
   const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;";
   JABZY_INTEREST_OPTIONS.forEach(topic=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;padding:12px 10px;border:1px solid #604073;border-radius:12px;background:#21172e;font-size:13px;font-weight:700;";const input=document.createElement("input");input.type="checkbox";input.value=topic;input.checked=!!(jabzyMyInterestSet&&jabzyMyInterestSet.has(topic));input.style.cssText="width:17px;height:17px;accent-color:#ff55a8;margin:0;flex:0 0 auto;";const name=document.createElement("span");name.textContent=topic;label.append(input,name);grid.appendChild(label);});
-  const counter=document.createElement("div");const updateCounter=()=>{const count=grid.querySelectorAll("input:checked").length;counter.textContent=count+" selected · "+Math.max(0,3-count)+" more required";};counter.style.cssText="margin:14px 0;color:#cbb8df;font-size:12px;";updateCounter();
+  const errorBox=document.createElement("div");errorBox.style.cssText="display:none;margin:10px 0;padding:10px;border:1px solid #d85b82;border-radius:10px;background:#421d32;color:#ffd8e5;font-size:12px;line-height:1.4;";const counter=document.createElement("div");const updateCounter=()=>{const count=grid.querySelectorAll("input:checked").length;counter.textContent=count+" selected · "+Math.max(0,3-count)+" more required";};counter.style.cssText="margin:14px 0;color:#cbb8df;font-size:12px;";updateCounter();
   grid.addEventListener("change",updateCounter);
   const save=document.createElement("button");save.type="button";save.textContent="Save interests";save.style.cssText="width:100%;margin:4px 0 0;padding:13px;border-radius:14px;background:linear-gradient(100deg,#ff55a8,#9657e8);";
   save.onclick=async()=>{
     const selected=[...grid.querySelectorAll("input:checked")].map(input=>input.value);
-    if(selected.length<3){appStatus("Kam se kam 3 interests select karein.");return;}
-    if(!me){appStatus("Please login karke dobara try karein.");return;}
-    save.disabled=true;save.textContent="Saving...";
+    if(selected.length<3){errorBox.textContent="Kam se kam 3 interests select karein.";errorBox.style.display="block";return;}
+    if(!me){errorBox.textContent="Please login karke dobara try karein.";errorBox.style.display="block";return;}
+    errorBox.style.display="none";save.disabled=true;save.textContent="Saving...";
     try{
       const {data:oldRows,error:readError}=await db.from("user_interests").select("interest,sub_interest").eq("user_id",me.id);
       if(readError)throw readError;
@@ -3700,10 +3700,10 @@ function showJabzyInterestPicker(){
     }catch(error){
       console.error("Save JABZY interests:",error);
       save.disabled=false;save.textContent="Save interests";
-      appStatus("Interests save nahi hue: "+(error.message||"Please try again."));
+      errorBox.textContent="Save error: "+(error.message||error.details||error.hint||"Please try again.");errorBox.style.display="block";
     }
   };
-  panel.append(heading,intro,grid,counter,save);overlay.appendChild(panel);document.body.appendChild(overlay);
+  panel.append(heading,intro,grid,counter,errorBox,save);overlay.appendChild(panel);document.body.appendChild(overlay);
 }
 async function ensureJabzyInterests(){const interests=await getJabzyMyInterests();if(!interests)return false;if(interests.size<3){showJabzyInterestPicker();return false;}return true;}
 async function loadHomePosts(){
