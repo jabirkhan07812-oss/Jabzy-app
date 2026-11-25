@@ -2595,6 +2595,24 @@ box-sizing:border-box;
 const SUPABASE_URL="https://rpgclomsjxvwhuwusvii.supabase.co";
 const SUPABASE_KEY="sb_publishable_J8LnRDjy_18IaAVxKeq6OQ_BJFFzrXB";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  async function getAgoraToken(roomId, uid) {
+  const { data: { session }, error } = await db.auth.getSession();
+  if (error || !session) {
+    throw new Error("Please login first");
+  }
+
+  const { data, error: tokenError } = await db.functions.invoke("agora-token", {
+    body: { roomId, uid },
+    headers: {
+      Authorization: `Bearer ${session.access_token}`
+    }
+  });
+
+  if (tokenError) throw tokenError;
+  return data;
+  }
 
 let me=null;
 let selected=null;
