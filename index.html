@@ -10293,6 +10293,7 @@ function applyJabzyStoryEditorStyle(){
 }
 function previewJabzyStoryMedia(event){
   const file=event.target.files && event.target.files[0];
+  if(file && (file.type.startsWith("image/")||file.type.startsWith("video/")))window.jabzySelectedStoryOriginalFile=file;
   const img=document.getElementById("storyPreviewImage");
   const video=document.getElementById("storyPreviewVideo");
   const empty=document.getElementById("storyEditorEmpty");
@@ -10522,7 +10523,7 @@ function showJabzyStoryUploading(){
 function removeJabzyStoryUploading(){const item=document.getElementById("jabzyStoryUploadingItem");if(item)item.remove();}
 async function uploadJabzyStory(){
   if(jabzyStoryEditorMode==="post"){
-    const btn=document.getElementById("storyUploadBtn"),status=document.getElementById("storyUploadStatus"),original=document.getElementById("storyMediaFile").files[0];
+    const btn=document.getElementById("storyUploadBtn"),status=document.getElementById("storyUploadStatus"),original=document.getElementById("storyMediaFile").files[0]||window.jabzySelectedStoryOriginalFile;
     if(!original){status.textContent="Photo ya video select karein.";return;}
     btn.disabled=true;status.textContent="Edited media prepare ho rahi hai…";
     try{
@@ -10531,7 +10532,7 @@ async function uploadJabzyStory(){
     }catch(error){status.textContent=error.message||"Media edit export nahi ho paya.";btn.disabled=false;}
     return;
   }
-  const originalFile=document.getElementById("storyMediaFile").files[0];
+  const originalFile=document.getElementById("storyMediaFile").files[0]||window.jabzySelectedStoryOriginalFile;
   const caption=document.getElementById("storyCaption").value.trim();
   const status=document.getElementById("storyUploadStatus"),btn=document.getElementById("storyUploadBtn");
   if(!originalFile){status.textContent="Photo ya video select karein.";return;}
@@ -10548,7 +10549,7 @@ async function uploadJabzyStory(){
     const {data:urlData}=db.storage.from("stories").getPublicUrl(path);
     const {error:insertErr}=await db.from("stories").insert({user_id:me.id,media_url:urlData.publicUrl,media_type:file.type.startsWith("video/")?"video":"image",caption:caption||null});
     if(insertErr){await db.storage.from("stories").remove([path]);status.textContent=insertErr.message;btn.disabled=false;return;}
-    document.getElementById("storyMediaFile").value="";document.getElementById("storyCaption").value="";
+    document.getElementById("storyMediaFile").value="";document.getElementById("storyCaption").value="";window.jabzySelectedStoryOriginalFile=null;
     await loadJabzyStories();removeJabzyStoryUploading();
   }catch(err){removeJabzyStoryUploading();alert("Story upload nahi hui: "+(err.message||"Please try again."));}
   btn.disabled=false;
