@@ -10642,7 +10642,7 @@ async function openJabzyStory(userId,index){
   const fills=[];
   list.forEach((item,i)=>{
     const track=document.createElement("div");track.style.cssText="height:3px;flex:1;min-width:0;border-radius:4px;background:#ffffff55;overflow:hidden;";
-    const fill=document.createElement("div");fill.style.cssText="height:100%;width:"+(i<index?"100%":"0%")+";border-radius:4px;background:#fff;transition:none;";
+    const fill=document.createElement("div");fill.style.cssText="display:block;height:100%;width:100%;transform:scaleX("+(i<index?"1":"0")+");transform-origin:left center;border-radius:4px;background:#fff;transition:transform .08s linear;";
     track.appendChild(fill);progress.appendChild(track);fills.push(fill);
   });
   const media=document.getElementById("storyViewerMedia");media.replaceChildren();
@@ -10656,14 +10656,14 @@ async function openJabzyStory(userId,index){
       const duration=el.duration;
       if(Number.isFinite(duration)&&duration>0){
         const percent=Math.max(0,Math.min(100,(el.currentTime/duration)*100));
-        fills[index].style.width=percent+"%";
+        fills[index].style.transform="scaleX("+(percent/100)+")";
       }
     };
     el.addEventListener("loadedmetadata",updateVideoProgress);
     el.addEventListener("durationchange",updateVideoProgress);
     el.addEventListener("timeupdate",updateVideoProgress);
     el.addEventListener("playing",updateVideoProgress);
-    el.addEventListener("ended",()=>{if(activeJabzyStory===story){if(fills[index])fills[index].style.width="100%";changeJabzyStory(1);}});
+    el.addEventListener("ended",()=>{if(activeJabzyStory===story){if(fills[index])fills[index].style.transform="scaleX(1)";changeJabzyStory(1);}});
     el.play().catch(()=>{});
   }else{
     let photoElapsed=0,lastTick=Date.now();
@@ -10672,7 +10672,7 @@ async function openJabzyStory(userId,index){
       const now=Date.now(),delta=now-lastTick;lastTick=now;
       if(progress._storyPaused)return;
       photoElapsed+=delta;
-      fills[index].style.width=Math.min(100,(photoElapsed/5000)*100)+"%";
+      fills[index].style.transform="scaleX("+Math.min(1,photoElapsed/5000)+")";
       if(photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
     },50);
   }
