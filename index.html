@@ -10260,10 +10260,22 @@ function startJabzyStickerDrag(event){
  stage.addEventListener("pointerup",finish,true);stage.addEventListener("pointercancel",finish,true);stage._jabzyStickerGestures=true;
 }
 function startJabzyTextDrag(){
- const stage=document.getElementById("storyEditorStage"),el=document.getElementById("storyEditorTextOverlay");if(stage._jabzyTextDrag)return;const state={active:false,pointer:null,x:0,y:0,left:50,top:44,rect:null};const inDelete=p=>p.y>=state.rect.bottom-115&&p.x>=state.rect.left+state.rect.width*.25&&p.x<=state.rect.left+state.rect.width*.75;
- stage.addEventListener("pointerdown",e=>{if(!e.target.closest("#storyEditorTextOverlay")||document.activeElement!==el||!el.textContent.trim())return;state.active=true;state.pointer=e.pointerId;state.rect=stage.getBoundingClientRect();state.x=e.clientX;state.y=e.clientY;state.left=parseFloat(el.style.left)||50;state.top=parseFloat(el.style.top)||44;try{stage.setPointerCapture(e.pointerId);}catch(err){}e.preventDefault();},true);
- stage.addEventListener("pointermove",e=>{if(!state.active||e.pointerId!==state.pointer)return;const p={x:e.clientX,y:e.clientY};el.style.left=Math.max(5,Math.min(95,state.left+(p.x-state.x)/state.rect.width*100))+"%";el.style.top=Math.max(8,Math.min(90,state.top+(p.y-state.y)/state.rect.height*100))+"%";setJabzyStickerDeleteVisible(inDelete(p));e.preventDefault();},true);
- const finish=e=>{if(!state.active||e.pointerId!==state.pointer)return;const p={x:e.clientX,y:e.clientY};if(inDelete(p)){el.textContent="";el.style.display="none";}state.active=false;state.pointer=null;setJabzyStickerDeleteVisible(false);};stage.addEventListener("pointerup",finish,true);stage.addEventListener("pointercancel",finish,true);stage._jabzyTextDrag=true;
+ const stage=document.getElementById("storyEditorStage"),el=document.getElementById("storyEditorTextOverlay");if(stage._jabzyTextDrag)return;
+ const state={active:false,pointers:new Map(),startDistance:0,startSize:30,startX:0,startY:0,startLeft:50,startTop:44,rect:null};
+ const point=e=>({x:e.clientX,y:e.clientY}),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),values=()=>Array.from(state.pointers.values());
+ const inDelete=p=>p.y>=state.rect.bottom-115&&p.x>=state.rect.left+state.rect.width*.25&&p.x<=state.rect.left+state.rect.width*.75;
+ stage.addEventListener("pointerdown",e=>{
+  if(!state.active){if(!e.target.closest("#storyEditorTextOverlay")||!el.textContent.trim())return;state.active=true;state.rect=stage.getBoundingClientRect();state.startX=e.clientX;state.startY=e.clientY;state.startLeft=parseFloat(el.style.left)||50;state.startTop=parseFloat(el.style.top)||44;state.startSize=parseFloat(el.style.fontSize)||30;state.pointers.set(e.pointerId,point(e));try{stage.setPointerCapture(e.pointerId);}catch(err){}return;}
+  if(state.pointers.size===1&&!state.pointers.has(e.pointerId)){state.pointers.set(e.pointerId,point(e));const q=values();state.startDistance=Math.max(1,distance(q[0],q[1]));state.startSize=parseFloat(el.style.fontSize)||30;try{stage.setPointerCapture(e.pointerId);}catch(err){}e.preventDefault();}
+ },true);
+ stage.addEventListener("pointermove",e=>{
+  if(!state.active||!state.pointers.has(e.pointerId))return;e.preventDefault();state.pointers.set(e.pointerId,point(e));const q=values(),r=state.rect;
+  if(q.length>=2){const d=distance(q[0],q[1]);el.style.fontSize=Math.max(12,Math.min(180,state.startSize*d/state.startDistance))+"px";}
+  else if(q.length===1){const p=q[0];el.style.left=Math.max(5,Math.min(95,state.startLeft+(p.x-state.startX)/r.width*100))+"%";el.style.top=Math.max(8,Math.min(90,state.startTop+(p.y-state.startY)/r.height*100))+"%";}
+  setJabzyStickerDeleteVisible(q.some(inDelete));
+ },true);
+ const finish=e=>{if(!state.active||!state.pointers.has(e.pointerId))return;const p=point(e);state.pointers.delete(e.pointerId);if(!state.pointers.size){if(inDelete(p)){el.textContent="";el.style.display="none";}state.active=false;setJabzyStickerDeleteVisible(false);}else if(state.pointers.size===1){const q=values()[0];state.startX=q.x;state.startY=q.y;state.startLeft=parseFloat(el.style.left)||50;state.startTop=parseFloat(el.style.top)||44;state.startSize=parseFloat(el.style.fontSize)||30;setJabzyStickerDeleteVisible(false);}};
+ stage.addEventListener("pointerup",finish,true);stage.addEventListener("pointercancel",finish,true);stage._jabzyTextDrag=true;
 }
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
 function openStoryEditorTool(tool){
