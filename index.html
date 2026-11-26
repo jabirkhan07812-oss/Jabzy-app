@@ -10648,21 +10648,29 @@ async function openJabzyStory(userId,index){
   const media=document.getElementById("storyViewerMedia");media.replaceChildren();
   const el=document.createElement(story.media_type==="video"?"video":"img");
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
-  if(story.media_type==="video"){
-    el.controls=false;el.autoplay=true;el.playsInline=true;
-    const updateVideoProgress=()=>{if(Number.isFinite(el.duration)&&el.duration>0)fills[index].style.width=Math.min(100,(el.currentTime/el.duration)*100)+"%";};
-    el.addEventListener("timeupdate",updateVideoProgress);
-    el.addEventListener("loadedmetadata",updateVideoProgress);
-    el.addEventListener("ended",()=>{if(activeJabzyStory===story)changeJabzyStory(1);});
-  }else{
-    let elapsed=0,lastTick=Date.now();
-    progress._storyTimer=setInterval(()=>{
-      const now=Date.now();if(!progress._storyPaused)elapsed+=now-lastTick;lastTick=now;
-      fills[index].style.width=Math.min(100,elapsed/5000*100)+"%";
-      if(elapsed>=5000){clearInterval(progress._storyTimer);progress._storyTimer=null;if(activeJabzyStory===story)changeJabzyStory(1);}
-    },50);
-  }
   media.appendChild(el);
+  let photoElapsed=0,lastTick=Date.now();
+  if(story.media_type==="video"){
+    el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";
+    el.addEventListener("ended",()=>{if(activeJabzyStory===story)changeJabzyStory(1);});
+    el.play().catch(()=>{});
+  }
+  progress._storyTimer=setInterval(()=>{
+    if(activeJabzyStory!==story){clearInterval(progress._storyTimer);progress._storyTimer=null;return;}
+    const now=Date.now(),delta=now-lastTick;lastTick=now;
+    if(progress._storyPaused)return;
+    if(story.media_type==="video"){
+      if(Number.isFinite(el.duration)&&el.duration>0){
+        const percent=Math.min(100,(el.currentTime/el.duration)*100);
+        fills[index].style.width=percent+"%";
+        if(el.ended&&activeJabzyStory===story)changeJabzyStory(1);
+      }
+    }else{
+      photoElapsed+=delta;
+      fills[index].style.width=Math.min(100,(photoElapsed/5000)*100)+"%";
+      if(photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
+    }
+  },50);
   document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
   if(!activeJabzyStoryOwner){
     const {error}=await db.from("story_views").upsert({story_id:story.id,viewer_id:me.id,viewed_at:new Date().toISOString()},{onConflict:"story_id,viewer_id",ignoreDuplicates:true});
