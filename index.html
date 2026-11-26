@@ -2495,9 +2495,8 @@ style="display:none;padding:15px 12px 100px;">
       <textarea id="communityGroupPostInput" rows="2" placeholder="Group mein post likhein..." style="width:100%;box-sizing:border-box;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:10px;padding:10px;"></textarea>
       <button id="communityGroupPostButton" onclick="sendCommunityGroupPost()" style="width:100%;margin:8px 0 0;padding:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);">Post</button>
     </div>
-    <h3>📰 Group Posts</h3>
-    <div id="communityGroupPosts" style="margin-bottom:18px;">Loading posts...</div>
     <h3>💬 Group Chat</h3>
+    <div id="communityGroupPosts" style="display:none;"></div>
     <div id="communityGroupChatMessages" style="max-height:38vh;overflow-y:auto;padding:10px;border-radius:12px;background:#21152f;">Loading chat...</div>
     <div style="display:flex;gap:7px;margin-top:9px;">
       <input id="communityGroupChatInput" type="text" placeholder="Message..." style="flex:1;min-width:0;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:10px;padding:10px;">
@@ -10440,57 +10439,28 @@ async function openCommunityGroup(group){
 }
 
 async function loadOpenedCommunityGroup(){
-  const group=currentOpenedCommunityGroup;
-  if(!group)return;
+  const group=currentOpenedCommunityGroup;if(!group)return;
   const [membersRes,postsRes,messagesRes]=await Promise.all([
-    db.from("community_group_members").select("user_id,role,status").eq("group_id",group.id).eq("status","approved"),
-    db.from("community_group_posts").select("id,user_id,content,photo_url,created_at").eq("group_id",group.id).order("created_at",{ascending:false}).limit(50),
-    db.from("community_group_messages").select("id,user_id,message,created_at").eq("group_id",group.id).order("created_at",{ascending:true}).limit(100)
+    db.from('community_group_members').select('user_id,role,status').eq('group_id',group.id).eq('status','approved'),
+    db.from('community_group_posts').select('id,user_id,content,photo_url,created_at').eq('group_id',group.id).order('created_at',{ascending:true}).limit(100),
+    db.from('community_group_messages').select('id,user_id,message,created_at').eq('group_id',group.id).order('created_at',{ascending:true}).limit(200)
   ]);
-  const memberBox=document.getElementById("communityGroupMembers");
-  const postBox=document.getElementById("communityGroupPosts");
-  const chatBox=document.getElementById("communityGroupChatMessages");
-  if(membersRes.error) memberBox.textContent="Members load error: "+membersRes.error.message;
-  else{
-    const ids=(membersRes.data||[]).map(x=>x.user_id);
-    let profiles=[];
-    if(ids.length){
-      const pr=await db.from("profiles").select("id,username,photo_url").in("id",ids);
-      if(!pr.error) profiles=pr.data||[];
-    }
-    const names=new Map(profiles.map(p=>[p.id,p.username||"JABZY User"]));
-    memberBox.textContent="👥 Members ("+(membersRes.data||[]).length+"): "+(membersRes.data||[]).map(m=>(names.get(m.user_id)||"JABZY User")+(m.role==="admin"?" · Admin":"")).join(", ");
-  }
-  if(postsRes.error) postBox.textContent="Posts load error: "+postsRes.error.message;
-  else{
-    postBox.replaceChildren();
-    const posts=postsRes.data||[];
-    if(!posts.length) postBox.textContent="Abhi group mein koi post nahi hai.";
-    posts.forEach(post=>{
-      const card=document.createElement("div");
-      card.style.cssText="padding:12px;margin:9px 0;border-radius:12px;background:#21152f;border:1px solid #49315d;";
-      const body=document.createElement("div");body.textContent=post.content||"";body.style.whiteSpace="pre-wrap";
-      const meta=document.createElement("small");meta.textContent=new Date(post.created_at).toLocaleString();meta.style.cssText="display:block;margin-top:8px;color:#cbb8df;";
-      card.append(body,meta);postBox.appendChild(card);
-    });
-  }
-  if(messagesRes.error) chatBox.textContent="Chat load error: "+messagesRes.error.message;
-  else{
-    chatBox.replaceChildren();
-    const messages=messagesRes.data||[];
-    if(!messages.length) chatBox.textContent="Abhi group chat khaali hai.";
-    messages.forEach(msg=>{
-      const line=document.createElement("div");
-      line.style.cssText="padding:7px 9px;margin:6px 0;border-radius:10px;background:#30203f;";
-      const body=document.createElement("div");body.textContent=msg.message;
-      const meta=document.createElement("small");meta.textContent=(msg.user_id===me.id?"You":"Member")+" · "+new Date(msg.created_at).toLocaleTimeString();
-      meta.style.cssText="display:block;margin-top:4px;color:#cbb8df;font-size:10px;";
-      line.append(body,meta);chatBox.appendChild(line);
-    });
-    chatBox.scrollTop=chatBox.scrollHeight;
-  }
+  const memberBox=document.getElementById('communityGroupMembers'),timeline=document.getElementById('communityGroupChatMessages');
+  const postBox=document.getElementById('communityGroupPosts'),composer=document.getElementById('communityGroupPostComposer');
+  if(postBox)postBox.style.display='none';if(composer)composer.style.display='none';
+  if(postBox&&postBox.previousElementSibling)postBox.previousElementSibling.style.display='none';
+  if(membersRes.error)memberBox.textContent='Members load error: '+membersRes.error.message;else memberBox.textContent='👥 Members ('+(membersRes.data||[]).length+')';
+  if(postsRes.error||messagesRes.error){timeline.textContent='Group chat load error: '+(postsRes.error?.message||messagesRes.error?.message);return;}
+  const items=[...(postsRes.data||[]).map(x=>({...x,_kind:'post',_text:x.content||''})),...(messagesRes.data||[]).map(x=>({...x,_kind:'message',_text:x.message||''}))].sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
+  const nearBottom=timeline.scrollHeight-timeline.scrollTop-timeline.clientHeight<100;timeline.replaceChildren();
+  if(!items.length){const empty=document.createElement('div');empty.textContent='Abhi group chat khaali hai.';empty.style.cssText='padding:14px;text-align:center;color:#cbb8df';timeline.appendChild(empty);}
+  items.forEach(item=>{const line=document.createElement('div');line.style.cssText='max-width:88%;width:fit-content;padding:9px 12px;margin:8px 0;border-radius:14px;background:'+(item.user_id===me.id?'linear-gradient(135deg,#7b3ca7,#a45bea)':'#30203f')+';'+(item.user_id===me.id?'margin-left:auto;':'margin-right:auto;');
+    if(item._kind==='post'){const tag=document.createElement('small');tag.textContent='Group post';tag.style.cssText='display:block;color:#ffd0ed;font-size:10px;margin-bottom:4px';line.appendChild(tag);}
+    const body=document.createElement('div');body.textContent=item._text;body.style.whiteSpace='pre-wrap';line.appendChild(body);
+    if(item.photo_url){const note=document.createElement('small');note.textContent='📷 Photo attachment';note.style.cssText='display:block;margin-top:5px;color:#e4c9f5';line.appendChild(note);}
+    const meta=document.createElement('small');meta.textContent=(item.user_id===me.id?'You':'Member')+' · '+new Date(item.created_at).toLocaleTimeString();meta.style.cssText='display:block;margin-top:5px;color:#e1cbef;font-size:10px';line.appendChild(meta);timeline.appendChild(line);});
+  if(nearBottom||timeline.scrollHeight===timeline.clientHeight)timeline.scrollTop=timeline.scrollHeight;
 }
-
 async function sendCommunityGroupPost(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupPostInput");
   const content=(input?.value||"").trim();
