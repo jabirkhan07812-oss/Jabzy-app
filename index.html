@@ -10451,20 +10451,47 @@ loadSavedAppearance();
 let jabzyTabHistory=[];
 let jabzyBackPressAt=0;
 
-// Stop every Home-feed video whenever Home is no longer the active view.
-function pauseHomeFeedVideos(){
+// Home Feed videos autoplay only while visible; leaving Home pauses them.
+function homeFeedIsActive(){
   const home=document.getElementById("homeScreen");
-  if(!home)return;
-  home.querySelectorAll("video").forEach(video=>{
-    try{video.pause();}catch(error){}
+  return !!home && getComputedStyle(home).display!=="none" && !document.hidden;
+}
+function updateHomeFeedVideoPlayback(){
+  const feed=document.getElementById("homeFeed");
+  if(!feed)return;
+  const active=homeFeedIsActive();
+  feed.querySelectorAll("video").forEach(video=>{
+    if(!active){video.pause();return;}
+    const rect=video.getBoundingClientRect();
+    const visibleHeight=Math.max(0,Math.min(rect.bottom,window.innerHeight)-Math.max(rect.top,0));
+    const visibleRatio=rect.height>0?visibleHeight/rect.height:0;
+    if(visibleRatio>=0.5){
+      video.muted=true;
+      video.playsInline=true;
+      video.setAttribute("playsinline","");
+      video.play().catch(()=>{});
+    }else{
+      video.pause();
+    }
   });
+}
+function pauseHomeFeedVideos(){
+  const feed=document.getElementById("homeFeed");
+  if(feed)feed.querySelectorAll("video").forEach(video=>{try{video.pause();}catch(error){}});
 }
 if(!window.__jabzyHomeVideoPauseReady){
   window.__jabzyHomeVideoPauseReady=true;
   document.addEventListener("visibilitychange",()=>{
     if(document.hidden)pauseHomeFeedVideos();
+    else updateHomeFeedVideoPlayback();
   });
   window.addEventListener("pagehide",pauseHomeFeedVideos);
+  window.addEventListener("scroll",updateHomeFeedVideoPlayback,{passive:true});
+  window.addEventListener("resize",updateHomeFeedVideoPlayback);
+  const feed=document.getElementById("homeFeed");
+  if(feed && window.MutationObserver){
+    new MutationObserver(()=>updateHomeFeedVideoPlayback()).observe(feed,{childList:true,subtree:true});
+  }
 }
 
 function showTab(tab,fromBack=false){
@@ -10495,6 +10522,7 @@ function showTab(tab,fromBack=false){
   loadJabzyStories();
   initHomePostComposer();
   loadHomePosts();
+  requestAnimationFrame(()=>requestAnimationFrame(updateHomeFeedVideoPlayback));
   }
 
     if(tab==="chats"){
