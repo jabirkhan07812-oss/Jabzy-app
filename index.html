@@ -10324,10 +10324,14 @@ function openStoryEditorTool(tool){
    }else if(tool==="adjust"){
     [["Brightness","storyBrightness",jabzyStoryEditorBrightness,v=>jabzyStoryEditorBrightness=v],["Contrast","storyContrast",jabzyStoryEditorContrast,v=>jabzyStoryEditorContrast=v],["Saturation","storySaturation",jabzyStoryEditorSaturation,v=>jabzyStoryEditorSaturation=v]].forEach(([label,id,value,setter])=>{const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:82px 1fr 48px;align-items:center;gap:8px;margin:10px 0;color:white;font-size:12px;";const name=document.createElement("b");name.textContent=label;const range=document.createElement("input");range.type="range";range.min="-100";range.max="100";range.step="1";range.value=String(value-100);range.style.cssText="width:100%;margin:0;";const readout=document.createElement("b");readout.style.cssText="text-align:right;font-variant-numeric:tabular-nums;";const show=()=>{const n=Number(range.value);readout.textContent=(n>0?"+":"")+n+"%";};show();range.oninput=()=>{const n=Number(range.value);setter(100+n);show();applyJabzyStoryEditorStyle();};row.append(name,range,readout);content.appendChild(row);});
   }else if(tool==="text"){
-    closeStoryEditorTool();const el=document.getElementById("storyEditorTextOverlay");el.style.display="block";if(el.textContent==="Type your text...")el.textContent="";el.focus();
+    closeStoryEditorTool();const el=document.getElementById("storyEditorTextOverlay");el.style.display="block";el.style.pointerEvents="auto";el.style.minHeight="46px";el.style.minWidth="150px";el.style.padding="8px 12px";el.style.border="0";el.style.background="transparent";el.style.outline="none";el.setAttribute("contenteditable","true");if(el.textContent==="Type your text...")el.textContent="";el.focus();
+    if(!el._jabzyTapEdit){el.addEventListener("click",()=>{el.focus();});el.addEventListener("pointerup",()=>{if(!el.textContent.trim())el.focus();});el._jabzyTapEdit=true;}
   }else if(tool==="stickers"){
     closeStoryEditorTool();openJabzyStickerPicker();
   }else if(tool==="crop"){
+    panel.style.left="12px";panel.style.right="62px";panel.style.bottom="calc(84px + env(safe-area-inset-bottom))";panel.style.maxHeight="none";panel.style.padding="12px 10px";panel.style.borderRadius="16px";panel.style.background="rgba(13,9,20,.72)";panel.style.border="0";panel.style.boxShadow="none";
+    title.textContent="Photo Fit";title.style.fontSize="12px";title.style.color="#e9d5ff";title.style.marginBottom="8px";
+    content.style.display="flex";content.style.flexDirection="row";content.style.flexWrap="wrap";content.style.gap="7px";
     addButton("Fill Screen",()=>{jabzyStoryEditorFit="cover";applyJabzyStoryEditorStyle();},jabzyStoryEditorFit==="cover");addButton("Fit Full Photo",()=>{jabzyStoryEditorFit="contain";applyJabzyStoryEditorStyle();},jabzyStoryEditorFit==="contain");
     addButton("Reset Edit",()=>{resetJabzyStoryEditor();});
   }
@@ -11984,6 +11988,7 @@ body.light-theme #chatWindow .chat-menu-item{color:#30243a!important;border-bott
 body.light-theme #chatWindow #chatOptionsMenu{background:#fff!important;border-color:#e0d3e8!important;box-shadow:0 5px 20px #35204422!important}
 body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme #chatWindow button[onclick="startVoiceCall()"],body.light-theme #chatWindow button[onclick="chatComingSoon('Video Call')"],body.light-theme #chatWindow button[onclick="showChatMenu()"]{color:#56366a!important}
 </style>
+<style id="jabzy-story-text-clean-edit">#storyEditorTextOverlay{box-sizing:border-box!important;min-height:46px!important;min-width:150px!important;padding:8px 12px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;caret-color:#fff!important;cursor:text!important;pointer-events:auto!important;touch-action:manipulation!important}#storyEditorTextOverlay:empty:before{content:attr(data-placeholder);display:inline-block;min-height:28px;color:#fff;opacity:.85}#storyEditorTextOverlay:focus{border:0!important;box-shadow:none!important;background:transparent!important}#storyEditorPanel:has(#storyEditorPanelContent:empty){box-shadow:none}</style>
 </body>
   </html>
   
