@@ -12213,8 +12213,9 @@ async function finishJabzyVoiceUpload(){
 </script>
 
 <style id="jabzy-whatsapp-voice-cancel-style">
-#jabzyVoiceCancelHint{position:fixed;z-index:99999;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 16px;border-radius:24px;background:rgba(28,20,39,.94);border:1px solid rgba(255,110,170,.45);color:#fff;font-size:13px;white-space:nowrap;box-shadow:0 6px 24px #0006;display:none;pointer-events:none}
-#jabzyVoiceCancelHint.cancel-ready{background:#b92354;border-color:#ff8aad}
+#jabzyVoiceCancelHint{display:none!important}
+#jabzyVoiceInlineIndicator .jabzy-record-dot{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#ff315d;box-shadow:0 0 0 0 #ff315d88;animation:jabzyRecordPulse 1s infinite}
+@keyframes jabzyRecordPulse{0%{box-shadow:0 0 0 0 #ff315d88}70%{box-shadow:0 0 0 7px #ff315d00}100%{box-shadow:0 0 0 0 #ff315d00}}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
@@ -12280,11 +12281,20 @@ function jabzyComposerClick(e){
  // A quick tap on the microphone icon does not start an accidental recording.
 }
 function jabzyVoiceUi(active,label){
- const b=jabzyVoiceButton();if(!b)return;
+ const b=jabzyVoiceButton(),input=document.getElementById("message"),row=document.getElementById("chatComposer");if(!b||!row)return;
+ let indicator=document.getElementById("jabzyVoiceInlineIndicator");
+ if(!indicator){
+  indicator=document.createElement("div");indicator.id="jabzyVoiceInlineIndicator";
+  indicator.style.cssText="display:none;flex:1;min-width:0;align-items:center;gap:9px;padding:0 8px;color:#fff;font-size:14px;background:transparent;border:0;box-shadow:none";
+  indicator.innerHTML='<span class="jabzy-record-dot"></span><span id="jabzyVoiceInlineTime" style="font-variant-numeric:tabular-nums;font-weight:600">0:00</span><span style="color:#ff9cbd;font-size:12px;white-space:nowrap">← Slide to cancel</span>';
+  row.insertBefore(indicator,input);
+ }
  b.style.background=active?"#e83e79":"#49345d";b.textContent=active?"●":"🎙️";b.title=label||"Hold to record";
+ if(input)input.style.display=active?"none":"";
+ indicator.style.display=active?"flex":"none";
  if(active&&!jabzyVoiceClock)jabzyVoiceClock=setInterval(()=>{
   const sec=Math.floor((Date.now()-jabzyVoiceStartedAt)/1000),m=Math.floor(sec/60),v=String(sec%60).padStart(2,"0");
-  const h=document.getElementById("jabzyVoiceCancelHint");if(h&&!jabzyVoiceCancelled)h.textContent="● "+m+":"+v+"  ← Slide to cancel";
+  const t=document.getElementById("jabzyVoiceInlineTime");if(t)t.textContent=m+":"+v;
  },250);
  if(!active&&jabzyVoiceClock){clearInterval(jabzyVoiceClock);jabzyVoiceClock=null;}
  if(!active)jabzyUpdateComposerMode();
