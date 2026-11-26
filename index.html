@@ -1980,6 +1980,21 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
 #adminDashboard .admin-nav button{min-height:88px!important;font-size:13px!important}
 body.jabzy-admin-open{overflow:hidden!important}
 
+
+/* Light mode: All Chats profile strips and Ads overview counters */
+body.light-theme #adminDashboard #adminAllChats>div{background:#fff!important;color:#352342!important;border-color:#e3d7eb!important;}
+body.light-theme #adminDashboard #adminAllChats>div>div[style*="grid"]{background:transparent!important;}
+body.light-theme #adminDashboard #adminAllChats>div>div[style*="grid"]>div{
+ background:#f7f1fb!important;color:#352342!important;border:1px solid #e4d8ec!important;
+}
+body.light-theme #adminDashboard #adminAllChats>div>div[style*="grid"]>div b,
+body.light-theme #adminDashboard #adminAllChats>div>div[style*="grid"]>div small{color:#493257!important;}
+body.light-theme #adminDashboard #adminAllChats>div>div[style*="grid"]>div img{background:#eee5f5!important;}
+body.light-theme #adminDashboard #adminAdsManager>div[style*="grid"]>div{
+ background:#f2eaf8!important;color:#352342!important;border:1px solid #dfd2e9!important;
+}
+body.light-theme #adminDashboard #adminAdsManager>div[style*="grid"]>div b,
+body.light-theme #adminDashboard #adminAdsManager>div[style*="grid"]>div small{color:#493257!important;}
 /* Admin dashboard follows the app appearance setting */
 body.light-theme #adminDashboard{
  background:linear-gradient(160deg,#ffffff 0%,#f7f1fb 55%,#eee5f6 100%)!important;
