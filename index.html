@@ -10278,7 +10278,9 @@ function startJabzyTextDrag(){
  stage.addEventListener("pointerup",finish,true);stage.addEventListener("pointercancel",finish,true);stage._jabzyTextDrag=true;
 }
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
+function setupJabzyStoryPhotoTapClose(){const stage=document.getElementById("storyEditorStage");if(!stage||stage._jabzyPhotoTapClose)return;stage.addEventListener("click",event=>{const target=event.target;if(target.id==="storyPreviewImage"||target.id==="storyPreviewVideo"||target.id==="storyEditorEmpty"||target===stage){const panel=document.getElementById("storyEditorPanel");if(panel&&panel.style.display!=="none")closeStoryEditorTool();}});stage._jabzyPhotoTapClose=true;}
 function openStoryEditorTool(tool){
+  setupJabzyStoryPhotoTapClose();
   startJabzyTextDrag();
   const panel=document.getElementById("storyEditorPanel"),title=document.getElementById("storyEditorPanelTitle"),content=document.getElementById("storyEditorPanelContent");
   const names={filters:"Filters",adjust:"Adjust Photo",text:"Add Text",stickers:"Choose Stickers",crop:"Photo Fit",effects:"Effects"};
