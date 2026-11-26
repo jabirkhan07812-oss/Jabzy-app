@@ -8648,22 +8648,24 @@ async function setupGlobalRoomRealtime(){
     .channel("global-rooms-"+me.id)
     .on("postgres_changes",{event:"*",schema:"public",table:"live_rooms"},async(payload)=>{
       const changedRoom=payload?.new;
-      if(changedRoom?.status==="ended" && currentJoinedRoom?.id===changedRoom.id){
-        if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
-        if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
-        await stopRoomVoice();
-        currentJoinedRoom=null;
-        const joinedScreen=document.getElementById("joinedRoomScreen");
-        const miniBar=document.getElementById("miniRoomBar");
-        if(joinedScreen) joinedScreen.style.display="none";
-        if(miniBar) miniBar.style.display="none";
-        showTab("rooms");
-        alert("Host ne ye room close kar diya hai.");
-      }
-      const roomsScreen=document.getElementById("roomsScreen");
-      if(roomsScreen && roomsScreen.style.display!=="none"){
-        await loadActiveRooms();
-        await loadMyPrivateRooms();
+      if(changedRoom?.status==="ended"){
+        if(currentJoinedRoom?.id===changedRoom.id){
+          if(roomChatChannel){ await db.removeChannel(roomChatChannel); roomChatChannel=null; }
+          if(roomMembersChannel){ await db.removeChannel(roomMembersChannel); roomMembersChannel=null; }
+          await stopRoomVoice();
+          currentJoinedRoom=null;
+          const joinedScreen=document.getElementById("joinedRoomScreen");
+          const miniBar=document.getElementById("miniRoomBar");
+          if(joinedScreen) joinedScreen.style.display="none";
+          if(miniBar) miniBar.style.display="none";
+          showTab("rooms");
+        }
+        const roomsScreen=document.getElementById("roomsScreen");
+        if(roomsScreen && roomsScreen.style.display!=="none"){
+          await loadActiveRooms();
+          await loadMyPrivateRooms();
+          appStatus("Room closed");
+        }
       }
     })
     .on("postgres_changes",{event:"*",schema:"public",table:"live_room_members"},async(payload)=>{
