@@ -10461,7 +10461,7 @@ async function makeJabzyStoryEditedVideo(file,status){
   if(!file.type.startsWith("video/"))return file;
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error("Is browser mein edited video export support nahi hai. Chrome update karke dobara try karein.");
   const sourceUrl=URL.createObjectURL(file),video=document.createElement("video");
-  video.src=sourceUrl;video.playsInline=true;video.preload="auto";video.muted=false;
+  video.src=sourceUrl;video.playsInline=true;video.preload="auto";video.muted=true;video.volume=0;
   let recorder=null,stream=null,sourceStream=null,frame=0,stopped=false;
   try{
     await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=()=>reject(new Error("Video open nahi ho paya."));video.load();});
