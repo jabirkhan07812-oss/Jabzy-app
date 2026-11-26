@@ -12049,3 +12049,11 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
   
 
 <style id="jabzy-story-editor-gesture-strip-fix">#storyEditorTextOverlay{touch-action:none!important;-webkit-user-select:text!important;user-select:text!important}#storyEditorStage{overscroll-behavior:contain!important}#storyEditorPanel:has([data-story-filter]),#storyEditorPanel:has([data-story-effect]){left:0!important;right:0!important;width:100%!important;max-width:100%!important;height:82px!important;max-height:82px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:hidden!important}#storyEditorPanel:has([data-story-filter]) #storyEditorPanelContent,#storyEditorPanel:has([data-story-effect]) #storyEditorPanelContent{width:100%!important;height:82px!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important}#storyEditorPanel:has([data-story-filter]) #storyEditorPanelContent::-webkit-scrollbar,#storyEditorPanel:has([data-story-effect]) #storyEditorPanelContent::-webkit-scrollbar{display:none!important}</style>
+
+<style id="jabzy-chat-hidden-state-fix">
+/* Do not show the conversation header until a chat is actually opened */
+#matchesScreen #chatWindow[style*="display: none"]{display:none!important}
+#matchesScreen #chatWindow[style*="display:none"]{display:none!important}
+#matchesScreen #chatWindow[style*="display: block"]{display:flex!important}
+#matchesScreen #chatWindow[style*="display:block"]{display:flex!important}
+</style>
