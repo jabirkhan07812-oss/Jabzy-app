@@ -2832,6 +2832,10 @@ table:"messages"
     loadMessages(true);
   }
 
+  // Refresh sent-message ticks when the other person reads this chat.
+  if(payload.eventType==="UPDATE" && m.user_id===selected && m.other_user_id===me.id){
+    loadMessages(true);
+  }
   // Keep the chat list preview and latest-message order up to date.
   const chatList=document.getElementById("chatList");
   if(chatList && chatList.style.display!=="none"){
@@ -2844,6 +2848,15 @@ table:"messages"
       loadChatList();
     }
   }
+})
+.on("postgres_changes",{
+  event:"UPDATE",
+  schema:"public",
+  table:"chat_reads",
+  filter:"user_id=eq."+selected
+},payload=>{
+  const r=payload.new||{};
+  if(r.other_user_id===me.id && selected) loadMessages(true);
 })
 .subscribe((status)=>{
   if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
@@ -6842,6 +6855,13 @@ const messageMap=new Map(
 );
 
 const messageIds=(data||[]).map(x=>x.id);
+const {data:recipientReadData}=await db.from("chat_reads")
+  .select("last_read_at")
+  .eq("user_id",chatUserId)
+  .eq("other_user_id",me.id)
+  .maybeSingle();
+const recipientReadAt=recipientReadData?.last_read_at
+  ? new Date(recipientReadData.last_read_at).getTime() : 0;
 const giftSenderIds=[...new Set((data||[]).filter(x=>String(x.message||"").startsWith("GIFT:")).map(x=>x.sender_id).filter(Boolean))];
 const {data:giftSenderProfiles}=giftSenderIds.length?await db.from("profiles").select("id,username").in("id",giftSenderIds):{data:[],error:null};
 const giftSenderNames=new Map((giftSenderProfiles||[]).map(x=>[String(x.id),x.username||"JABZY Member"]));
@@ -7010,6 +7030,16 @@ messageTime.style.color="#c7c7c7";
 messageTime.style.textAlign="right";
 messageTime.style.marginTop="3px";
 messageTime.style.fontWeight="400";
+if(own){
+  const ticks=document.createElement("span");
+  ticks.textContent="  ✓✓";
+  ticks.style.fontSize="11px";
+  ticks.style.fontWeight="700";
+  ticks.style.letterSpacing="-1px";
+  ticks.style.color=recipientReadAt>=new Date(m.created_at).getTime()
+    ? "#53bdeb" : "#c7c7c7";
+  messageTime.appendChild(ticks);
+}
 row.appendChild(messageTime);
 
   if(starredIds.has(String(m.id))){
@@ -7335,6 +7365,28 @@ fragment.replaceChildren(...timelineItems);
 }
 
 box.style.visibility="visible";
+
+// Mark incoming messages read only when this conversation is visible.
+if(!document.hidden && document.getElementById("chatWindow")?.style.display!=="none"){
+  const newestIncoming=(data||[])
+    .filter(x=>x.sender_id===chatUserId && x.receiver_id===me.id)
+    .reduce((latest,x)=>!latest || new Date(x.created_at)>new Date(latest)?x.created_at:latest,null);
+  if(newestIncoming){
+    db.from("chat_reads").select("last_read_at")
+      .eq("user_id",me.id).eq("other_user_id",chatUserId).maybeSingle()
+      .then(({data:ownRead,error:readError})=>{
+        if(readError || selected!==chatUserId)return;
+        if(!ownRead?.last_read_at || new Date(newestIncoming)>new Date(ownRead.last_read_at)){
+          db.from("chat_reads").upsert({
+            user_id:me.id,
+            other_user_id:chatUserId,
+            last_read_at:newestIncoming
+          },{onConflict:"user_id,other_user_id"})
+          .then(({error})=>{if(error)console.warn("Chat read receipt:",error.message);});
+        }
+      });
+  }
+}
 
 if(!incremental && !olderBatch){
   const chatUserId=selected;
