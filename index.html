@@ -2832,10 +2832,6 @@ table:"messages"
     loadMessages(true);
   }
 
-  // Refresh sent-message ticks when the other person reads this chat.
-  if(payload.eventType==="UPDATE" && m.user_id===selected && m.other_user_id===me.id){
-    loadMessages(true);
-  }
   // Keep the chat list preview and latest-message order up to date.
   const chatList=document.getElementById("chatList");
   if(chatList && chatList.style.display!=="none"){
@@ -2850,13 +2846,13 @@ table:"messages"
   }
 })
 .on("postgres_changes",{
-  event:"UPDATE",
+  event:"*",
   schema:"public",
   table:"chat_reads",
   filter:"user_id=eq."+selected
 },payload=>{
   const r=payload.new||{};
-  if(r.other_user_id===me.id && selected) loadMessages(true);
+  if(r.other_user_id===me.id && selected) loadMessages();
 })
 .subscribe((status)=>{
   if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
