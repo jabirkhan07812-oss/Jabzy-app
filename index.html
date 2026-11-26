@@ -3792,7 +3792,7 @@ function renderJabzyVideoCategories(){
   topics.forEach(topic=>{
     const chip=document.createElement("button");chip.type="button";chip.textContent=topic;
     const active=jabzyActiveHomeTopic===topic;
-    chip.style.cssText="flex:0 0 auto;padding:7px 13px;border-radius:18px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:12px;font-weight:750;white-space:nowrap;";
+    chip.style.cssText="flex:0 0 auto;padding:5px 8px;border-radius:14px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;";
     chip.onclick=()=>{if(jabzyActiveHomeTopic===topic)return;jabzyActiveHomeTopic=topic;renderJabzyVideoCategories();loadHomePosts();};
     bar.appendChild(chip);
   });
