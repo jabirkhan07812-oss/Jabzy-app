@@ -12199,7 +12199,7 @@ async function finishJabzyVoiceUpload(){
  let path=null;
  try{
   const blocked=await getBlockedIds();if(blocked.has(selected))throw new Error("Blocked user ko voice message nahi bhej sakte.");
-  const ext=type.includes("ogg")?"ogg":type.includes("mp4")?"m4a":"webm";
+  const ext=type.includes("ogg")?"ogg":type.includes("mp4")?"m4a":type.includes("mpeg")?"mp3":"webm";
   path=me.id+"/"+selected+"/"+Date.now()+"_voice."+ext;
   appStatus("Voice message upload ho raha hai…");
   const {error:uploadError}=await db.storage.from("chat-photos").upload(path,blob,{contentType:type,upsert:false});
