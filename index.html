@@ -3774,13 +3774,17 @@ let jabzyHomePostsLoadToken=0;
 async function loadHomePosts(){
   const loadToken=++jabzyHomePostsLoadToken;
   const box=document.getElementById("homeFeed");if(!box||!me)return;
-  const interestsReady=await ensureJabzyInterests();if(loadToken!==jabzyHomePostsLoadToken||!interestsReady)return;
-  const {data:acceptedFriends,error:friendsError}=await db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+  const [interestsReady,friendsResult]=await Promise.all([
+    ensureJabzyInterests(),
+    db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id)
+  ]);
+  if(loadToken!==jabzyHomePostsLoadToken||!interestsReady)return;
+  const {data:acceptedFriends,error:friendsError}=friendsResult;
   if(loadToken!==jabzyHomePostsLoadToken)return;
   if(friendsError){console.error("Friends audience lookup:",friendsError.message);box.textContent="Friends list load nahi ho payi.";return;}
   const friendIds=[...new Set((acceptedFriends||[]).map(row=>row.sender_id===me.id?row.receiver_id:row.sender_id))];
   let postsQuery=db.from("posts").select("id,user_id,content,media_url,media_type,created_at,topic,audience").or("audience.eq.public,user_id.eq."+me.id+(friendIds.length?",and(audience.eq.friends,user_id.in.("+friendIds.join(",")+"))":""));
-  const {data:posts,error}=await postsQuery.order("created_at",{ascending:false});
+  const {data:posts,error}=await postsQuery.order("created_at",{ascending:false}).limit(30);
   if(loadToken!==jabzyHomePostsLoadToken)return;
   if(error){console.error("Home posts loading:",error.message);box.textContent="Posts load nahi ho payi.";return;}
   const uniquePosts=[...new Map((posts||[]).map(post=>[String(post.id),post])).values()];
@@ -3794,13 +3798,21 @@ async function loadHomePosts(){
     const msg=document.createElement("p");msg.textContent="Official posts will appear here.";msg.style.cssText="font-size:12px;color:#bba9ca;margin:7px 0;";
     empty.append(icon,title,msg);box.appendChild(empty);return;
   }
-  const {data:profiles}=await db.from("profiles").select("id,username,photo_url").in("id",[...new Set(uniquePosts.map(p=>p.user_id))]);
+  const [profilesResult,savedResult]=await Promise.all([
+    db.from("profiles").select("id,username,photo_url").in("id",[...new Set(uniquePosts.map(p=>p.user_id))]),
+    db.from("saved_posts").select("post_id").eq("user_id",me.id)
+  ]);
   if(loadToken!==jabzyHomePostsLoadToken)return;
+  const {data:profiles}=profilesResult;
   const map=new Map((profiles||[]).map(p=>[p.id,p]));
-  const {data:savedRows,error:savedLoadError}=await db.from("saved_posts").select("post_id").eq("user_id",me.id);
+  const {data:savedRows,error:savedLoadError}=savedResult;
   if(loadToken!==jabzyHomePostsLoadToken)return;
   if(savedLoadError)console.warn("Saved posts loading:",savedLoadError.message);
   const savedPostIds=new Set((savedRows||[]).map(row=>String(row.post_id)));
+  const authorIds=[...new Set(uniquePosts.map(post=>post.user_id))];
+  const adminResults=await Promise.all(authorIds.map(id=>db.rpc("is_jabzy_official_admin",{p_user_id:id})));
+  if(loadToken!==jabzyHomePostsLoadToken)return;
+  const adminMap=new Map(authorIds.map((id,index)=>[id,adminResults[index]?.data===true]));
   for(const post of uniquePosts){
     if(loadToken!==jabzyHomePostsLoadToken)return;
     const profile=map.get(post.user_id)||{};
@@ -3810,8 +3822,7 @@ async function loadHomePosts(){
     if(profile.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent="👤";
     const name=document.createElement("div");name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:800;";
     name.textContent=profile.username||"JABZY Official";
-    const isAdminPost=await isOfficialAdminUser(post.user_id);
-    if(loadToken!==jabzyHomePostsLoadToken)return;
+    const isAdminPost=adminMap.get(post.user_id)===true;
     if(isAdminPost)addOfficialAdminMark(name);
     const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.className="jabzy-post-date";date.style.cssText="display:block;font-size:10px;font-weight:400;margin-top:3px;";
     const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
@@ -4356,30 +4367,17 @@ img.classList.remove("hidden");
 }
 }
 
-// Total Followers
-const {count:followers,error:followersError}=await db
-.from("follows")
-.select("*",{count:"exact",head:true})
-.eq("following_id",me.id);
-
-if(followersError){
-appStatus(followersError.message);
-return;
-}
-document.getElementById("myFollowers").innerText=followers||0;
-
-// Total Following
-const {count:following,error:followingError}=await db
-.from("follows")
-.select("*",{count:"exact",head:true})
-.eq("follower_id",me.id);
-
-if(followingError){
-appStatus(followingError.message);
-return;
-}
-document.getElementById("myFollowing").innerText=following||0;
-await loadMyProfilePosts();
+// Load counts and profile posts together so the profile screen becomes useful sooner.
+const [followersResult,followingResult]=await Promise.all([
+  db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",me.id),
+  db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",me.id),
+  loadMyProfilePosts()
+]);
+const followers=followersResult[0],following=followingResult[1];
+if(followers.error)console.warn("Followers count:",followers.error.message);
+if(following.error)console.warn("Following count:",following.error.message);
+document.getElementById("myFollowers").innerText=followers.count||0;
+document.getElementById("myFollowing").innerText=following.count||0;
   }
 
 async function loadMyProfilePosts(){
@@ -8643,8 +8641,8 @@ async function openJoinedRoom(){
 
   document.querySelector(".bottom-nav").style.display = "none";
 
-  await loadRoomChatMessages();
-  await loadRoomParticipants();
+  // Render room chat and member seats in parallel; neither waits for the other.
+  await Promise.all([loadRoomChatMessages(),loadRoomParticipants()]);
 
   if(roomChatChannel){
     await db.removeChannel(roomChatChannel);
@@ -9202,8 +9200,8 @@ function toggleRoomSpeaker(){
   const box=document.getElementById("roomChatMessages");
   const roomId=currentJoinedRoom.id;
   const [{data:messages,error},{data:gifts,error:giftError}]=await Promise.all([
-    db.from("live_room_messages").select("user_id,message,created_at").eq("room_id",roomId).order("created_at",{ascending:true}),
-    db.from("room_gifts").select("sender_id,recipient_id,gift_code,created_at").eq("room_id",roomId).order("created_at",{ascending:true})
+    db.from("live_room_messages").select("user_id,message,created_at").eq("room_id",roomId).order("created_at",{ascending:false}).limit(100),
+    db.from("room_gifts").select("sender_id,recipient_id,gift_code,created_at").eq("room_id",roomId).order("created_at",{ascending:false}).limit(100)
   ]);
   if(error){box.textContent=error.message;return;}
   if(giftError){box.textContent=giftError.message;return;}
@@ -10096,6 +10094,8 @@ async function loadJabzyStories(){
   }
   const names={};profiles.forEach(p=>names[p.id]=p.username||"User");
   row.replaceChildren();
+  const storyAdminResults=await Promise.all(ids.map(id=>isOfficialAdminUser(id)));
+  const storyAdminMap=new Map(ids.map((id,index)=>[id,storyAdminResults[index]===true]));
   for(const [userId,list] of groups.entries()){
     const btn=document.createElement("button");
     btn.type="button";btn.style.cssText="flex:0 0 68px;width:68px;padding:0;margin:0;background:none;border:0;color:white;";
@@ -10107,7 +10107,7 @@ async function loadJabzyStories(){
     inner.appendChild(thumb);ring.appendChild(inner);
     const label=document.createElement("div");label.textContent=userId===me.id?"Your Story":names[userId]||"User";label.style.cssText="font-size:11px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
     btn.append(ring,label);
-    if(await isOfficialAdminUser(userId)){
+    if(storyAdminMap.get(userId)){
       ring.style.cssText+="box-shadow:0 0 0 2px #168cff,0 0 16px #168cff99;";
       label.style.fontWeight="800";
       label.style.color="#9dccff";
