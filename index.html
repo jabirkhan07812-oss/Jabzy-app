@@ -3824,16 +3824,48 @@ async function loadHomePosts(){
       const menu=document.createElement("div");menu.style.cssText="display:none;position:absolute;right:0;top:38px;z-index:20;min-width:165px;padding:6px;border:1px solid #624477;border-radius:12px;background:#21152f;color:#f5eaff;box-shadow:0 8px 24px #0007;";
       const makeMenuItem=(label,color)=>{const item=document.createElement("button");item.type="button";item.textContent=label;item.style.cssText="display:block;width:100%;margin:0;padding:10px 12px;text-align:left;border:0;border-radius:8px;background:transparent;color:"+color+";font-size:13px;";item.onmouseenter=()=>item.style.background="#382447";item.onmouseleave=()=>item.style.background="transparent";return item;};
       const editPostButton=makeMenuItem("✏️  Edit Post","inherit");
-      editPostButton.onclick=async()=>{
+      editPostButton.onclick=()=>{
         menu.style.display="none";
-        const nextContent=window.prompt("Edit post caption:",post.content||"");
-        if(nextContent===null)return;
-        editPostButton.disabled=true;
-        const {error}=await db.from("posts").update({content:nextContent.trim()}).eq("id",post.id);
-        editPostButton.disabled=false;
-        if(error){appStatus("Post edit nahi ho payi: "+error.message);return;}
-        appStatus("Post updated successfully ❤️");
-        await loadHomePosts();
+        const overlay=document.createElement("div");
+        overlay.style.cssText="position:fixed;inset:0;z-index:100600;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,3,10,.78);";
+        const panel=document.createElement("div");
+        panel.style.cssText="width:100%;max-width:460px;max-height:88vh;overflow:auto;padding:18px;border:1px solid #80549c;border-radius:20px;background:#21152f;color:#f5eaff;box-shadow:0 15px 45px #0009;";
+        const heading=document.createElement("h3");heading.textContent="Edit Post";heading.style.cssText="margin:0 0 14px;color:#ff8ac5;";
+        const captionLabel=document.createElement("label");captionLabel.textContent="Caption";captionLabel.style.cssText="display:block;font-size:12px;margin:10px 0 5px;";
+        const caption=document.createElement("textarea");caption.value=post.content||"";caption.rows=4;caption.maxLength=5000;caption.style.cssText="width:100%;box-sizing:border-box;padding:11px;border:1px solid #654778;border-radius:11px;background:#171020;color:#fff;font:14px Arial;";
+        const audienceLabel=document.createElement("label");audienceLabel.textContent="Post visibility";audienceLabel.style.cssText="display:block;font-size:12px;margin:12px 0 5px;";
+        const audience=document.createElement("select");audience.style.cssText="width:100%;padding:11px;border:1px solid #654778;border-radius:11px;background:#171020;color:#fff;";
+        [["public","🌐 Public"],["friends","👥 Friends"],["private","🔒 Private"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;audience.appendChild(o);});audience.value=post.audience||"public";
+        const topicLabel=document.createElement("label");topicLabel.textContent="Category";topicLabel.style.cssText="display:block;font-size:12px;margin:12px 0 5px;";
+        const topic=document.createElement("select");topic.style.cssText="width:100%;padding:11px;border:1px solid #654778;border-radius:11px;background:#171020;color:#fff;";
+        [["","General post"],["Music","🎵 Music"],["Gaming","🎮 Gaming"],["Cricket","🏏 Cricket"],["Memes","😂 Memes"],["Travel","✈️ Travel"],["Art","🎨 Art"],["Technology","💻 Technology"],["Fitness","💪 Fitness"],["Food","🍔 Food"],["Movies","🎬 Movies"],["Education","📚 Education"],["Fashion","👗 Fashion"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;topic.appendChild(o);});topic.value=post.topic||"";
+        const mediaLabel=document.createElement("label");mediaLabel.textContent="Replace photo/video (optional)";mediaLabel.style.cssText="display:block;font-size:12px;margin:12px 0 5px;";
+        const media=document.createElement("input");media.type="file";media.accept="image/*,video/*";media.style.cssText="width:100%;box-sizing:border-box;padding:9px;border:1px solid #654778;border-radius:11px;background:#171020;color:#fff;";
+        const note=document.createElement("p");note.textContent="Nayi file select nahi karenge to existing photo/video same rahegi.";note.style.cssText="font-size:11px;color:#cbb8df;margin:6px 0 14px;";
+        const actionsRow=document.createElement("div");actionsRow.style.cssText="display:flex;gap:9px;";
+        const cancel=document.createElement("button");cancel.type="button";cancel.textContent="Cancel";cancel.style.cssText="flex:1;margin:0;padding:11px;background:#453451;border-radius:11px;";
+        const save=document.createElement("button");save.type="button";save.textContent="Save Changes";save.style.cssText="flex:1;margin:0;padding:11px;background:linear-gradient(100deg,#e94f9d,#8752dc);border-radius:11px;";
+        const close=()=>overlay.remove();cancel.onclick=close;overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
+        save.onclick=async()=>{
+          const file=media.files&&media.files[0];const changes={content:caption.value.trim(),audience:audience.value,topic:topic.value||null};
+          if(file){
+            if(!file.type.startsWith("image/")&&!file.type.startsWith("video/")){appStatus("Sirf photo ya video select karein.");return;}
+            save.disabled=true;save.textContent="Uploading...";
+            try{
+              const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+              const path=me.id+"/"+Date.now()+"_edit_"+safeName;
+              const {error:uploadError}=await db.storage.from("posts").upload(path,file,{contentType:file.type,upsert:false});
+              if(uploadError)throw uploadError;
+              const {data:publicData}=db.storage.from("posts").getPublicUrl(path);
+              changes.media_url=publicData.publicUrl;changes.media_type=file.type.startsWith("image/")?"image":"video";
+            }catch(error){save.disabled=false;save.textContent="Save Changes";appStatus("Media upload nahi hui: "+error.message);return;}
+          }
+          save.disabled=true;save.textContent="Saving...";
+          const {error}=await db.from("posts").update(changes).eq("id",post.id);
+          if(error){save.disabled=false;save.textContent="Save Changes";appStatus("Post edit nahi ho payi: "+error.message);return;}
+          close();appStatus("Post updated successfully ❤️");await loadHomePosts();
+        };
+        actionsRow.append(cancel,save);panel.append(heading,captionLabel,caption,audienceLabel,audience,topicLabel,topic,mediaLabel,media,note,actionsRow);overlay.appendChild(panel);document.body.appendChild(overlay);
       };
       const copyCaptionButton=makeMenuItem("📋  Copy Caption","inherit");
       copyCaptionButton.onclick=async()=>{
