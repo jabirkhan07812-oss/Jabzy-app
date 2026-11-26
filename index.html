@@ -10233,7 +10233,7 @@ function openJabzyStickerPicker(){
     document.getElementById("jabzyStickerSize").oninput=e=>{const size=Number(e.target.value),el=document.getElementById("storyEditorStickerOverlay");el.style.fontSize=size+"px";document.getElementById("jabzyStickerSizeValue").textContent=size+" px";};
     const emojis=["❤️","😂","🔥","😍","✨","🌸","😎","🥳","💯","🤍","🌈","👏","⭐","🦋","☀️","🎉","💖","💕","😘","🥰","🤣","😜","🤩","🙏","💫","🌟","🌻","🌷","🍀","🫶","💪","🎂","🎈","🎁","🏆","⚡","☁️","🌙","🐱","🐼","🦄","🍕","🍔","⚽","🎮","🎧","📸","💎"];
     const grid=document.getElementById("jabzyStickerGrid");
-    emojis.forEach(emoji=>{const b=document.createElement("button");b.type="button";b.textContent=emoji;b.style.cssText="height:58px;margin:0;padding:0;border-radius:15px;background:#ffffff12;border:1px solid #ffffff20;font-size:30px;";b.onclick=()=>{const el=document.getElementById("storyEditorStickerOverlay");el.textContent=emoji;el.style.display="block";};grid.appendChild(b);});
+    emojis.forEach(emoji=>{const b=document.createElement("button");b.type="button";b.textContent=emoji;b.style.cssText="height:58px;margin:0;padding:0;border-radius:15px;background:#ffffff12;border:1px solid #ffffff20;font-size:30px;";b.onclick=()=>{const el=document.getElementById("storyEditorStickerOverlay");el.textContent=emoji;el.style.display="block";closeJabzyStickerPicker();};grid.appendChild(b);});
   }
   const sticker=document.getElementById("storyEditorStickerOverlay"),size=parseInt(sticker.style.fontSize,10)||58;
   document.getElementById("jabzyStickerSize").value=String(size);document.getElementById("jabzyStickerSizeValue").textContent=size+" px";
@@ -10242,16 +10242,46 @@ function openJabzyStickerPicker(){
 function closeJabzyStickerPicker(){const screen=document.getElementById("jabzyStickerPickerScreen");if(screen)screen.style.display="none";}
 function startJabzyStickerDrag(event){
   const el=event.currentTarget;if(!el.textContent)return;
-  event.preventDefault();el.setPointerCapture(event.pointerId);
+  event.preventDefault();
   const stage=document.getElementById("storyEditorStage"),rect=stage.getBoundingClientRect();
-  jabzyStickerDragState={pointerId:event.pointerId,stageRect:rect};
-  el.style.cursor="grabbing";
-  const move=e=>{if(!jabzyStickerDragState||e.pointerId!==jabzyStickerDragState.pointerId)return;
-    const x=Math.max(3,Math.min(97,(e.clientX-rect.left)/rect.width*100)),y=Math.max(5,Math.min(95,(e.clientY-rect.top)/rect.height*100));
-    el.style.left=x+"%";el.style.top=y+"%";
+  const pointers=new Map();
+  let startDistance=0,startSize=parseFloat(el.style.fontSize)||58,startX=0,startY=0,startLeft=parseFloat(el.style.left)||50,startTop=parseFloat(el.style.top)||58;
+  const point=e=>({x:e.clientX,y:e.clientY});
+  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const values=()=>Array.from(pointers.values());
+  const down=e=>{
+    if(e.pointerType==="mouse"&&e.button!==0)return;
+    e.preventDefault();pointers.set(e.pointerId,point(e));
+    try{el.setPointerCapture(e.pointerId);}catch(err){}
+    if(pointers.size===1){const p=point(e);startX=p.x;startY=p.y;startLeft=parseFloat(el.style.left)||50;startTop=parseFloat(el.style.top)||58;startSize=parseFloat(el.style.fontSize)||58;}
+    if(pointers.size===2){const pts=values();startDistance=Math.max(1,distance(pts[0],pts[1]));startSize=parseFloat(el.style.fontSize)||58;startLeft=parseFloat(el.style.left)||50;startTop=parseFloat(el.style.top)||58;}
+    el.style.cursor="grabbing";
   };
-  const end=e=>{if(!jabzyStickerDragState||e.pointerId!==jabzyStickerDragState.pointerId)return;jabzyStickerDragState=null;el.style.cursor="grab";el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",end);el.removeEventListener("pointercancel",end);};
-  el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
+  const move=e=>{
+    if(!pointers.has(e.pointerId))return;
+    e.preventDefault();pointers.set(e.pointerId,point(e));
+    const pts=values();
+    if(pts.length>=2){
+      const center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+      const x=Math.max(3,Math.min(97,(center.x-rect.left)/rect.width*100)),y=Math.max(5,Math.min(95,(center.y-rect.top)/rect.height*100));
+      const size=Math.max(28,Math.min(220,startSize*distance(pts[0],pts[1])/startDistance));
+      el.style.left=x+"%";el.style.top=y+"%";el.style.fontSize=size+"px";
+    }else if(pts.length===1){
+      const p=pts[0],x=Math.max(3,Math.min(97,startLeft+(p.x-startX)/rect.width*100)),y=Math.max(5,Math.min(95,startTop+(p.y-startY)/rect.height*100));
+      el.style.left=x+"%";el.style.top=y+"%";
+    }
+  };
+  const end=e=>{
+    if(!pointers.has(e.pointerId))return;
+    pointers.delete(e.pointerId);
+    if(pointers.size===1){const p=values()[0];startX=p.x;startY=p.y;startLeft=parseFloat(el.style.left)||50;startTop=parseFloat(el.style.top)||58;startSize=parseFloat(el.style.fontSize)||58;}
+    if(!pointers.size)el.style.cursor="grab";
+  };
+  el.addEventListener("pointerdown",down);
+  el.addEventListener("pointermove",move);
+  el.addEventListener("pointerup",end);
+  el.addEventListener("pointercancel",end);
+  el.addEventListener("lostpointercapture",end);
 }
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
 function openStoryEditorTool(tool){
