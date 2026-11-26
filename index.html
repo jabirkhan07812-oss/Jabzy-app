@@ -1643,12 +1643,12 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     <form class="jabzy-search-form" role="search" onsubmit="event.preventDefault();if(window.jabzySearchTimer)clearTimeout(window.jabzySearchTimer);searchJabzyPeople();">
       <span aria-hidden="true">⌕</span><input id="jabzyPeopleSearchInput" type="search" placeholder="Search people, creators..." autocomplete="off" enterkeyhint="search" oninput="scheduleJabzyPeopleSearch()">
     </form>
+    <div class="jabzy-search-section-title">Search Results</div>
+    <div id="jabzyPeopleSearchResults" class="jabzy-search-results" aria-live="polite"><div class="jabzy-search-empty">Search by a person's username to find their profile.</div></div>
     <div class="jabzy-search-section-title">Explore JABZY</div>
     <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">✧</span><span><b>Discover People</b><small>Find new people and profiles</small></span><span class="jabzy-search-arrow">›</span></button>
     <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">↗</span><span><b>Trending Creators</b><small>Explore popular creators</small></span><span class="jabzy-search-arrow">›</span></button>
     <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">♙</span><span><b>Suggested Users</b><small>Meet people in the JABZY community</small></span><span class="jabzy-search-arrow">›</span></button>
-    <div class="jabzy-search-section-title">Search Results</div>
-    <div id="jabzyPeopleSearchResults" class="jabzy-search-results" aria-live="polite"><div class="jabzy-search-empty">Search by a person's username to find their profile.</div></div>
   </div>
 </div>
 
@@ -4726,6 +4726,7 @@ async function openFollowList(userId,type){
 
 let publicProfileReturnTab="discover";
 let publicProfileReturnFriendsSection="requests";
+let jabzySearchReturnTab="home";
 
 function closePublicProfile(){
   const targetTab=publicProfileReturnTab||"discover";
@@ -4754,11 +4755,27 @@ function openJabzyPhotoViewer(src,alt="Photo"){
   const img=viewer.querySelector("img");img.src=src;img.alt=alt;viewer.style.display="flex";
 }
 async function openPublicProfile(userId){
+  const searchScreen=document.getElementById("jabzySearchScreen");
+  const openedFromSearch=searchScreen&&getComputedStyle(searchScreen).display!=="none";
   const sourceTabs=["home","discover","likes","matches","friends","chats","rooms","notifications"];
-  publicProfileReturnTab=sourceTabs.find(tab=>{
+  publicProfileReturnTab=openedFromSearch?jabzySearchReturnTab:(sourceTabs.find(tab=>{
     const screen=document.getElementById(tab+"Screen");
     return screen && getComputedStyle(screen).display!=="none";
-  })||"discover";
+  })||"discover");
+  if(openedFromSearch){
+    searchScreen.style.display="none";
+    showTab("profile");
+    document.getElementById("profileView").style.display="none";
+    document.getElementById("profileEdit").style.display="none";
+    const immediateProfile=document.getElementById("publicProfileView");
+    immediateProfile.style.display="block";
+    immediateProfile.scrollTop=0;
+    document.getElementById("publicUsername").innerText="Loading profile…";
+    document.getElementById("publicAge").innerText="";
+    document.getElementById("publicBio").innerText="";
+    const nav=document.querySelector(".bottom-nav");
+    if(nav)nav.style.setProperty("display","none","important");
+  }
   if(publicProfileReturnTab==="friends"){
     const friendsPanel=document.getElementById("myFriendsPanel");
     const requestsPanel=document.getElementById("friendRequestsPanel");
@@ -4772,16 +4789,19 @@ async function openPublicProfile(userId){
 
   if(error || !p){
     appStatus(error?.message || "Profile nahi mili");
+    if(openedFromSearch)closePublicProfile();
     return;
   }
 
   // Admin status is resolved before rendering to prevent a normal-user profile flash.
   const {data:isOfficialAdmin,error:officialAdminError}=await db.rpc("is_jabzy_official_admin",{p_user_id:userId});
 
-  showTab("profile");
-  document.getElementById("profileView").style.display="none";
-  document.getElementById("profileEdit").style.display="none";
-  document.getElementById("publicProfileView").style.display="block";
+  if(!openedFromSearch){
+    showTab("profile");
+    document.getElementById("profileView").style.display="none";
+    document.getElementById("profileEdit").style.display="none";
+    document.getElementById("publicProfileView").style.display="block";
+  }
   const publicProfileNav=document.querySelector(".bottom-nav");
   if(publicProfileNav)publicProfileNav.style.setProperty("display","none","important");
 
@@ -10557,6 +10577,8 @@ function scheduleJabzyPeopleSearch(){
 }
 function openJabzySearch(){
  const screen=document.getElementById("jabzySearchScreen");if(!screen)return;
+ const sourceTabs=["home","discover","likes","matches","friends","chats","rooms","notifications"];
+ jabzySearchReturnTab=sourceTabs.find(tab=>{const el=document.getElementById(tab+"Screen");return el&&getComputedStyle(el).display!=="none";})||"home";
  screen.style.display="block";const nav=document.querySelector(".bottom-nav");if(nav)nav.style.display="none";
  const input=document.getElementById("jabzyPeopleSearchInput");if(input){input.value="";setTimeout(()=>input.focus(),80);}
  const results=document.getElementById("jabzyPeopleSearchResults");if(results)results.innerHTML='<div class="jabzy-search-empty">Search by a person\'s username to find their profile.</div>';
@@ -10580,7 +10602,7 @@ async function searchJabzyPeople(){
    const name=document.createElement("b");name.textContent=profile.username||"JABZY User";
    const bio=document.createElement("small");bio.textContent=profile.bio||"View profile";
    copy.append(name,bio);row.append(avatar,copy);
-   row.addEventListener("click",()=>{closeJabzySearch();openPublicProfile(profile.id);});results.appendChild(row);
+   row.addEventListener("click",()=>{openPublicProfile(profile.id);});results.appendChild(row);
   });
  }catch(error){console.error("JABZY people search:",error);if(request===jabzySearchRequest)results.innerHTML='<div class="jabzy-search-empty">Search could not load. Please try again.</div>';}
 }
@@ -11498,6 +11520,22 @@ body.light-theme .gift-picker-status{color:#79528c}
 body.light-theme .gift-picker-list .room-gift-category-grid button{background:linear-gradient(145deg,#fff,#f4eafa);border-color:#e2d0ed;color:#4b315f}
 body.light-theme .gift-picker-list .room-gift-category-grid button small{color:#946a25}
 @media(max-height:520px){.gift-picker-panel{height:48dvh;min-height:190px;padding:7px 9px 6px}.gift-picker-list .room-gift-category-grid button{min-height:57px}.gift-picker-heading{margin:3px 0 2px}}
+</style>
+<style id="jabzy-public-profile-light-fix">
+body.light-theme #publicProfileView{background:linear-gradient(155deg,#fff,#f4eafa)!important;color:#30233b!important}
+body.light-theme #publicProfileView .admin-profile-hero{background:linear-gradient(145deg,#fff,#f4eafa)!important;border:1px solid #e3d4eb!important;box-shadow:0 8px 24px #59346a16!important}
+body.light-theme #publicProfileView #publicUsername{color:#30233b!important;text-shadow:none!important}
+body.light-theme #publicProfileView #publicAge,body.light-theme #publicProfileView #publicBio{color:#6b5878!important}
+body.light-theme #publicProfileView .profile-stats{background:#fff!important;border:1px solid #e4d8eb!important;color:#49365a!important;box-shadow:0 5px 18px #59346a10!important}
+body.light-theme #publicProfileView .profile-stats strong{color:#8b42ad!important}
+body.light-theme #publicProfileView button:not(.jabzy-back-button){color:#fff!important}
+body.light-theme #publicProfileView .jabzy-back-button{background:#f0e5f6!important;color:#57366d!important;border:1px solid #ddc9e8!important}
+body.light-theme #publicProfileView.official-admin-profile{background:linear-gradient(155deg,#f4f8ff,#eaf1ff)!important;color:#263653!important}
+body.light-theme #publicProfileView.official-admin-profile .admin-profile-hero{background:linear-gradient(145deg,#fff,#edf3ff)!important;border-color:#c9dcff!important}
+body.light-theme #publicProfileView.official-admin-profile #publicUsername{color:#263653!important}
+body.light-theme #publicProfileView.official-admin-profile #publicAge{color:#526b91!important}
+body.light-theme #publicProfileView.official-admin-profile #publicBio{color:#344968!important}
+body.light-theme #publicProfileView.official-admin-profile .profile-stats{background:#fff!important;color:#344968!important;border-color:#d5e2f6!important}
 </style>
 </body>
   </html>
