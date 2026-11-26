@@ -11995,6 +11995,55 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
 <style id="jabzy-story-text-line-fix">#storyEditorTextOverlay{box-sizing:border-box!important;min-height:42px!important;touch-action:manipulation!important;cursor:text!important;z-index:30!important}#storyEditorTextOverlay:empty:before{content:"Aa";display:block;width:100%;min-height:30px;color:#fff;text-align:center;text-shadow:0 2px 8px #000;opacity:.95;pointer-events:none}#storyEditorTextOverlay:focus{border-bottom-color:#fff!important;outline:0!important;box-shadow:none!important}</style>
 <style id="jabzy-story-text-focus-panels-v2">#storyEditorTextOverlay:empty:not(:focus){display:block!important;visibility:visible!important;pointer-events:auto!important}#storyEditorTextOverlay:empty:before{content:"Aa";display:block;min-height:30px;color:#fff;text-align:center;text-shadow:0 2px 8px #000;pointer-events:none}#storyEditorTextOverlay:focus{display:block!important;visibility:visible!important;border-bottom:1.5px solid #fff!important;outline:0!important;box-shadow:none!important;caret-color:#fff!important}#storyEditorPanel{box-sizing:border-box!important;max-width:calc(100% - 70px)!important}#storyEditorPanelContent{box-sizing:border-box!important;max-width:100%!important;min-width:0!important}#storyEditorPanelContent button{flex-shrink:0!important;max-width:100%!important}#storyEditorPanelContent input[type=range]{max-width:100%!important;min-width:0!important}</style>
 <style id="jabzy-story-hide-aa-until-tap">#storyEditorTextOverlay:empty:before{content:none!important;display:none!important}#storyEditorTextOverlay:empty:not(.jabzy-text-entry-active){display:none!important;border:0!important}#storyEditorTextOverlay.jabzy-text-entry-active:empty{display:block!important;visibility:visible!important;border:0!important;border-bottom:1.5px solid #fff!important;background:transparent!important;box-shadow:none!important}#storyEditorTextOverlay.jabzy-text-entry-active:empty:before{content:none!important;display:none!important}</style>
+
+<style id="jabzy-chat-mobile-composer-fix">
+/* Keep the message composer inside the visible mobile viewport */
+#matchesScreen #chatWindow{
+ position:fixed!important;left:0!important;right:0!important;
+ top:0!important;bottom:0!important;width:100%!important;
+ height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+ overflow:hidden!important;padding-bottom:max(env(safe-area-inset-bottom),8px)!important;
+}
+#matchesScreen #chatWindow #messages{
+ flex:1 1 0!important;min-height:0!important;height:0!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+}
+#matchesScreen #chatWindow #chatComposer{
+ position:relative!important;inset:auto!important;flex:0 0 auto!important;
+ width:auto!important;max-width:none!important;margin:6px 10px 4px!important;
+ transform:none!important;box-sizing:border-box!important;
+}
+#matchesScreen #chatWindow #chatPhotoPreview,
+#matchesScreen #chatWindow #replyPreview,
+#matchesScreen #chatWindow #appStatus{flex:0 0 auto!important;min-height:0!important}
+</style>
+
+<script id="jabzy-chat-visual-viewport-fix">
+(function(){
+ function fitChatToVisibleScreen(){
+  const chat=document.getElementById("chatWindow");
+  if(!chat||getComputedStyle(chat).display==="none")return;
+  const vv=window.visualViewport;
+  if(vv){
+   chat.style.setProperty("top",Math.max(0,vv.offsetTop)+"px","important");
+   chat.style.setProperty("height",Math.max(220,vv.height)+"px","important");
+   chat.style.setProperty("max-height",Math.max(220,vv.height)+"px","important");
+  }else{
+   chat.style.setProperty("top","0px","important");
+   chat.style.setProperty("height",window.innerHeight+"px","important");
+   chat.style.setProperty("max-height",window.innerHeight+"px","important");
+  }
+ }
+ if(window.__jabzyChatViewportFix)return;window.__jabzyChatViewportFix=true;
+ window.addEventListener("resize",fitChatToVisibleScreen,{passive:true});
+ window.addEventListener("orientationchange",()=>setTimeout(fitChatToVisibleScreen,180),{passive:true});
+ if(window.visualViewport){window.visualViewport.addEventListener("resize",fitChatToVisibleScreen,{passive:true});window.visualViewport.addEventListener("scroll",fitChatToVisibleScreen,{passive:true});}
+ document.addEventListener("focusin",e=>{if(e.target&&e.target.id==="message")setTimeout(fitChatToVisibleScreen,80);});
+ window.fitJabzyChatToVisibleScreen=fitChatToVisibleScreen;
+})();
+</script>
+
 </body>
   </html>
   
