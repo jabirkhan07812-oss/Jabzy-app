@@ -10451,7 +10451,24 @@ loadSavedAppearance();
 let jabzyTabHistory=[];
 let jabzyBackPressAt=0;
 
+// Stop every Home-feed video whenever Home is no longer the active view.
+function pauseHomeFeedVideos(){
+  const home=document.getElementById("homeScreen");
+  if(!home)return;
+  home.querySelectorAll("video").forEach(video=>{
+    try{video.pause();}catch(error){}
+  });
+}
+if(!window.__jabzyHomeVideoPauseReady){
+  window.__jabzyHomeVideoPauseReady=true;
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden)pauseHomeFeedVideos();
+  });
+  window.addEventListener("pagehide",pauseHomeFeedVideos);
+}
+
 function showTab(tab,fromBack=false){
+  if(tab!=="home")pauseHomeFeedVideos();
   const previousTab=localStorage.getItem("jabzyLastTab")||"home";
   if(!fromBack && previousTab!==tab){
     jabzyTabHistory.push(previousTab);
@@ -10609,6 +10626,7 @@ function scheduleJabzyPeopleSearch(){
  window.jabzySearchTimer=setTimeout(()=>searchJabzyPeople(),350);
 }
 function openJabzySearch(){
+ pauseHomeFeedVideos();
  const screen=document.getElementById("jabzySearchScreen");if(!screen)return;
  const sourceTabs=["home","discover","likes","matches","friends","chats","rooms","notifications"];
  jabzySearchReturnTab=sourceTabs.find(tab=>{const el=document.getElementById(tab+"Screen");return el&&getComputedStyle(el).display!=="none";})||"home";
