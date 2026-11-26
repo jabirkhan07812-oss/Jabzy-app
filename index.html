@@ -3884,10 +3884,12 @@ async function initHomePostComposer(){
 
   if(jabzyOfficialAdminSession)await loadHomePosts();
   if(avatar){
-    const {data:profile}=await db.from("profiles").select("photo_url").eq("id",me.id).maybeSingle();
+    const {data:profile}=await db.from("profiles").select("username,photo_url").eq("id",me.id).maybeSingle();
     if(profile?.photo_url){
       avatar.textContent="";
       const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;";avatar.appendChild(img);
+    }else{
+      avatar.textContent=jabzyInitial(profile?.username||me.user_metadata?.username||"J");
     }
   }
 }
@@ -4720,12 +4722,17 @@ document.getElementById("viewUsername").innerText=data.username||"Your Name";
 document.getElementById("viewAge").innerText=(data.age||"")+" years";
 document.getElementById("viewBio").innerText=data.bio||"";
 
-if(data.photo_url){
 const img=document.getElementById("myPhoto");
-img.style.cursor="zoom-in";
-img.onclick=()=>openJabzyPhotoViewer(img.src,"Profile photo");
-img.src=data.photo_url;
-img.classList.remove("hidden");
+const oldAvatar=document.getElementById("myDefaultAvatar");
+if(data.photo_url){
+  if(oldAvatar)oldAvatar.remove();
+  img.style.cursor="zoom-in";
+  img.onclick=()=>openJabzyPhotoViewer(img.src,"Profile photo");
+  img.src=data.photo_url;
+  img.classList.remove("hidden");
+}else{
+  img.classList.add("hidden");
+  if(!oldAvatar){const avatar=jabzyDefaultAvatarElement(data.username,"jabzy-profile-default-avatar");avatar.id="myDefaultAvatar";img.parentElement.insertBefore(avatar,img);}
 }
 }
 
@@ -5182,11 +5189,15 @@ async function openPublicProfile(userId){
   const adminPhotoDeleteBtn=document.getElementById("adminDeleteProfilePhotoBtn");
   if(adminPhotoDeleteBtn)adminPhotoDeleteBtn.style.display=(me && me.email==="jabirkhanmewati01@gmail.com" && userId!==me.id && p.photo_url)?"block":"none";
 
+  const oldPublicAvatar=document.getElementById("publicDefaultAvatar");
   if(p.photo_url){
+    if(oldPublicAvatar)oldPublicAvatar.remove();
     photo.src=p.photo_url;
     photo.classList.remove("hidden");
   }else{
     photo.classList.add("hidden");
+    if(!oldPublicAvatar){const avatar=jabzyDefaultAvatarElement(p.username,"jabzy-public-default-avatar");avatar.id="publicDefaultAvatar";photo.parentElement.insertBefore(avatar,photo);}
+    else oldPublicAvatar.textContent=jabzyInitial(p.username);
   }
 
   document.getElementById("publicUsername").innerText=p.username||"User";
@@ -5334,6 +5345,13 @@ async function openPublicProfile(userId){
 };
   }
     
+function jabzyDefaultAvatarElement(name,className){
+  const avatar=document.createElement("div");
+  avatar.className=className||"jabzy-default-avatar";
+  avatar.textContent=String(name||"J").trim().charAt(0).toUpperCase()||"J";
+  avatar.setAttribute("aria-label",(name||"User")+" profile avatar");
+  return avatar;
+}
 async function uploadPhoto(){
 const file=document.getElementById("photoFile").files[0];
 if(!file){appStatus("Pehle photo choose karein.");return}
@@ -12944,6 +12962,10 @@ body.light-theme .jabzy-welcome-interest{background:#faf6fd;border-color:#dfcde9
 body.light-theme #jabzyWelcomeStatus{color:#93416d}
 @media(max-width:360px){.jabzy-welcome-panel{padding:18px 14px}.jabzy-welcome-panel h2{font-size:20px}.jabzy-welcome-interest{padding:9px 7px;font-size:12px}}
 
+.jabzy-profile-default-avatar,.jabzy-public-default-avatar{display:flex;align-items:center;justify-content:center;flex:0 0 auto;border-radius:50%;background:linear-gradient(145deg,#ff58ad 0%,#7651e8 55%,#13b7c8 100%);color:#fff;font-weight:900;text-shadow:0 3px 12px #0005;box-shadow:0 7px 22px #0003}
+.jabzy-profile-default-avatar{width:112px;height:112px;font-size:46px}
+.jabzy-public-default-avatar{width:158px;height:158px;font-size:64px}
+body.light-theme .jabzy-profile-default-avatar,body.light-theme .jabzy-public-default-avatar{box-shadow:0 7px 22px #69408a22}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
