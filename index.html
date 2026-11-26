@@ -1546,7 +1546,7 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     <div id="jabzyStoryFriends" style="display:flex;gap:14px;"></div>
   </div>
 </div>
-<div id="jabzyVideoCategories" style="display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:2px 12px 12px;margin:0 -12px 8px;scrollbar-width:none;"></div>
+<div id="jabzyVideoCategories" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:2px 12px 12px;margin:0 -12px 8px;scrollbar-width:none;box-sizing:border-box;"></div>
 <div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711;padding:0;overflow:hidden;">
   <div style="width:100%;height:100dvh;max-width:520px;margin:auto;background:#090711;color:white;display:flex;flex-direction:column;position:relative;">
     <div style="height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #30243b;">
@@ -3792,7 +3792,7 @@ function renderJabzyVideoCategories(){
   topics.forEach(topic=>{
     const chip=document.createElement("button");chip.type="button";chip.textContent=topic;
     const active=jabzyActiveHomeTopic===topic;
-    chip.style.cssText="flex:0 0 auto;padding:5px 8px;border-radius:14px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;";
+    chip.style.cssText="display:inline-flex;flex:0 0 auto;flex-shrink:0;align-items:center;justify-content:center;width:auto;max-width:none;min-width:max-content;padding:5px 8px;border-radius:14px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;";
     chip.onclick=()=>{if(jabzyActiveHomeTopic===topic)return;jabzyActiveHomeTopic=topic;renderJabzyVideoCategories();loadHomePosts();};
     bar.appendChild(chip);
   });
