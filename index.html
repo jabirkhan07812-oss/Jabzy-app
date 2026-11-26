@@ -5527,7 +5527,7 @@ async function showSwipeCard(){
   if(!p.photo_url){
     const initials=document.createElement("div");
     initials.className="discover-initial-avatar";
-    initials.textContent=(p.username||"J").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
+    initials.textContent=jabzyInitial(p.username);initials.style.background="linear-gradient(145deg,#ff58ad 0%,#7651e8 55%,#13b7c8 100%)";
     visual.insertBefore(initials,details);
   }
   card.appendChild(visual);
@@ -12963,8 +12963,8 @@ body.light-theme #jabzyWelcomeStatus{color:#93416d}
 @media(max-width:360px){.jabzy-welcome-panel{padding:18px 14px}.jabzy-welcome-panel h2{font-size:20px}.jabzy-welcome-interest{padding:9px 7px;font-size:12px}}
 
 .jabzy-profile-default-avatar,.jabzy-public-default-avatar{display:flex;align-items:center;justify-content:center;flex:0 0 auto;border-radius:50%;background:linear-gradient(145deg,#ff58ad 0%,#7651e8 55%,#13b7c8 100%);color:#fff;font-weight:900;text-shadow:0 3px 12px #0005;box-shadow:0 7px 22px #0003}
-.jabzy-profile-default-avatar{width:112px;height:112px;font-size:46px}
-.jabzy-public-default-avatar{width:158px;height:158px;font-size:64px}
+.jabzy-profile-default-avatar{width:112px;height:112px;margin:0 auto;font-size:46px}
+.jabzy-public-default-avatar{width:158px;height:158px;margin:0 auto;font-size:64px}
 body.light-theme .jabzy-profile-default-avatar,body.light-theme .jabzy-public-default-avatar{box-shadow:0 7px 22px #69408a22}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
