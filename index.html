@@ -3819,12 +3819,13 @@ async function loadHomePosts(){
     shareButton.onclick=()=>openPostShare(post);
     actions.append(likeButton,commentButton,shareButton,saveButton);
     if(jabzyOfficialAdminSession&&post.user_id===me.id){
-      const adminActions=document.createElement("div");
-      adminActions.style.cssText="display:flex;gap:8px;margin-top:8px;";
-      const editPostButton=document.createElement("button");
-      editPostButton.type="button";editPostButton.textContent="✏️ Edit Post";
-      editPostButton.style.cssText="flex:1;width:auto;margin:0;padding:9px;border-radius:12px;background:#3a2850;font-size:12px;";
+      const menuWrap=document.createElement("div");menuWrap.style.cssText="position:relative;margin-left:auto;flex:0 0 auto;";
+      const menuButton=document.createElement("button");menuButton.type="button";menuButton.textContent="⋮";menuButton.setAttribute("aria-label","Post options");menuButton.title="Post options";menuButton.style.cssText="width:36px;height:36px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font-size:25px;line-height:1;cursor:pointer;";
+      const menu=document.createElement("div");menu.style.cssText="display:none;position:absolute;right:0;top:38px;z-index:20;min-width:165px;padding:6px;border:1px solid #624477;border-radius:12px;background:#21152f;color:#f5eaff;box-shadow:0 8px 24px #0007;";
+      const makeMenuItem=(label,color)=>{const item=document.createElement("button");item.type="button";item.textContent=label;item.style.cssText="display:block;width:100%;margin:0;padding:10px 12px;text-align:left;border:0;border-radius:8px;background:transparent;color:"+color+";font-size:13px;";item.onmouseenter=()=>item.style.background="#382447";item.onmouseleave=()=>item.style.background="transparent";return item;};
+      const editPostButton=makeMenuItem("✏️  Edit Post","inherit");
       editPostButton.onclick=async()=>{
+        menu.style.display="none";
         const nextContent=window.prompt("Edit post caption:",post.content||"");
         if(nextContent===null)return;
         editPostButton.disabled=true;
@@ -3834,10 +3835,16 @@ async function loadHomePosts(){
         appStatus("Post updated successfully ❤️");
         await loadHomePosts();
       };
-      const deletePostButton=document.createElement("button");
-      deletePostButton.type="button";deletePostButton.textContent="🗑️ Delete Post";
-      deletePostButton.style.cssText="flex:1;width:auto;margin:0;padding:9px;border-radius:12px;background:#57283f;font-size:12px;";
+      const copyCaptionButton=makeMenuItem("📋  Copy Caption","inherit");
+      copyCaptionButton.onclick=async()=>{
+        menu.style.display="none";
+        if(!post.content){appStatus("Is post mein caption nahi hai.");return;}
+        try{await navigator.clipboard.writeText(post.content);appStatus("Caption copied.");}
+        catch(error){window.prompt("Copy post caption:",post.content);}
+      };
+      const deletePostButton=makeMenuItem("🗑️  Delete Post","#ff8d9d");
       deletePostButton.onclick=async()=>{
+        menu.style.display="none";
         if(!window.confirm("Kya aap ye post delete karna chahte hain?"))return;
         deletePostButton.disabled=true;
         const {error}=await db.from("posts").delete().eq("id",post.id);
@@ -3846,8 +3853,10 @@ async function loadHomePosts(){
         appStatus("Post deleted successfully.");
         await loadHomePosts();
       };
-      adminActions.append(editPostButton,deletePostButton);
-      card.appendChild(adminActions);
+      menu.append(editPostButton,copyCaptionButton,deletePostButton);
+      menuButton.onclick=event=>{event.stopPropagation();menu.style.display=menu.style.display==="none"?"block":"none";};
+      document.addEventListener("click",event=>{if(!menuWrap.contains(event.target))menu.style.display="none";},{once:false});
+      menuWrap.append(menuButton,menu);header.appendChild(menuWrap);
     }
     card.appendChild(actions);
 
