@@ -10382,15 +10382,16 @@ async function loadCommunityGroups(){
     card.append(title,description,status);
 
     if(membership?.status === "approved" || group.created_by === me.id){
-      const open = document.createElement("button");
-      open.type = "button";
-      open.textContent = "Open Group";
-      open.style.cssText = "width:100%;margin:4px 0 0;padding:9px;border-radius:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);";
-      open.onclick = () => openCommunityGroup(group);
-      card.appendChild(open);
       card.style.cursor = "pointer";
-      card.onclick = (event) => {
-        if(event.target === card || event.target === title || event.target === description || event.target === status) openCommunityGroup(group);
+      card.setAttribute("role","button");
+      card.setAttribute("tabindex","0");
+      card.setAttribute("aria-label","Open group "+(group.name || ""));
+      card.onclick = () => openCommunityGroup(group);
+      card.onkeydown = (event) => {
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openCommunityGroup(group);
+        }
       };
     }
 
@@ -10399,7 +10400,10 @@ async function loadCommunityGroups(){
       join.type = "button";
       join.textContent = group.visibility === "private" ? "Request to Join" : "Join Group";
       join.style.cssText = "width:100%;margin:4px 0 0;padding:9px;border-radius:10px;";
-      join.onclick = () => joinCommunityGroup(group);
+      join.onclick = (event) => {
+        event.stopPropagation();
+        joinCommunityGroup(group);
+      };
       card.appendChild(join);
     }
     box.appendChild(card);
