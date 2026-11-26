@@ -3774,7 +3774,7 @@ async function initHomePostComposer(){
   jabzyOfficialAdminSession=!isAdminError&&data===true;
   if(tools)tools.style.display="none";
   const trigger=document.getElementById("homePostTrigger");
-  if(trigger)trigger.style.display=jabzyOfficialAdminSession?"block":"none";
+  if(trigger)trigger.style.display=jabzyOfficialAdminSession?"flex":"none";
   const modalAvatar=document.getElementById("homePostModalAvatar");
   if(modalAvatar&&avatar&&avatar.querySelector("img")){modalAvatar.replaceChildren(avatar.querySelector("img").cloneNode(true));modalAvatar.firstChild.style.cssText="width:100%;height:100%;object-fit:cover;";}
 
