@@ -12057,3 +12057,17 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
 #matchesScreen #chatWindow[style*="display: block"]{display:flex!important}
 #matchesScreen #chatWindow[style*="display:block"]{display:flex!important}
 </style>
+
+<style id="jabzy-chat-list-priority-fix">
+/* Chat list mode must never expose the active conversation toolbar */
+#matchesScreen:has(#chatList[style*="display: block"]) #chatWindow,
+#matchesScreen:has(#chatList[style*="display:block"]) #chatWindow{
+ display:none!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+}
+#matchesScreen:has(#chatWindow[style*="display: flex"]) #chatList,
+#matchesScreen:has(#chatWindow[style*="display:flex"]) #chatList{
+ display:none!important;
+}
+</style>
