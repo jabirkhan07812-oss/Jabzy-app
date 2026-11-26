@@ -3712,31 +3712,39 @@ function showJabzyInterestPicker(){
   panel.append(heading,intro,grid,counter,errorBox,save);overlay.appendChild(panel);document.body.appendChild(overlay);
 }
 async function ensureJabzyInterests(){const interests=await getJabzyMyInterests();if(!interests)return false;if(interests.size<3){showJabzyInterestPicker();return false;}return true;}
+let jabzyHomePostsLoadToken=0;
 async function loadHomePosts(){
+  const loadToken=++jabzyHomePostsLoadToken;
   const box=document.getElementById("homeFeed");if(!box||!me)return;
-  const interestsReady=await ensureJabzyInterests();if(!interestsReady)return;
+  const interestsReady=await ensureJabzyInterests();if(loadToken!==jabzyHomePostsLoadToken||!interestsReady)return;
   const {data:acceptedFriends,error:friendsError}=await db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+  if(loadToken!==jabzyHomePostsLoadToken)return;
   if(friendsError){console.error("Friends audience lookup:",friendsError.message);box.textContent="Friends list load nahi ho payi.";return;}
   const friendIds=[...new Set((acceptedFriends||[]).map(row=>row.sender_id===me.id?row.receiver_id:row.sender_id))];
   let postsQuery=db.from("posts").select("id,user_id,content,media_url,media_type,created_at,topic,audience").or("audience.eq.public,user_id.eq."+me.id+(friendIds.length?",and(audience.eq.friends,user_id.in.("+friendIds.join(",")+"))":""));
   const {data:posts,error}=await postsQuery.order("created_at",{ascending:false});
+  if(loadToken!==jabzyHomePostsLoadToken)return;
   if(error){console.error("Home posts loading:",error.message);box.textContent="Posts load nahi ho payi.";return;}
+  const uniquePosts=[...new Map((posts||[]).map(post=>[String(post.id),post])).values()];
   const interestSet=jabzyMyInterestSet||new Set();
-  (posts||[]).sort((a,b)=>Number(interestSet.has(b.topic))-Number(interestSet.has(a.topic)));
+  uniquePosts.sort((a,b)=>Number(interestSet.has(b.topic))-Number(interestSet.has(a.topic)));
   box.replaceChildren();
-  if(!posts||!posts.length){
+  if(!uniquePosts.length){
     const empty=document.createElement("div");empty.style.cssText="text-align:center;padding:35px 12px;border-bottom:1px solid #382744;";
     const icon=document.createElement("div");icon.textContent="📸";icon.style.fontSize="38px";
     const title=document.createElement("strong");title.textContent="Welcome to JABZY";title.style.cssText="font-size:15px;color:#f3dfff;";
     const msg=document.createElement("p");msg.textContent="Official posts will appear here.";msg.style.cssText="font-size:12px;color:#bba9ca;margin:7px 0;";
     empty.append(icon,title,msg);box.appendChild(empty);return;
   }
-  const {data:profiles}=await db.from("profiles").select("id,username,photo_url").in("id",[...new Set(posts.map(p=>p.user_id))]);
+  const {data:profiles}=await db.from("profiles").select("id,username,photo_url").in("id",[...new Set(uniquePosts.map(p=>p.user_id))]);
+  if(loadToken!==jabzyHomePostsLoadToken)return;
   const map=new Map((profiles||[]).map(p=>[p.id,p]));
   const {data:savedRows,error:savedLoadError}=await db.from("saved_posts").select("post_id").eq("user_id",me.id);
+  if(loadToken!==jabzyHomePostsLoadToken)return;
   if(savedLoadError)console.warn("Saved posts loading:",savedLoadError.message);
   const savedPostIds=new Set((savedRows||[]).map(row=>String(row.post_id)));
-  for(const post of posts){
+  for(const post of uniquePosts){
+    if(loadToken!==jabzyHomePostsLoadToken)return;
     const profile=map.get(post.user_id)||{};
     const card=document.createElement("article");card.className="jabzy-post-card";card.style.cssText="padding:14px 12px;margin:0 0 12px;border-bottom:1px solid #49315d;";
     const header=document.createElement("div");header.style.cssText="display:flex;align-items:center;gap:9px;margin-bottom:10px;";
@@ -3744,7 +3752,9 @@ async function loadHomePosts(){
     if(profile.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent="👤";
     const name=document.createElement("div");name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:800;";
     name.textContent=profile.username||"JABZY Official";
-    if(await isOfficialAdminUser(post.user_id))addOfficialAdminMark(name);
+    const isAdminPost=await isOfficialAdminUser(post.user_id);
+    if(loadToken!==jabzyHomePostsLoadToken)return;
+    if(isAdminPost)addOfficialAdminMark(name);
     const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.className="jabzy-post-date";date.style.cssText="display:block;font-size:10px;font-weight:400;margin-top:3px;";
     const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
     const saveButton=document.createElement("button");
@@ -3782,6 +3792,7 @@ async function loadHomePosts(){
     const shareButton=document.createElement("button");
     shareButton.type="button";shareButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
     const {data:likes,error:likesError}=await db.from("post_likes").select("user_id").eq("post_id",post.id);
+    if(loadToken!==jabzyHomePostsLoadToken)return;
     if(likesError)console.warn("Post likes:",likesError.message);
     const likeRows=likes||[];
     const liked=likeRows.some(row=>row.user_id===me.id);
@@ -3796,6 +3807,7 @@ async function loadHomePosts(){
       await loadHomePosts();
     };
     const {count:commentCount,error:commentCountError}=await db.from("post_comments").select("id",{count:"exact",head:true}).eq("post_id",post.id);
+    if(loadToken!==jabzyHomePostsLoadToken)return;
     if(commentCountError)console.warn("Post comments:",commentCountError.message);
     commentButton.textContent="💬 Comment "+(commentCount||0);
     commentButton.onclick=()=>{const area=card.querySelector(".post-comment-area");if(area){area.style.display=area.style.display==="none"?"block":"none";const input=area.querySelector("input");if(input)input.focus();}};
@@ -3858,10 +3870,12 @@ async function loadHomePosts(){
     };
     commentInput.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();commentSend.click();}});
     const {data:comments,error:commentsError}=await db.from("post_comments").select("id,user_id,comment,created_at").eq("post_id",post.id).order("created_at",{ascending:true}).limit(30);
+    if(loadToken!==jabzyHomePostsLoadToken)return;
     if(commentsError)console.warn("Post comments list:",commentsError.message);
     const commentRows=comments||[];
     if(commentRows.length){
       const {data:commentProfiles}=await db.from("profiles").select("id,username").in("id",[...new Set(commentRows.map(row=>row.user_id))]);
+      if(loadToken!==jabzyHomePostsLoadToken)return;
       const commentNames=new Map((commentProfiles||[]).map(row=>[row.id,row.username||"JABZY User"]));
       commentRows.forEach(row=>{
         const item=document.createElement("div");item.style.cssText="padding:8px 10px;margin:5px 0;border-radius:10px;background:#171222;font-size:12px;";
