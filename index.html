@@ -10242,17 +10242,23 @@ function openJabzyStickerPicker(){
 function closeJabzyStickerPicker(){const screen=document.getElementById("jabzyStickerPickerScreen");if(screen)screen.style.display="none";}
 function setJabzyStickerDeleteVisible(show){const zone=document.getElementById("jabzyStickerDeleteZone");if(zone)zone.style.display=show?"block":"none";}
 function startJabzyStickerDrag(event){
- const el=event.currentTarget;if(!el||!el.textContent)return;event.preventDefault();window.jabzyActiveSticker=el;
- if(!el._jabzyDrag){
-  const state={pointers:new Map(),startDistance:0,startSize:58,startX:0,startY:0,startLeft:50,startTop:58,rect:null};
-  const point=e=>({x:e.clientX,y:e.clientY}),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),values=()=>Array.from(state.pointers.values());
-  const inDelete=p=>p.y>=state.rect.bottom-115&&p.x>=state.rect.left+state.rect.width*.25&&p.x<=state.rect.left+state.rect.width*.75;
-  state.down=e=>{if(e.pointerType==="mouse"&&e.button!==0)return;e.preventDefault();state.rect=document.getElementById("storyEditorStage").getBoundingClientRect();state.pointers.set(e.pointerId,point(e));try{el.setPointerCapture(e.pointerId);}catch(err){}if(state.pointers.size===1){const p=point(e);state.startX=p.x;state.startY=p.y;state.startLeft=parseFloat(el.style.left)||50;state.startTop=parseFloat(el.style.top)||58;state.startSize=parseFloat(el.style.fontSize)||58;}if(state.pointers.size===2){const q=values();state.startDistance=Math.max(1,distance(q[0],q[1]));state.startSize=parseFloat(el.style.fontSize)||58;}};
-  state.move=e=>{if(!state.pointers.has(e.pointerId))return;e.preventDefault();state.pointers.set(e.pointerId,point(e));const q=values(),r=state.rect;if(q.length>=2){const c={x:(q[0].x+q[1].x)/2,y:(q[0].y+q[1].y)/2};el.style.left=Math.max(3,Math.min(97,(c.x-r.left)/r.width*100))+"%";el.style.top=Math.max(5,Math.min(95,(c.y-r.top)/r.height*100))+"%";el.style.fontSize=Math.max(28,Math.min(220,state.startSize*distance(q[0],q[1])/state.startDistance))+"px";}else if(q.length===1){const p=q[0];el.style.left=Math.max(3,Math.min(97,state.startLeft+(p.x-state.startX)/r.width*100))+"%";el.style.top=Math.max(5,Math.min(95,state.startTop+(p.y-state.startY)/r.height*100))+"%";}setJabzyStickerDeleteVisible(q.some(inDelete));};
-  state.end=e=>{if(!state.pointers.has(e.pointerId))return;const p=point(e);state.pointers.delete(e.pointerId);if(!state.pointers.size){if(inDelete(p)){el.remove();if(window.jabzyActiveSticker===el)window.jabzyActiveSticker=document.querySelector("#storyEditorStickerOverlay > div:last-child");}setJabzyStickerDeleteVisible(false);}else if(state.pointers.size===1){const q=values()[0];state.startX=q.x;state.startY=q.y;state.startLeft=parseFloat(el.style.left)||50;state.startTop=parseFloat(el.style.top)||58;state.startSize=parseFloat(el.style.fontSize)||58;}};
-  el.addEventListener("pointerdown",state.down);el.addEventListener("pointermove",state.move);el.addEventListener("pointerup",state.end);el.addEventListener("pointercancel",state.end);el._jabzyDrag=state;
- }
- el._jabzyDrag.down(event);
+ const el=event.currentTarget,stage=document.getElementById("storyEditorStage");if(!el||!el.textContent)return;event.preventDefault();window.jabzyActiveSticker=el;
+ if(stage._jabzyStickerGestures)return;
+ const state={active:null,pointers:new Map(),startDistance:0,startSize:58,startX:0,startY:0,startLeft:50,startTop:58,rect:null};
+ const point=e=>({x:e.clientX,y:e.clientY}),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),values=()=>Array.from(state.pointers.values());
+ const inDelete=p=>p.y>=state.rect.bottom-115&&p.x>=state.rect.left+state.rect.width*.25&&p.x<=state.rect.left+state.rect.width*.75;
+ stage.addEventListener("pointerdown",e=>{
+  if(!state.active){const target=e.target.closest("#storyEditorStickerOverlay > div");if(!target)return;state.active=target;window.jabzyActiveSticker=target;state.rect=stage.getBoundingClientRect();state.pointers.set(e.pointerId,point(e));try{stage.setPointerCapture(e.pointerId);}catch(err){}state.startX=e.clientX;state.startY=e.clientY;state.startLeft=parseFloat(target.style.left)||50;state.startTop=parseFloat(target.style.top)||58;state.startSize=parseFloat(target.style.fontSize)||58;e.preventDefault();return;}
+  if(state.pointers.size===1&&!state.pointers.has(e.pointerId)){state.pointers.set(e.pointerId,point(e));const q=values();state.startDistance=Math.max(1,distance(q[0],q[1]));state.startSize=parseFloat(state.active.style.fontSize)||58;try{stage.setPointerCapture(e.pointerId);}catch(err){}e.preventDefault();}
+ },true);
+ stage.addEventListener("pointermove",e=>{
+  if(!state.active||!state.pointers.has(e.pointerId))return;e.preventDefault();state.pointers.set(e.pointerId,point(e));const q=values(),r=state.rect,target=state.active;
+  if(q.length>=2){const d=distance(q[0],q[1]);target.style.fontSize=Math.max(28,Math.min(260,state.startSize*d/state.startDistance))+"px";}
+  else if(q.length===1){const p=q[0];target.style.left=Math.max(3,Math.min(97,state.startLeft+(p.x-state.startX)/r.width*100))+"%";target.style.top=Math.max(5,Math.min(95,state.startTop+(p.y-state.startY)/r.height*100))+"%";}
+  setJabzyStickerDeleteVisible(q.some(inDelete));
+ },true);
+ const finish=e=>{if(!state.active||!state.pointers.has(e.pointerId))return;const p=point(e);state.pointers.delete(e.pointerId);if(!state.pointers.size){const target=state.active;if(inDelete(p)){target.remove();if(window.jabzyActiveSticker===target)window.jabzyActiveSticker=document.querySelector("#storyEditorStickerOverlay > div:last-child");}state.active=null;setJabzyStickerDeleteVisible(false);}else if(state.pointers.size===1){const q=values()[0],target=state.active;state.startX=q.x;state.startY=q.y;state.startLeft=parseFloat(target.style.left)||50;state.startTop=parseFloat(target.style.top)||58;state.startSize=parseFloat(target.style.fontSize)||58;}};
+ stage.addEventListener("pointerup",finish,true);stage.addEventListener("pointercancel",finish,true);stage._jabzyStickerGestures=true;
 }
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
 function openStoryEditorTool(tool){
