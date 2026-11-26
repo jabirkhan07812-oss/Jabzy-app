@@ -2438,7 +2438,7 @@ style="display:none;padding:15px 12px 100px;">
 
   <div id="roomsActionButtons" style="
     display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:repeat(4,minmax(0,1fr));
     gap:8px;
     margin:15px 0;
     width:100%;
@@ -2457,6 +2457,12 @@ style="display:none;padding:15px 12px 100px;">
   🎙️<br>Rooms
     </button>
 
+    <button id="groupsRoomsTab"
+  onclick="showRoomsSection('groups')"
+  style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
+  👥<br>Groups
+    </button>
+
     <button id="privateRoomsTab"
   onclick="showRoomsSection('private')"
   style="width:auto;margin:0;padding:9px 2px;font-size:10px;border-radius:12px;background:#342044;">
@@ -2468,6 +2474,15 @@ style="display:none;padding:15px 12px 100px;">
   <div id="liveRoomsSection">
     <h3>🔥 Live Rooms</h3>
     <div id="activeRoomsList">No live rooms yet.</div>
+  </div>
+
+  <div id="communityGroupsSection" style="display:none;">
+    <h3>👥 JABZY GROUPS</h3>
+    <button id="createCommunityGroupButton" onclick="createGroup()"
+      style="width:100%;margin:8px 0 12px;padding:11px;border-radius:12px;background:linear-gradient(135deg,#ff55a8,#a45bea);color:#fff!important;font-weight:800;">
+      ＋ Create Group
+    </button>
+    <div id="communityGroupsList">Loading groups...</div>
   </div>
 
   <div id="privateRoomsSection" style="display:none;">
@@ -8561,6 +8576,7 @@ async function createGroup(){
   }
 
   alert("Group successfully created!");
+  showRoomsSection("groups");
 }
   
 
@@ -10258,11 +10274,13 @@ data.forEach(room => {
 function showRoomsSection(section){
   const sections = {
     live: "liveRoomsSection",
+    groups: "communityGroupsSection",
     private: "privateRoomsSection"
   };
 
   const tabs = {
     live: "liveRoomsTab",
+    groups: "groupsRoomsTab",
     private: "privateRoomsTab"
   };
 
@@ -10279,6 +10297,100 @@ function showRoomsSection(section){
   if(section === "private"){
     loadMyPrivateRooms();
   }
+  if(section === "groups"){
+    loadCommunityGroups();
+  }
+}
+
+async function loadCommunityGroups(){
+  const box = document.getElementById("communityGroupsList");
+  if(!box || !me) return;
+  box.textContent = "Loading groups...";
+
+  const [groupResult, memberResult] = await Promise.all([
+    db.from("community_groups")
+      .select("id,name,description,created_by,created_at,visibility")
+      .order("created_at",{ascending:false}),
+    db.from("community_group_members")
+      .select("group_id,status,role")
+      .eq("user_id",me.id)
+  ]);
+
+  if(groupResult.error){
+    box.textContent = "Groups load nahi ho paaye: " + groupResult.error.message;
+    return;
+  }
+  if(memberResult.error){
+    box.textContent = "Membership check nahi ho paaya: " + memberResult.error.message;
+    return;
+  }
+
+  const memberships = new Map((memberResult.data || []).map(m => [m.group_id,m]));
+  const visibleGroups = (groupResult.data || []).filter(g =>
+    g.visibility === "public" || memberships.has(g.id) || g.created_by === me.id
+  );
+
+  box.replaceChildren();
+  if(!visibleGroups.length){
+    box.textContent = "Abhi koi public group nahi hai. Aap naya group bana sakte hain.";
+    return;
+  }
+
+  visibleGroups.forEach(group => {
+    const membership = memberships.get(group.id);
+    const card = document.createElement("div");
+    card.style.cssText = "padding:13px;margin:10px 0;border:1px solid #65477c;border-radius:14px;background:linear-gradient(135deg,#261b35,#191321);color:#fff;";
+
+    const title = document.createElement("b");
+    title.textContent = (group.visibility === "private" ? "🔒 " : "🌍 ") + (group.name || "JABZY Group");
+    title.style.cssText = "display:block;font-size:15px;color:inherit;";
+
+    const description = document.createElement("p");
+    description.textContent = group.description || "No group description";
+    description.style.cssText = "margin:7px 0;font-size:12px;opacity:.82;";
+
+    const status = document.createElement("small");
+    status.style.cssText = "display:block;margin:5px 0 9px;opacity:.85;";
+    if(membership?.status === "approved"){
+      status.textContent = membership.role === "admin" ? "Your role: Admin" : "You are a member";
+    }else if(membership?.status === "pending"){
+      status.textContent = "Join request pending approval";
+    }else{
+      status.textContent = group.visibility === "private" ? "Private group · approval required" : "Public group";
+    }
+
+    card.append(title,description,status);
+
+    if(!membership && group.created_by !== me.id){
+      const join = document.createElement("button");
+      join.type = "button";
+      join.textContent = group.visibility === "private" ? "Request to Join" : "Join Group";
+      join.style.cssText = "width:100%;margin:4px 0 0;padding:9px;border-radius:10px;";
+      join.onclick = () => joinCommunityGroup(group);
+      card.appendChild(join);
+    }
+    box.appendChild(card);
+  });
+}
+
+async function joinCommunityGroup(group){
+  if(!me || !group?.id) return;
+  const isPrivate = group.visibility === "private";
+  const {error} = await db.from("community_group_members").insert({
+    group_id: group.id,
+    user_id: me.id,
+    role: "member",
+    status: isPrivate ? "pending" : "approved",
+    can_post: !isPrivate,
+    can_chat: !isPrivate,
+    can_upload: !isPrivate
+  });
+  if(error){
+    alert(error.code === "23505" ? "Aap pehle se is group mein hain." : error.message);
+    return;
+  }
+  alert(isPrivate ? "Join request bhej di gayi hai." : "Aap group join kar chuke hain.");
+  await loadCommunityGroups();
 }
 
 async function loadJabzyAds(placement){
