@@ -10789,18 +10789,22 @@ let storyTouchStartY=0;
   viewer.dataset.swipeReady="1";
   const storyMediaArea=document.getElementById("storyViewerMedia");
   let storyVideoHeld=false;
+  let storyVideoHoldStartedAt=0;
   storyMediaArea.addEventListener("pointerdown",event=>{
     const video=storyMediaArea.querySelector("video");
     if(!video || !video.contains(event.target))return;
     storyVideoHeld=true;
+    storyVideoHoldStartedAt=Date.now();
     video.pause();
   });
   const releaseStoryVideo=()=>{
     if(!storyVideoHeld)return;
+    const wasLongHold=Date.now()-storyVideoHoldStartedAt>=220;
     storyVideoHeld=false;
+    storyVideoHoldStartedAt=0;
     const video=storyMediaArea.querySelector("video");
     if(video)video.play().catch(()=>{});
-    storyMediaArea.dataset.skipNextTap="1";
+    if(wasLongHold)storyMediaArea.dataset.skipNextTap="1";
   };
   storyMediaArea.addEventListener("pointerup",releaseStoryVideo);
   storyMediaArea.addEventListener("pointercancel",releaseStoryVideo);
