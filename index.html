@@ -10642,7 +10642,7 @@ async function openJabzyStory(userId,index){
   const fills=[];
   list.forEach((item,i)=>{
     const track=document.createElement("div");track.style.cssText="height:3px;flex:1;min-width:0;border-radius:4px;background:#ffffff55;overflow:hidden;";
-    const fill=document.createElement("div");fill.style.cssText="display:block;height:100%;width:100%;transform:scaleX("+(i<index?"1":"0")+");transform-origin:left center;border-radius:4px;background:#fff;transition:transform .08s linear;";
+    const fill=document.createElement("div");fill.style.cssText="display:block;height:100%;width:"+(i<index?"100%":"0%")+";transform:none;border-radius:4px;background:#fff;transition:width .05s linear;";
     track.appendChild(fill);progress.appendChild(track);fills.push(fill);
   });
   const media=document.getElementById("storyViewerMedia");media.replaceChildren();
