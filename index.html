@@ -10266,6 +10266,17 @@ function setupJabzyStorySwipeActions(){
 }
 function openStoryUpload(){
   if(!me){alert("Please login first.");return;}
+  const input=document.getElementById("storyMediaFile");
+  const img=document.getElementById("storyPreviewImage");
+  const video=document.getElementById("storyPreviewVideo");
+  const empty=document.getElementById("storyEditorEmpty");
+  if(input)input.value="";
+  window.jabzySelectedStoryOriginalFile=null;
+  if(img){img.removeAttribute("src");img.style.display="none";}
+  if(video){video.pause();video.removeAttribute("src");video.load();video.style.display="none";}
+  if(empty)empty.style.display="flex";
+  if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
+  const status=document.getElementById("storyUploadStatus");if(status)status.textContent="";
   setupJabzyStorySwipeActions();
   document.getElementById("storyUploadModal").style.display="block";
   document.body.style.overflow="hidden";
