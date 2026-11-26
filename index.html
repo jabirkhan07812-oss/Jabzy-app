@@ -10241,13 +10241,24 @@ let jabzyStoryEditorFit="cover";
 function setupJabzyStorySwipeActions(){
  const stage=document.getElementById("storyEditorStage");if(!stage||stage._jabzySwipeActions)return;
  let start=null;
- stage.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")return;start={x:e.clientX,y:e.clientY,id:e.pointerId};}, {passive:true});
- stage.addEventListener("pointerup",e=>{if(!start||e.pointerId!==start.id)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;const fromBottom=start.y>stage.clientHeight-155;const picker=document.getElementById("jabzyStickerPickerScreen");
-  if(Math.abs(dx)<75&&dy < -65&&fromBottom){e.preventDefault();e.stopPropagation();const input=document.getElementById("storyMediaFile");if(input){input.value="";input.click();}}
-  else if(Math.abs(dx)<75&&dy>65&&picker&&picker.style.display!=="none"){e.preventDefault();e.stopPropagation();closeJabzyStickerPicker();}
+ const point=e=>{const t=e.changedTouches&&e.changedTouches[0];return t?{x:t.clientX,y:t.clientY}:{x:e.clientX,y:e.clientY};};
+ const begin=e=>{const p=point(e);start={x:p.x,y:p.y};};
+ const finish=e=>{
+  if(!start)return;const p=point(e),dx=p.x-start.x,dy=p.y-start.y,fromBottom=start.y>window.innerHeight*.58;
+  const picker=document.getElementById("jabzyStickerPickerScreen"),pickerOpen=picker&&getComputedStyle(picker).display!=="none";
+  if(Math.abs(dx)<Math.max(65,window.innerWidth*.16)&&dy < -65&&fromBottom&&!pickerOpen){
+   e.preventDefault();e.stopPropagation();const input=document.getElementById("storyMediaFile");if(input){input.value="";input.click();}
+  }else if(Math.abs(dx)<Math.max(65,window.innerWidth*.16)&&dy>65&&pickerOpen){
+   e.preventDefault();e.stopPropagation();closeJabzyStickerPicker();
+  }
   start=null;
- },true);
- stage.addEventListener("pointercancel",()=>{start=null;},true);stage._jabzySwipeActions=true;
+ };
+ stage.addEventListener("touchstart",begin,{capture:true,passive:true});
+ stage.addEventListener("touchend",finish,{capture:true,passive:false});
+ stage.addEventListener("touchcancel",()=>{start=null;},{capture:true,passive:true});
+ stage.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")begin(e);},{capture:true,passive:true});
+ stage.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")finish(e);},{capture:true,passive:false});
+ stage._jabzySwipeActions=true;
 }
 function openStoryUpload(){
   if(!me){alert("Please login first.");return;}
