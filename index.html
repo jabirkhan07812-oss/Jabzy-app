@@ -12308,17 +12308,17 @@ async function startJabzyVoiceRecord(event){
  jabzyVoiceStartPending=true;jabzyVoiceCancelled=false;jabzyVoiceUi(true,"Recording...");
  try{
   const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
-  if(jabzyVoiceCancelled){stream.getTracks().forEach(t=>t.stop());return;}
+  if(jabzyVoiceCancelled){stream.getTracks().forEach(t=>t.stop());jabzyVoiceUi(false);return;}
   jabzyVoiceStream=stream;
   const mime=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"].find(x=>MediaRecorder.isTypeSupported(x));
   jabzyVoiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
   jabzyVoiceChunks=[];
   jabzyVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)jabzyVoiceChunks.push(e.data)};
-  jabzyVoiceRecorder.onstop=()=>finishJabzyVoiceUpload();
+  jabzyVoiceRecorder.onerror=()=>{jabzyVoiceCancelled=true;try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();}catch(e){}};
+  jabzyVoiceRecorder.onstop=()=>{finishJabzyVoiceUpload().catch(e=>{jabzyVoiceUi(false);appStatus("Voice recording send nahi hui. Dobara try karein.");});};
   jabzyVoiceRecorder.start(250);jabzyVoiceStartedAt=Date.now();jabzyVoiceRecording=true;
   jabzyVoiceUi(true,"Recording… release to send");
-  const b=jabzyVoiceButton();if(b&&event?.pointerId!==undefined){try{b.setPointerCapture(event.pointerId)}catch(e){}}
-  appStatus("🎙️ Recording… bhejne ke liye ungli chhod dein.");
+  appStatus("🎙️ Recording… ungli chhodte hi send hogi.");
   window.jabzyVoiceLimitTimer=setTimeout(()=>{if(jabzyVoiceRecording){appStatus("3 minute limit complete.");stopJabzyVoiceRecord();}},180000);
  }catch(e){jabzyVoiceUi(false);appStatus("Microphone permission dein: "+(e.message||"Recording start nahi hui."));if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceStream=null;}
  finally{jabzyVoiceStartPending=false;}
@@ -12328,12 +12328,14 @@ function stopJabzyVoiceRecord(event){
  if(jabzyVoiceStartPending){jabzyVoiceCancelled=true;return;}
  if(!jabzyVoiceRecording)return;
  jabzyVoiceRecording=false;clearTimeout(window.jabzyVoiceLimitTimer);
- try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();}catch(e){appStatus("Voice recording stop nahi hui.");}
+ try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();else{if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceUi(false);}}
+ catch(e){jabzyVoiceChunks=[];if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceStream=null;jabzyVoiceRecorder=null;jabzyVoiceUi(false);appStatus("Recording cut kar di gayi. Dobara try karein.");}
 }
 function cancelJabzyVoiceRecord(event){
  if(event)event.preventDefault();
  jabzyVoiceCancelled=true;
- if(jabzyVoiceRecording){jabzyVoiceChunks=[];jabzyVoiceRecording=false;clearTimeout(window.jabzyVoiceLimitTimer);try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();}catch(e){}}
+ if(jabzyVoiceStartPending){jabzyVoiceUi(false);return;}
+ if(jabzyVoiceRecording){jabzyVoiceChunks=[];jabzyVoiceRecording=false;clearTimeout(window.jabzyVoiceLimitTimer);try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();else{if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceUi(false);}}catch(e){if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceStream=null;jabzyVoiceRecorder=null;jabzyVoiceUi(false);}}
 }
 async function finishJabzyVoiceUpload(){
  const chunks=jabzyVoiceChunks.slice(),stream=jabzyVoiceStream,recorder=jabzyVoiceRecorder;
@@ -12361,7 +12363,7 @@ async function finishJabzyVoiceUpload(){
   if(error)throw error;
   appStatus("Voice message sent 🎙️");await loadMessages();
  }catch(e){if(path)await db.storage.from("chat-photos").remove([path]);appStatus("Voice message send nahi hua: "+(e.message||"Error"));}
- finally{chatSendInProgress=false;if(b)b.disabled=false;}
+ finally{chatSendInProgress=false;if(b)b.disabled=false;jabzyVoiceUi(false);}
 }
 </script>
 
