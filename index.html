@@ -2177,7 +2177,8 @@ box-sizing:border-box;
     <div style="flex:1;min-width:0;">
   <div id="chatTitle" style="font-weight:bold;font-size:15px;white-space:nowrap;flex-shrink:0;">Chat</div>
   <div id="chatProfileInfo" style="font-size:11px;color:#c9b6d8;"></div>
-  <div id="typingStatus" style="font-size:11px;color:#ff75c4;"></div>
+  <div id="chatOnlineStatus" class="chat-online-status" aria-live="polite"></div>
+  <div id="typingStatus" class="chat-typing-status" aria-live="polite"></div>
     </div>
 
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
@@ -3601,6 +3602,7 @@ if(!window.jabzyTimersStarted){
   window.jabzyTimersStarted=true;
   setInterval(updateOnlineStatus,60000);
   setInterval(checkTypingStatus,2000);
+  setInterval(()=>{if(selected&&document.getElementById("chatWindow")?.style.display!=="none")refreshChatOnlineStatus();},30000);
   setInterval(loadMatches,60000);
 }
 
@@ -6411,7 +6413,7 @@ info.textContent="";
 
 const [profileResult]=await Promise.all([
   db.from("profiles")
-    .select("username,age,bio,photo_url")
+    .select("username,age,bio,photo_url,last_seen")
     .eq("id",id)
     .maybeSingle(),
   loadMessages()
@@ -6425,12 +6427,34 @@ if(profileError){
 }else if(profile){
   document.getElementById("chatTitle").innerText=profile.username||name;
   info.textContent=profile.age ? profile.age+" years" : "";
+  renderChatOnlineStatus(profile.last_seen);
 
   if(profile.photo_url){
     photo.src=profile.photo_url;
     photo.classList.remove("hidden");
   }
 }
+}
+}else{
+  renderChatOnlineStatus(null);
+}
+}
+
+function renderChatOnlineStatus(lastSeen){
+  const status=document.getElementById("chatOnlineStatus");
+  if(!status)return;
+  const timestamp=lastSeen?new Date(lastSeen).getTime():0;
+  const online=timestamp>0&&(Date.now()-timestamp<120000);
+  status.textContent=online?"● Online":timestamp>0?"Last seen "+new Date(timestamp).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}):"Offline";
+  status.classList.toggle("is-online",online);
+  status.classList.toggle("is-offline",!online);
+}
+async function refreshChatOnlineStatus(){
+  if(!me||!selected)return;
+  const chatId=selected;
+  const {data,error}=await db.from("profiles").select("last_seen").eq("id",chatId).maybeSingle();
+  if(error||selected!==chatId)return;
+  renderChatOnlineStatus(data?.last_seen);
 }
   
 async function checkTypingStatus(){
@@ -6446,8 +6470,8 @@ if(error)return;
 
 const typing=data && (Date.now()-new Date(data.updated_at).getTime()<4000);
 
-document.getElementById("typingStatus").innerText=
-typing?"✍️ Typing...":"";
+const typingElement=document.getElementById("typingStatus");
+if(typingElement)typingElement.innerText=typing?"✍️ Typing...":"";
 }
   
 async function toggleChatReaction(messageId,emoji){
@@ -11547,6 +11571,26 @@ body.light-theme #publicProfileView.official-admin-profile #publicUsername{color
 body.light-theme #publicProfileView.official-admin-profile #publicAge{color:#526b91!important}
 body.light-theme #publicProfileView.official-admin-profile #publicBio{color:#344968!important}
 body.light-theme #publicProfileView.official-admin-profile .profile-stats{background:#fff!important;color:#344968!important;border-color:#d5e2f6!important}
+</style>
+<style id="jabzy-chat-status-theme">
+.chat-online-status,.chat-typing-status{font-size:11px;line-height:15px;min-height:0;margin-top:1px}
+.chat-online-status.is-online{color:#16a34a!important;font-weight:700}
+.chat-online-status.is-offline{color:#9ca3af!important}
+.chat-typing-status{color:#e879f9!important;font-weight:600}
+body:not(.light-theme) #chatWindow{background:#171124!important;color:#f8f4ff!important}
+body:not(.light-theme) #chatWindow>div:first-child{background:#241832!important;border-color:#493257!important}
+body:not(.light-theme) #chatProfileInfo{color:#c9b6d8!important}
+body.light-theme #chatWindow{background:#f8f5fb!important;color:#30243a!important}
+body.light-theme #chatWindow>div:first-child{background:#fff!important;border-bottom:1px solid #e7ddec!important;box-shadow:0 3px 12px #4b28600d}
+body.light-theme #chatWindow #chatTitle{color:#30243a!important}
+body.light-theme #chatWindow #chatProfileInfo{color:#766481!important}
+body.light-theme #chatWindow #messages{background:#f8f5fb!important;color:#30243a!important}
+body.light-theme #chatWindow #chatComposer{background:#fff!important;border-color:#e0d3e8!important}
+body.light-theme #chatWindow #message{background:#f2edf6!important;color:#30243a!important}
+body.light-theme #chatWindow #message::placeholder{color:#897b92!important}
+body.light-theme #chatWindow .chat-menu-item{color:#30243a!important;border-bottom-color:#e9e0ed!important}
+body.light-theme #chatWindow #chatOptionsMenu{background:#fff!important;border-color:#e0d3e8!important;box-shadow:0 5px 20px #35204422!important}
+body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme #chatWindow button[onclick="startVoiceCall()"],body.light-theme #chatWindow button[onclick="chatComingSoon('Video Call')"],body.light-theme #chatWindow button[onclick="showChatMenu()"]{color:#56366a!important}
 </style>
 </body>
   </html>
