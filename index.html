@@ -10347,6 +10347,14 @@ function openStoryEditorTool(tool){
   const panel=document.getElementById("storyEditorPanel"),title=document.getElementById("storyEditorPanelTitle"),content=document.getElementById("storyEditorPanelContent");
   const names={filters:"Filters",adjust:"Adjust Photo",text:"Add Text",stickers:"Choose Stickers",crop:"Photo Fit",effects:"Effects"};
   title.textContent=names[tool]||"Edit Story";content.replaceChildren();panel.style.display="block";
+  if(tool==="filters" || tool==="effects"){
+    panel.style.setProperty("left","0","important");
+    panel.style.setProperty("right","0","important");
+    panel.style.setProperty("width","100%","important");
+    panel.style.setProperty("max-width","100%","important");
+    panel.style.setProperty("transform","none","important");
+    content.scrollLeft=0;
+  }
   if(tool==="filters"){
     panel.style.cssText="display:block!important;position:absolute;left:0;right:0;bottom:calc(88px + env(safe-area-inset-bottom));width:100%;max-width:100%;height:82px;max-height:82px;overflow:hidden;box-sizing:border-box;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transform:none;";
     const close=document.querySelector('#storyEditorPanel button[onclick="closeStoryEditorTool()"]');if(close)close.style.display="none";
@@ -10364,6 +10372,8 @@ function openStoryEditorTool(tool){
       const caption=document.createElement("span");caption.textContent=label;caption.style.cssText="font-size:10px;line-height:12px;white-space:nowrap;color:#fff;text-align:center;";
       item.append(circle,caption);item.onclick=()=>{jabzyStoryEditorFilter=value;applyJabzyStoryEditorStyle();content.querySelectorAll("button[data-story-filter]").forEach(b=>{const c=b.firstElementChild;c.style.borderColor=b.dataset.storyFilter===value?"#fff":"#ffffff55";c.style.boxShadow=b.dataset.storyFilter===value?"0 0 0 2px #c45cff":"none";});};content.appendChild(item);
     });
+    content.scrollLeft=0;
+    requestAnimationFrame(()=>{content.scrollLeft=0;});
     return;
   }
   panel.style.cssText="display:block!important;position:absolute;left:8px;right:62px;bottom:calc(88px + env(safe-area-inset-bottom));width:auto;max-width:calc(100% - 70px);max-height:30vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:10px;border-radius:14px;background:rgba(22,15,32,.94);border:1px solid #ffffff25;box-shadow:0 5px 18px #0005;transform:none;";
@@ -10382,7 +10392,10 @@ function openStoryEditorTool(tool){
       if(photoSrc){const im=document.createElement("img");im.src=photoSrc;im.alt=label+" effect preview";im.style.cssText="width:100%;height:100%;display:block;object-fit:cover;filter:"+value+";";circle.appendChild(im);}else{circle.textContent="✧";circle.style.display="flex";circle.style.alignItems="center";circle.style.justifyContent="center";}
       const caption=document.createElement("span");caption.textContent=label;caption.style.cssText="font-size:10px;line-height:12px;white-space:nowrap;color:#fff;text-align:center;";item.append(circle,caption);
       item.onclick=()=>{jabzyStoryEditorFilter=value;applyJabzyStoryEditorStyle();content.querySelectorAll("button[data-story-effect]").forEach(btn=>{const c=btn.firstElementChild;c.style.borderColor=btn.dataset.storyEffect===value?"#fff":"#ffffff55";c.style.boxShadow=btn.dataset.storyEffect===value?"0 0 0 2px #c45cff":"none";});};content.appendChild(item);
-    });return;
+    });
+    content.scrollLeft=0;
+    requestAnimationFrame(()=>{content.scrollLeft=0;});
+    return;
    }else if(tool==="adjust"){
     [["Brightness","storyBrightness",jabzyStoryEditorBrightness,v=>jabzyStoryEditorBrightness=v],["Contrast","storyContrast",jabzyStoryEditorContrast,v=>jabzyStoryEditorContrast=v],["Saturation","storySaturation",jabzyStoryEditorSaturation,v=>jabzyStoryEditorSaturation=v]].forEach(([label,id,value,setter])=>{const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:82px 1fr 48px;align-items:center;gap:8px;margin:10px 0;color:white;font-size:12px;";const name=document.createElement("b");name.textContent=label;const range=document.createElement("input");range.type="range";range.min="-100";range.max="100";range.step="1";range.value=String(value-100);range.style.cssText="width:100%;margin:0;";const readout=document.createElement("b");readout.style.cssText="text-align:right;font-variant-numeric:tabular-nums;";const show=()=>{const n=Number(range.value);readout.textContent=(n>0?"+":"")+n+"%";};show();range.oninput=()=>{const n=Number(range.value);setter(100+n);show();applyJabzyStoryEditorStyle();};row.append(name,range,readout);content.appendChild(row);});
   }else if(tool==="text"){
