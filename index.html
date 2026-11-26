@@ -1370,7 +1370,7 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
 .jabzy-search-form>span{font-size:23px;color:#d9b6f5}
 .jabzy-search-form input{flex:1;min-width:0;width:auto!important;margin:0!important;padding:10px 2px!important;border:0!important;outline:none!important;background:transparent!important;color:#fff!important;font-size:15px!important;box-shadow:none!important}
 .jabzy-search-form input::placeholder{color:#bba9ca}
-.jabzy-search-form button{width:auto!important;margin:0!important;padding:9px 13px!important;border-radius:10px!important;background:linear-gradient(110deg,#a855f7,#e14c9a)!important;font-size:12px!important}
+
 .jabzy-search-section-title{margin:23px 2px 10px;font-size:13px;font-weight:850;letter-spacing:.5px;color:#e6d2f7}
 .jabzy-search-explore{width:100%!important;display:flex!important;align-items:center!important;gap:12px!important;margin:8px 0!important;padding:13px 12px!important;text-align:left!important;border:1px solid #4e3a60!important;border-radius:15px!important;background:linear-gradient(120deg,#2b1d3b,#1c1528)!important;color:#fff!important;box-shadow:none!important}
 .jabzy-search-explore-icon{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border-radius:12px;background:#75439a44;color:#e4b8ff;font-size:23px}
@@ -1640,9 +1640,8 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     <div class="jabzy-search-title">Search JABZY</div><span class="jabzy-search-spacer"></span>
   </div>
   <div class="jabzy-search-content">
-    <form class="jabzy-search-form" onsubmit="event.preventDefault();searchJabzyPeople();">
-      <span aria-hidden="true">⌕</span><input id="jabzyPeopleSearchInput" type="search" placeholder="Search people, creators..." autocomplete="off" enterkeyhint="search">
-      <button type="submit" aria-label="Search">Search</button>
+    <form class="jabzy-search-form" role="search" onsubmit="event.preventDefault();if(window.jabzySearchTimer)clearTimeout(window.jabzySearchTimer);searchJabzyPeople();">
+      <span aria-hidden="true">⌕</span><input id="jabzyPeopleSearchInput" type="search" placeholder="Search people, creators..." autocomplete="off" enterkeyhint="search" oninput="scheduleJabzyPeopleSearch()">
     </form>
     <div class="jabzy-search-section-title">Explore JABZY</div>
     <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">✧</span><span><b>Discover People</b><small>Find new people and profiles</small></span><span class="jabzy-search-arrow">›</span></button>
@@ -10545,6 +10544,17 @@ function handleJabzyAndroidBack(){
 
 /* JABZY full-screen Search and Discover entry */
 let jabzySearchRequest=0;
+window.jabzySearchTimer=null;
+function scheduleJabzyPeopleSearch(){
+ if(window.jabzySearchTimer)clearTimeout(window.jabzySearchTimer);
+ const input=document.getElementById("jabzyPeopleSearchInput"),results=document.getElementById("jabzyPeopleSearchResults");
+ const term=(input?.value||"").trim().replace(/^@/,"");
+ jabzySearchRequest++;
+ if(!results)return;
+ if(term.length<2){results.innerHTML='<div class="jabzy-search-empty">Type at least 2 letters to search.</div>';return;}
+ results.innerHTML='<div class="jabzy-search-empty">Searching JABZY users…</div>';
+ window.jabzySearchTimer=setTimeout(()=>searchJabzyPeople(),350);
+}
 function openJabzySearch(){
  const screen=document.getElementById("jabzySearchScreen");if(!screen)return;
  screen.style.display="block";const nav=document.querySelector(".bottom-nav");if(nav)nav.style.display="none";
@@ -10556,7 +10566,7 @@ function openJabzyDiscover(){closeJabzySearch();showTab("discover");}
 async function searchJabzyPeople(){
  const input=document.getElementById("jabzyPeopleSearchInput"),results=document.getElementById("jabzyPeopleSearchResults");
  const term=(input?.value||"").trim().replace(/^@/,"");if(!results)return;
- if(term.length<2){results.innerHTML='<div class="jabzy-search-empty">Type at least 2 letters to search.</div>';return;}
+ if(term.length<2){jabzySearchRequest++;results.innerHTML='<div class="jabzy-search-empty">Type at least 2 letters to search.</div>';return;}
  const request=++jabzySearchRequest;results.innerHTML='<div class="jabzy-search-empty">Searching JABZY users…</div>';
  try{
   const {data,error}=await db.from("profiles").select("id,username,photo_url,bio").ilike("username","%"+term+"%").limit(25);
