@@ -1979,6 +1979,64 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
 #adminDashboard .admin-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
 #adminDashboard .admin-nav button{min-height:88px!important;font-size:13px!important}
 body.jabzy-admin-open{overflow:hidden!important}
+
+/* Admin dashboard follows the app appearance setting */
+body.light-theme #adminDashboard{
+ background:linear-gradient(160deg,#ffffff 0%,#f7f1fb 55%,#eee5f6 100%)!important;
+ color:#30213c!important;border-color:#e1d4eb!important;box-shadow:none!important;
+}
+body.light-theme #adminDashboard .admin-hero{
+ background:linear-gradient(135deg,#fff,#f1e7f8)!important;border-color:#dfcde9!important;box-shadow:0 8px 24px rgba(65,35,80,.08)!important;
+}
+body.light-theme #adminDashboard .admin-hero h2,
+body.light-theme #adminDashboard .admin-hero p,
+body.light-theme #adminDashboard .admin-section,
+body.light-theme #adminDashboard .admin-section h3,
+body.light-theme #adminDashboard .admin-section h4,
+body.light-theme #adminDashboard .admin-section p,
+body.light-theme #adminDashboard .admin-section b,
+body.light-theme #adminDashboard .admin-section strong,
+body.light-theme #adminDashboard .admin-section label,
+body.light-theme #adminDashboard .admin-section small,
+body.light-theme #adminDashboard .admin-section span,
+body.light-theme #adminDashboard #adminSubpageHeader,
+body.light-theme #adminDashboard #adminSubpageTitle{color:#352342!important;}
+body.light-theme #adminDashboard .admin-live{background:#e8f7ed!important;border-color:#b9e2c6!important;color:#23613c!important;}
+body.light-theme #adminDashboard .admin-nav button{
+ background:linear-gradient(145deg,#fff,#f1e8f7)!important;color:#493257!important;border:1px solid #dfd0e9!important;box-shadow:0 4px 14px rgba(55,30,75,.07)!important;
+}
+body.light-theme #adminDashboard .admin-nav button.active{background:linear-gradient(145deg,#ead7f8,#d9c0ee)!important;color:#542574!important;border-color:#b987d4!important;}
+body.light-theme #adminDashboard .admin-section{
+ background:#fff!important;border-color:#e4d8ec!important;box-shadow:0 5px 18px rgba(55,30,75,.06)!important;
+}
+body.light-theme #adminDashboard #adminSubpageHeader{background:#fff!important;border-bottom-color:#e4d8ec!important;}
+body.light-theme #adminDashboard .admin-section .card,
+body.light-theme #adminDashboard #adminUsers>div,
+body.light-theme #adminDashboard #adminAllChats>div,
+body.light-theme #adminDashboard #adminFeedback>div,
+body.light-theme #adminDashboard #adminReports>div,
+body.light-theme #adminDashboard #adminAdsList>div{
+ background:#fff!important;color:#352342!important;border:1px solid #e3d7eb!important;box-shadow:0 4px 14px rgba(55,30,75,.06)!important;
+}
+body.light-theme #adminDashboard .admin-section button,
+body.light-theme #adminDashboard .admin-back,
+body.light-theme #adminDashboard #adminSubpageHeader button{
+ background:#eee5f5!important;color:#493257!important;border:1px solid #d9c8e5!important;
+}
+body.light-theme #adminDashboard .admin-section button:disabled{opacity:.55;}
+body.light-theme #adminDashboard .admin-section input,
+body.light-theme #adminDashboard .admin-section select,
+body.light-theme #adminDashboard .admin-section textarea{
+ background:#fff!important;color:#30213c!important;border:1px solid #d9cbe4!important;
+}
+body.light-theme #adminDashboard .admin-section input::placeholder,
+body.light-theme #adminDashboard .admin-section textarea::placeholder{color:#8b7b96!important;opacity:1;}
+body.light-theme #adminDashboard #adminUserProfile{background:#fff!important;color:#352342!important;border-color:#dfd2e9!important;}
+body.light-theme #adminDashboard #adminUserProfile *{color:#352342!important;}
+body.light-theme #adminDashboard #adminUserProfile img{background:#eee!important;}
+body.light-theme #adminDashboard #adminAdsList>div p,
+body.light-theme #adminDashboard #adminUsers>div small,
+body.light-theme #adminDashboard #adminFeedback>div small{color:#6d5b79!important;}
 </style>
 <button id="adminButton"
 style="display:none"
