@@ -7749,16 +7749,19 @@ try{
   }
 
   if(input.value.trim()===message)input.value="";
+  if(input)jabzyUpdateComposerMode();
   cancelChatReply();
   if(input)input.focus({preventScroll:true});
   await loadMessages();
   if(input)input.focus({preventScroll:true});
+  jabzyUpdateComposerMode();
 }catch(e){
   appStatus("ERROR: "+e.message);
   console.error(e);
 }finally{
   chatSendInProgress=false;
   if(sendButton)sendButton.disabled=false;
+  jabzyUpdateComposerMode();
 }
 }
   
