@@ -1972,6 +1972,14 @@ style="width:auto;float:right;margin:0 0 12px;padding:9px 14px;border-radius:20p
   </div>
 </div>
 
+<style id="jabzyAdminFullscreenStyles">
+#adminDashboard{position:fixed!important;inset:0!important;z-index:100200!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;min-height:100vh!important;min-height:100dvh!important;margin:0!important;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 22px)!important;border:0!important;border-radius:0!important;box-sizing:border-box!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;background:radial-gradient(circle at 90% 0%,#39204f 0,#191326 38%,#11101b 100%)!important}
+#adminDashboard .admin-section{min-height:calc(100dvh - 100px);margin:0!important;padding:16px 13px 30px!important;border-radius:0!important;border-left:0!important;border-right:0!important;box-sizing:border-box}
+#adminDashboard #adminSubpageHeader{position:sticky!important;top:0!important;margin:0 -14px 12px!important;padding:10px 14px!important;padding-top:calc(env(safe-area-inset-top,0px) + 10px)!important;z-index:50!important;background:#171020!important;border-bottom:1px solid #ffffff25!important}
+#adminDashboard .admin-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+#adminDashboard .admin-nav button{min-height:88px!important;font-size:13px!important}
+body.jabzy-admin-open{overflow:hidden!important}
+</style>
 <button id="adminButton"
 style="display:none"
 onclick="openAdminDashboard()">
@@ -7769,65 +7777,61 @@ try{
 async function openAdminDashboard(){
 const {data}=await db.auth.getUser();
 const user=data.user;
-if(!user || user.email!=="jabirkhanmewati01@gmail.com"){
-alert("Admin access denied!");
-return;
-}
+if(!user || user.email!=="jabirkhanmewati01@gmail.com"){alert("Admin access denied!");return;}
 const dashboard=document.getElementById("adminDashboard");
 dashboard.style.display="block";
-const hero=dashboard.querySelector(".admin-hero");
-const nav=dashboard.querySelector(".admin-nav");
+document.body.classList.add("jabzy-admin-open");
+window.__jabzyAdminSubpageOpen=false;
+const hero=dashboard.querySelector(".admin-hero"),nav=dashboard.querySelector(".admin-nav");
 if(hero)hero.style.display="block";
-if(nav){nav.style.display="grid";nav.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";nav.style.gap="10px";}
-let header=document.getElementById("adminSubpageHeader");
-if(header)header.style.display="none";
+if(nav)nav.style.display="grid";
+let header=document.getElementById("adminSubpageHeader");if(header)header.style.display="none";
 ["adminSectionReports","adminSectionUsers","adminSectionChats","adminSectionFeedback","adminAdsManager"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
 const profileBox=document.getElementById("adminUserProfile");if(profileBox)profileBox.style.display="none";
 document.getElementById("adminReports").innerText="Loading...";
 document.getElementById("adminUsers").innerText="Loading...";
 document.getElementById("adminFeedback").innerText="Loading feedback...";
-await loadAdminReports();
-await loadAdminUsers();
-await loadAdminAllChats();
-await loadAdminAds();
-await loadAdminFeedback();
+dashboard.scrollTop=0;
+await loadAdminReports();await loadAdminUsers();await loadAdminAllChats();await loadAdminAds();await loadAdminFeedback();
 }
 function showAdminSection(section){
   const sections={reports:"adminSectionReports",users:"adminSectionUsers",chats:"adminSectionChats",ads:"adminAdsManager",feedback:"adminSectionFeedback"};
   if(!sections[section])return;
   const dashboard=document.getElementById("adminDashboard");
   const hero=dashboard.querySelector(".admin-hero"),nav=dashboard.querySelector(".admin-nav");
-  if(hero)hero.style.display="none";
-  if(nav)nav.style.display="none";
+  if(hero)hero.style.display="none";if(nav)nav.style.display="none";
   let header=document.getElementById("adminSubpageHeader");
   if(!header){
     header=document.createElement("div");header.id="adminSubpageHeader";
-    header.style.cssText="display:flex;align-items:center;gap:12px;padding:14px 12px;margin:4px 0 14px;border-bottom:1px solid #ffffff22;position:sticky;top:0;z-index:20;background:#171020;";
-    const back=document.createElement("button");back.type="button";back.textContent="‹ Back";back.style.cssText="width:auto;margin:0;padding:9px 14px;border-radius:12px;background:#ffffff18;color:white;";back.onclick=backToAdminDashboard;
-    const title=document.createElement("b");title.id="adminSubpageTitle";title.style.cssText="font-size:17px;color:white;";
-    header.append(back,title);
-    const first=dashboard.querySelector("#adminSectionFeedback");dashboard.insertBefore(header,first);
+    header.style.cssText="display:flex;align-items:center;gap:12px;padding:14px 12px;margin:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.14);position:sticky;top:0;z-index:20;background:#171020;";
+    const back=document.createElement("button");back.type="button";back.textContent="‹ Back";back.style.cssText="width:auto;margin:0;padding:10px 16px;border-radius:12px;background:#ffffff18;color:white;";back.onclick=()=>{if(window.__jabzyAdminSubpageOpen)history.back();else backToAdminDashboard(true);};
+    const title=document.createElement("b");title.id="adminSubpageTitle";title.style.cssText="font-size:18px;color:white;";
+    header.append(back,title);dashboard.insertBefore(header,dashboard.querySelector("#adminSectionFeedback"));
   }
   const titles={reports:"🚩 Reports",users:"👥 All Users",chats:"💬 All Chats",ads:"📢 Ads Manager",feedback:"✉️ Feedback & Help"};
-  document.getElementById("adminSubpageTitle").textContent=titles[section];
-  header.style.display="flex";
+  document.getElementById("adminSubpageTitle").textContent=titles[section];header.style.display="flex";
   Object.keys(sections).forEach(key=>{const panel=document.getElementById(sections[key]);if(panel)panel.style.display=key===section?"block":"none";});
-  const profileBox=document.getElementById("adminUserProfile");
-  if(profileBox)profileBox.style.display=section==="users"&&profileBox.innerHTML.trim()?"block":"none";
+  const profileBox=document.getElementById("adminUserProfile");if(profileBox)profileBox.style.display=section==="users"&&profileBox.innerHTML.trim()?"block":"none";
   document.querySelectorAll("#adminDashboard .admin-nav button").forEach(btn=>btn.classList.toggle("active",btn.dataset.adminSection===section));
+  if(!window.__jabzyAdminSubpageOpen){history.pushState({jabzyAdminSubpage:true},"",location.href);window.__jabzyAdminSubpageOpen=true;}
   dashboard.scrollTop=0;
 }
-function backToAdminDashboard(){
+function backToAdminDashboard(fromPopState){
+  if(window.__jabzyAdminSubpageOpen&&!fromPopState){history.back();return;}
+  window.__jabzyAdminSubpageOpen=false;
   const dashboard=document.getElementById("adminDashboard");
   const hero=dashboard.querySelector(".admin-hero"),nav=dashboard.querySelector(".admin-nav");
-  if(hero)hero.style.display="block";
-  if(nav){nav.style.display="grid";nav.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";nav.style.gap="10px";}
+  if(hero)hero.style.display="block";if(nav)nav.style.display="grid";
   const header=document.getElementById("adminSubpageHeader");if(header)header.style.display="none";
   ["adminSectionReports","adminSectionUsers","adminSectionChats","adminSectionFeedback","adminAdsManager"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
   const profileBox=document.getElementById("adminUserProfile");if(profileBox)profileBox.style.display="none";
   dashboard.scrollTop=0;
 }
-function closeAdminDashboard(){document.getElementById("adminDashboard").style.display="none";}
+function closeAdminDashboard(){
+  window.__jabzyAdminSubpageOpen=false;
+  document.getElementById("adminDashboard").style.display="none";
+  document.body.classList.remove("jabzy-admin-open");
+}
 
 async function createJabzyAd(){
   const title = document.getElementById("adTitle").value.trim();
@@ -11154,7 +11158,7 @@ function handleJabzyAndroidBack(){
   if(visible("privacyPolicyModal")){ jabzyBackPressAt=0; closePrivacyPolicy(); return true; }
   if(visible("termsConditionsModal")){ jabzyBackPressAt=0; closeTermsConditions(); return true; }
   if(visible("aboutAppModal")){ jabzyBackPressAt=0; closeAboutApp(); return true; }
-  if(visible("adminDashboard")){ jabzyBackPressAt=0; closeAdminDashboard(); return true; }
+  if(visible("adminDashboard")){ jabzyBackPressAt=0; if(window.__jabzyAdminSubpageOpen)backToAdminDashboard(true);else closeAdminDashboard(); return true; }
   if(visible("jabzySettingsModal")){ jabzyBackPressAt=0; closeJabzySettings(); return true; }
   if(visible("blockedUsersPanel")){ jabzyBackPressAt=0; document.getElementById("blockedUsersPanel").style.display="none"; return true; }
   if(visible("accountSettingsPanel")){ jabzyBackPressAt=0; document.getElementById("accountSettingsPanel").style.display="none"; return true; }
