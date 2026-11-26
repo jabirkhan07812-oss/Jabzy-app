@@ -3978,6 +3978,17 @@ function renderJabzyVideoCategories(){
     bar.appendChild(chip);
   });
 }
+async function getJabzyPostMediaUrl(mediaUrl){
+  if(!mediaUrl)return null;
+  const marker="/storage/v1/object/public/posts/";
+  const at=mediaUrl.indexOf(marker);
+  if(at<0)throw new Error("Post media path invalid. Please refresh and try again.");
+  let path=mediaUrl.slice(at+marker.length).split("?")[0];
+  try{path=decodeURIComponent(path);}catch(error){}
+  const {data,error}=await db.storage.from("posts").createSignedUrl(path,3600);
+  if(error||!data?.signedUrl)throw error||new Error("Post media access denied.");
+  return data.signedUrl;
+}
 let jabzyHomePostsLoadToken=0;
 async function loadHomePosts(){
   const loadToken=++jabzyHomePostsLoadToken;
@@ -4066,7 +4077,7 @@ async function loadHomePosts(){
     card.appendChild(header);
     if(post.content){const body=document.createElement("p");body.textContent=post.content;body.className="jabzy-post-caption";body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
     if(post.media_url){
-      const media=document.createElement(post.media_type==="video"?"video":"img");media.src=post.media_url;
+      const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const media=document.createElement(post.media_type==="video"?"video":"img");media.src=mediaUrl;
       media.style.cssText="display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#100b1c;";
       if(post.media_type==="video"){media.controls=true;media.playsInline=true;}
       else media.alt="JABZY post image";
@@ -4267,7 +4278,7 @@ async function openSavedPosts(){
   const profileMap=new Map((profiles||[]).map(profile=>[profile.id,profile]));
   const postMap=new Map((posts||[]).map(post=>[String(post.id),post]));
   list.replaceChildren();
-  ids.forEach(id=>{
+  ids.forEach(async id=>{
     const post=postMap.get(String(id));if(!post)return;
     const profile=profileMap.get(post.user_id)||{};
     const card=document.createElement("article");card.style.cssText="padding:13px;margin:0 0 13px;border:1px solid #49315d;border-radius:15px;background:#21152f;";
@@ -4277,13 +4288,13 @@ async function openSavedPosts(){
     unsave.onclick=async()=>{unsave.disabled=true;const result=await db.from("saved_posts").delete().eq("user_id",me.id).eq("post_id",post.id);if(result.error){unsave.disabled=false;appStatus(result.error.message);return;}card.remove();if(!list.querySelector("article")){list.innerHTML='<div style="text-align:center;padding:65px 12px;color:#c8b6d8;">🔖<p>No saved posts yet.</p></div>';}appStatus("Post unsaved.");};
     header.append(name,unsave);card.appendChild(header);
     if(post.content){const body=document.createElement("p");body.textContent=post.content;body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
-    if(post.media_url){const media=document.createElement(post.media_type==="video"?"video":"img");media.src=post.media_url;media.style.cssText="display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#100b1c;";if(post.media_type==="video"){media.controls=true;media.playsInline=true;}else media.alt="Saved JABZY post";card.appendChild(media);}
+    if(post.media_url){const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const media=document.createElement(post.media_type==="video"?"video":"img");media.src=mediaUrl;media.style.cssText="display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#100b1c;";if(post.media_type==="video"){media.controls=true;media.playsInline=true;}else media.alt="Saved JABZY post";card.appendChild(media);}
     const stamp=document.createElement("small");stamp.textContent=new Date(post.created_at).toLocaleString();stamp.style.cssText="display:block;color:#bba9ca;font-size:10px;margin-top:9px;";card.appendChild(stamp);list.appendChild(card);
   });
 }
 function buildPostShareText(post){
   const link=window.location.origin+window.location.pathname+"#post-"+post.id;
-  return ["JABZY Post",post.content||"",post.media_url||"",link].filter(Boolean).join("\n");
+  return ["JABZY Post",post.content||"",link].filter(Boolean).join("\n");
 }
 async function openPostShare(post){
   const modal=document.createElement("div");
@@ -4598,12 +4609,12 @@ async function loadMyProfilePosts(){
   const count=document.getElementById("myPostCount");if(count)count.textContent=posts?.length||0;
   box.replaceChildren();
   if(!posts||!posts.length){box.innerHTML='<div class="jabzy-profile-empty">📸<br><strong>No posts yet</strong><br>Your photos and videos will appear here.</div>';return;}
-  posts.forEach(post=>{
+  posts.forEach(async post=>{
     const tile=document.createElement("div");tile.className="jabzy-profile-grid-item";
     if(post.media_url&&post.media_type==="image"){
-      const img=document.createElement("img");img.src=post.media_url;img.alt="Your post";img.loading="lazy";img.onclick=()=>openJabzyPhotoViewer(post.media_url,"Your post");img.style.cursor="zoom-in";tile.appendChild(img);
+      const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const img=document.createElement("img");img.src=mediaUrl;img.alt="Your post";img.loading="lazy";img.onclick=()=>openJabzyPhotoViewer(mediaUrl,"Your post");img.style.cursor="zoom-in";tile.appendChild(img);
     }else if(post.media_url&&post.media_type==="video"){
-      const video=document.createElement("video");video.src=post.media_url;video.muted=true;video.playsInline=true;video.preload="metadata";video.onclick=()=>{video.controls=true;video.muted=false;video.play().catch(()=>{});};tile.appendChild(video);
+      const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const video=document.createElement("video");video.src=mediaUrl;video.muted=true;video.playsInline=true;video.preload="metadata";video.onclick=()=>{video.controls=true;video.muted=false;video.play().catch(()=>{});};tile.appendChild(video);
       const mark=document.createElement("span");mark.className="jabzy-grid-video";mark.textContent="▶";tile.appendChild(mark);
     }else{
       const content=document.createElement("div");content.className="jabzy-grid-text";content.textContent=post.content||"JABZY";tile.appendChild(content);
