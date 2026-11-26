@@ -2316,14 +2316,12 @@ box-sizing:border-box;
 
     <input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="previewChatPhotos(this)" style="display:none;">
 
-    <input id="message" placeholder="Message..." oninput="updateTypingStatus()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
+    <input id="message" placeholder="Message..." oninput="updateTypingStatus();jabzyUpdateComposerMode()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
 
-    <button type="button" id="jabzyVoiceRecordButton" aria-label="Hold to record voice message" title="Hold to record" onpointerdown="startJabzyVoiceRecord(event)" onpointerup="stopJabzyVoiceRecord(event)" onpointercancel="cancelJabzyVoiceRecord(event)" oncontextmenu="event.preventDefault()" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:#49345d;color:white;font-size:19px;touch-action:none;">🎙️</button>
     <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
     <button type="button" onclick="openChatGift()" title="Send a Gift" aria-label="Send a Gift" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:19px;">🎁</button>
 
-    <button type="button" onpointerdown="event.preventDefault()" onclick="sendMessage()" style="width:42px;height:42px;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);">
-➤</button>
+    <button type="button" id="jabzyVoiceRecordButton" aria-label="Send message or hold to record voice" onpointerdown="jabzyComposerPointerDown(event)" onpointerup="jabzyComposerPointerUp(event)" onpointercancel="cancelJabzyVoiceRecord(event)" onclick="jabzyComposerClick(event)" oncontextmenu="event.preventDefault()" style="width:42px;height:42px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:19px;touch-action:none;">🎙️</button>
   </div>
 
   <p id="appStatus" style="padding:5px 12px;"></p>
@@ -12256,4 +12254,39 @@ async function finishJabzyVoiceUpload(){
   if(!active&&h)h.style.display="none";
  };
 })();
+</script>
+
+<script id="jabzy-single-whatsapp-composer">
+let jabzyComposerLongPress=false,jabzyComposerPointer=null,jabzyComposerTimer=null,jabzyVoiceClock=null;
+function jabzyUpdateComposerMode(){
+ const b=jabzyVoiceButton(),i=document.getElementById("message");if(!b||jabzyVoiceRecording||jabzyVoiceStartPending)return;
+ const typed=!!(i&&i.value.trim());b.textContent=typed?"➤":"🎙️";b.style.background=typed?"linear-gradient(90deg,#ff55a8,#a45bea)":"#49345d";b.setAttribute("aria-label",typed?"Send message":"Hold to record voice");
+}
+function jabzyComposerPointerDown(e){
+ const i=document.getElementById("message");if(i&&i.value.trim()){jabzyComposerLongPress=false;return;}
+ e.preventDefault();jabzyComposerLongPress=false;jabzyComposerPointer=e.pointerId;
+ clearTimeout(jabzyComposerTimer);
+ jabzyComposerTimer=setTimeout(()=>{jabzyComposerLongPress=true;startJabzyVoiceRecord(e);},180);
+}
+function jabzyComposerPointerUp(e){
+ if(jabzyComposerPointer!==e.pointerId)return;
+ clearTimeout(jabzyComposerTimer);jabzyComposerPointer=null;
+ if(jabzyComposerLongPress){stopJabzyVoiceRecord(e);return;}
+}
+function jabzyComposerClick(e){
+ if(jabzyComposerLongPress){e.preventDefault();jabzyComposerLongPress=false;return;}
+ const i=document.getElementById("message");
+ if(i&&i.value.trim()){sendMessage();return;}
+ // A quick tap on the microphone icon does not start an accidental recording.
+}
+function jabzyVoiceUi(active,label){
+ const b=jabzyVoiceButton();if(!b)return;
+ b.style.background=active?"#e83e79":"#49345d";b.textContent=active?"●":"🎙️";b.title=label||"Hold to record";
+ if(active&&!jabzyVoiceClock)jabzyVoiceClock=setInterval(()=>{
+  const sec=Math.floor((Date.now()-jabzyVoiceStartedAt)/1000),m=Math.floor(sec/60),v=String(sec%60).padStart(2,"0");
+  const h=document.getElementById("jabzyVoiceCancelHint");if(h&&!jabzyVoiceCancelled)h.textContent="● "+m+":"+v+"  ← Slide to cancel";
+ },250);
+ if(!active&&jabzyVoiceClock){clearInterval(jabzyVoiceClock);jabzyVoiceClock=null;}
+ if(!active)jabzyUpdateComposerMode();
+}
 </script>
