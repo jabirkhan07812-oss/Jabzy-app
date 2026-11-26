@@ -2500,7 +2500,7 @@ style="display:none;padding:15px 12px 100px;">
     <div id="communityGroupChatMessages" style="flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding:10px;border-radius:12px;background:#21152f;">Loading chat...</div>
     <div id="communityGroupChatComposer" style="display:flex;flex:0 0 auto;gap:7px;margin-top:9px;padding:8px 0 4px;background:#100b1c;align-items:center;flex-shrink:0;min-height:48px;box-sizing:border-box;">
       <input id="communityGroupChatInput" type="text" placeholder="Message..." style="flex:1;min-width:0;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:10px;padding:10px;">
-      <button type="button" onmousedown="event.preventDefault()" onclick="sendCommunityGroupMessage()" style="width:auto;margin:0;padding:10px 14px;background:#a45bea;">Send</button>
+      <button id="communityGroupSendButton" type="button" onmousedown="event.preventDefault()" onclick="sendCommunityGroupMessage()" style="width:auto;margin:0;padding:10px 14px;background:#a45bea;">Send</button>
     </div>
   </div>
 
@@ -10477,14 +10477,23 @@ async function sendCommunityGroupPost(){
 
 async function sendCommunityGroupMessage(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupChatInput");
+  const button=document.getElementById("communityGroupSendButton");
   const message=(input?.value||"").trim();
-  if(!group||!message||!me)return;
+  if(!group||!message||!me||!input)return;
+  if(input.dataset.sending==="1")return;
   if(!(group.membership?.can_chat===true||group.created_by===me.id)){alert("Aapko chat permission nahi hai.");return;}
-  const {error}=await db.from("community_group_messages").insert({group_id:group.id,user_id:me.id,message});
-  if(error){alert("Message nahi bheja: "+error.message);return;}
-  input.value="";
-  await loadOpenedCommunityGroup();
-  if(input && document.activeElement!==input) input.focus({preventScroll:true});
+  input.dataset.sending="1";
+  if(button){button.disabled=true;button.style.opacity="0.6";}
+  try{
+    const {error}=await db.from("community_group_messages").insert({group_id:group.id,user_id:me.id,message});
+    if(error){alert("Message nahi bheja: "+error.message);return;}
+    input.value="";
+    await loadOpenedCommunityGroup();
+    if(document.activeElement!==input)input.focus({preventScroll:true});
+  }finally{
+    input.dataset.sending="0";
+    if(button){button.disabled=false;button.style.opacity="1";}
+  }
 }
 
 async function joinCommunityGroup(group){
