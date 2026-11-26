@@ -3132,16 +3132,19 @@ async function openAccountInformation(){
   document.getElementById("accountInfoCreated").textContent=me.created_at?new Date(me.created_at).toLocaleString():"Not available";
   document.getElementById("accountInfoUsername").textContent="Loading...";
   document.getElementById("accountInfoDob").textContent="Loading...";
-  const {data,error}=await db.from("profiles").select("username,date_of_birth,age").eq("id",me.id).maybeSingle();
+  const {data,error}=await db.from("profiles").select("username,age").eq("id",me.id).maybeSingle();
   if(error){appStatus("Account details load nahi hue: "+error.message);return;}
+  const {data:privateData,error:privateError}=await db.from("user_private").select("date_of_birth").eq("user_id",me.id).maybeSingle();
+  if(privateError){appStatus("Private DOB load nahi hui: "+privateError.message);return;}
+  const savedDob=privateData?.date_of_birth||"";
   document.getElementById("accountInfoUsername").textContent=data&&data.username?data.username:"Not set";
-  document.getElementById("accountInfoDob").textContent=data&&data.date_of_birth?data.date_of_birth:"Not added";
+  document.getElementById("accountInfoDob").textContent=savedDob||"Not added";
   const dobInput=document.getElementById("accountNewDob");
   if(dobInput){
     const today=new Date();
     const maxDate=new Date(today.getFullYear()-18,today.getMonth(),today.getDate());
     dobInput.max=maxDate.getFullYear()+"-"+String(maxDate.getMonth()+1).padStart(2,"0")+"-"+String(maxDate.getDate()).padStart(2,"0");
-    dobInput.value=data&&data.date_of_birth?data.date_of_birth:"";
+    dobInput.value=savedDob;
   }
   closeAccountDobEditor();
 }
@@ -3170,8 +3173,14 @@ async function saveAccountDob(){
   if(button)button.disabled=true;
   if(status)status.textContent="Saving...";
   try{
-    const {error}=await db.from("profiles").update({date_of_birth:dob}).eq("id",me.id);
-    if(error)throw error;
+    const {error:privateError}=await db.from("user_private").upsert({user_id:me.id,date_of_birth:dob},{onConflict:"user_id"});
+    if(privateError)throw privateError;
+    const birthDate=new Date(dob+"T00:00:00");
+    const todayForAge=new Date();
+    let updatedAge=todayForAge.getFullYear()-birthDate.getFullYear();
+    if(todayForAge.getMonth()<birthDate.getMonth()||(todayForAge.getMonth()===birthDate.getMonth()&&todayForAge.getDate()<birthDate.getDate()))updatedAge--;
+    const {error:profileError}=await db.from("profiles").update({age:updatedAge}).eq("id",me.id);
+    if(profileError)throw profileError;
     const {error:metadataError}=await db.auth.updateUser({data:{date_of_birth:dob}});
     document.getElementById("accountInfoDob").textContent=dob;
     closeAccountDobEditor();
@@ -4548,7 +4557,7 @@ await loadPeople();
 
 async function loadProfile(){
 const {data,error}=await db.from("profiles")
-.select("*").eq("id",me.id).maybeSingle();
+.select("id,username,age,bio,photo_url,created_at,last_seen").eq("id",me.id).maybeSingle();
 
 if(error){
 appStatus(error.message);
@@ -5000,7 +5009,7 @@ async function openPublicProfile(userId){
 
 
   const {data:p,error}=await db.from("profiles")
-    .select("*").eq("id",userId).maybeSingle();
+    .select("id,username,age,bio,photo_url,created_at,last_seen").eq("id",userId).maybeSingle();
 
   if(error || !p){
     appStatus(error?.message || "Profile nahi mili");
