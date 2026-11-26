@@ -3733,12 +3733,27 @@ function previewHomePostMedia(event){
   document.body.style.overflow="hidden";
   previewJabzyStoryMedia({target:storyInput});
 }
+function showJabzyFeedUploadLine(message){
+  let line=document.getElementById("jabzyFeedUploadLine");
+  const feed=document.getElementById("homeFeed");
+  if(!line){line=document.createElement("div");line.id="jabzyFeedUploadLine";line.style.cssText="display:none;position:relative;margin:0 0 7px;padding:7px 10px 8px;background:rgba(125,75,160,.10);border-radius:9px;overflow:hidden;color:var(--text-color,#eee);font-size:11px;line-height:1.2;";if(feed&&feed.parentNode)feed.parentNode.insertBefore(line,feed);}
+  line.innerHTML='<div style="display:flex;align-items:center;gap:7px;"><span style="width:6px;height:6px;border-radius:50%;background:#b86cff;flex:0 0 6px;"></span><span id="jabzyFeedUploadLabel"></span><span style="margin-left:auto;opacity:.7;">Please wait</span></div><div style="height:2px;background:rgba(180,130,220,.18);border-radius:5px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:38%;border-radius:5px;background:linear-gradient(90deg,#ff55a8,#a76bff);animation:jabzyFeedUploadMove 1.1s ease-in-out infinite alternate;"></div></div>';
+  let style=document.getElementById("jabzyFeedUploadStyle");
+  if(!style){style=document.createElement("style");style.id="jabzyFeedUploadStyle";style.textContent="@keyframes jabzyFeedUploadMove{from{transform:translateX(-5%)}to{transform:translateX(170%)}}";document.head.appendChild(style);}
+  const label=document.getElementById("jabzyFeedUploadLabel");if(label)label.textContent=message||"Your post is uploading…";
+  line.style.display="block";
+}
+function hideJabzyFeedUploadLine(){const line=document.getElementById("jabzyFeedUploadLine");if(line)line.style.display="none";}
 async function publishJabzyEditedPost(){
   if(!me||!jabzyOfficialAdminSession)return;
   const button=document.getElementById("jabzyPostPublishButton"),status=document.getElementById("jabzyPostCaptionStatus");
   const content=document.getElementById("jabzyPostCaptionText").value.trim(),file=jabzyPendingPostEditedFile;
   if(!content&&!file){status.textContent="Caption likhein ya photo/video add karein.";return;}
-  button.disabled=true;button.textContent="Publishing…";status.textContent="Post upload ho rahi hai…";
+  button.disabled=true;button.textContent="Publishing…";
+  const audience=document.getElementById("jabzyPostCaptionAudience").value||"public";
+  const topic=document.getElementById("jabzyPostCaptionTopic").value||null;
+  closeStoryUpload();document.getElementById("homePostModal").style.display="none";document.body.style.overflow="";
+  showJabzyFeedUploadLine(file?"Your photo/video is uploading…":"Your post is publishing…");
   let uploadedPath=null;
   try{
     let mediaUrl=null,mediaType=null;
@@ -3750,17 +3765,16 @@ async function publishJabzyEditedPost(){
       const {data:publicData}=db.storage.from("posts").getPublicUrl(uploadedPath);mediaUrl=publicData.publicUrl;
       mediaType=file.type.startsWith("video/")?"video":"image";
     }
-    const audience=document.getElementById("jabzyPostCaptionAudience").value||"public";
-    const topic=document.getElementById("jabzyPostCaptionTopic").value||null;
     const {error}=await db.from("posts").insert({user_id:me.id,content,media_url:mediaUrl,media_type:mediaType,topic,audience});
     if(error)throw error;
     document.getElementById("homePostText").value="";document.getElementById("homePostMedia").value="";
     document.getElementById("storyMediaFile").value="";document.getElementById("jabzyPostCaptionText").value="";
     jabzyPendingPostEditedFile=null;jabzyStoryEditorMode="story";
-    closeStoryUpload();document.getElementById("homePostModal").style.display="none";document.body.style.overflow="";
-    appStatus("Post shared successfully ❤️");await loadHomePosts();
-  }catch(error){if(uploadedPath)await db.storage.from("posts").remove([uploadedPath]);status.textContent=error.message||"Post upload nahi ho payi.";}
-  finally{button.disabled=false;button.textContent="Publish Post ➤";}
+    await loadHomePosts();hideJabzyFeedUploadLine();appStatus("Post shared successfully ❤️");
+  }catch(error){
+    if(uploadedPath)await db.storage.from("posts").remove([uploadedPath]);
+    hideJabzyFeedUploadLine();appStatus(error.message||"Post upload nahi ho payi.");
+  }finally{button.disabled=false;button.textContent="Publish Post ➤";}
 }
 async function handleHomePost(){
   if(!me){appStatus("Please login first.");return;}
