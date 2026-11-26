@@ -3181,14 +3181,9 @@ async function saveAccountDob(){
     if(todayForAge.getMonth()<birthDate.getMonth()||(todayForAge.getMonth()===birthDate.getMonth()&&todayForAge.getDate()<birthDate.getDate()))updatedAge--;
     const {error:profileError}=await db.from("profiles").update({age:updatedAge}).eq("id",me.id);
     if(profileError)throw profileError;
-    const {error:metadataError}=await db.auth.updateUser({data:{date_of_birth:dob}});
     document.getElementById("accountInfoDob").textContent=dob;
     closeAccountDobEditor();
-    if(metadataError){
-      appStatus("DOB profile mein save ho gayi, lekin account metadata sync nahi hua: "+metadataError.message);
-    }else{
-      appStatus("Date of Birth successfully saved ❤️");
-    }
+    appStatus("Date of Birth successfully saved privately ❤️");
     await loadProfile();
   }catch(error){
     if(status)status.textContent=error.message||"DOB save nahi hui. Dobara try karein.";
@@ -3495,7 +3490,7 @@ async function createJabzyAccount(){
     if(googlePassword!==googleConfirm){status("Dono JABZY password match nahi karte.");return;}
 
     const {error:metadataError}=await db.auth.updateUser({
-      data:{username:username,date_of_birth:dob,bio:bio}
+      data:{username:username,bio:bio}
     });
     if(metadataError){status("Date of Birth save nahi hua: "+metadataError.message);return;}
 
