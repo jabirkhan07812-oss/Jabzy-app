@@ -3815,6 +3815,17 @@ async function loadHomePosts(){
     if(isAdminPost)addOfficialAdminMark(name);
     const date=document.createElement("small");const audienceLabels={public:"🌐 Public",friends:"👥 Friends",private:"🔒 Private"};date.textContent=new Date(post.created_at).toLocaleString()+" · "+(audienceLabels[post.audience||"public"]||"🌐 Public");date.className="jabzy-post-date";date.style.cssText="display:block;font-size:10px;font-weight:400;margin-top:3px;";
     const nameWrap=document.createElement("div");nameWrap.append(name,date);header.append(avatar,nameWrap);
+    const openPostAuthorProfile=()=>openPublicProfile(post.user_id);
+    [avatar,name].forEach(target=>{
+      target.style.cursor="pointer";
+      target.setAttribute("role","button");
+      target.setAttribute("tabindex","0");
+      target.setAttribute("aria-label","Open "+(profile.username||"user")+" profile");
+      target.addEventListener("click",openPostAuthorProfile);
+      target.addEventListener("keydown",event=>{
+        if(event.key==="Enter"||event.key===" "){event.preventDefault();openPostAuthorProfile();}
+      });
+    });
     const saveButton=document.createElement("button");
     saveButton.type="button";saveButton.className="jabzy-post-save";saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';
     saveButton.setAttribute("aria-label",savedPostIds.has(String(post.id))?"Unsave post":"Save post");
