@@ -12097,3 +12097,34 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
  window.fitJabzyChatToVisibleScreen=sync;schedule();
 })();
 </script>
+
+<script id="jabzy-story-swipe-up-gallery">
+(function(){
+ if(window.__jabzyStorySwipeGallery)return;window.__jabzyStorySwipeGallery=true;
+ function bind(){
+  const stage=document.getElementById("storyEditorStage"),modal=document.getElementById("storyUploadModal"),picker=document.getElementById("storyMediaFile");
+  if(!stage||!modal||!picker||stage.__jabzySwipeGalleryBound)return;
+  stage.__jabzySwipeGalleryBound=true;
+  let start=null;
+  stage.addEventListener("touchstart",function(e){
+   if(e.touches.length!==1)return;
+   const t=e.target;
+   if(t.closest&&t.closest("#storyEditorToolbar,#storyEditorPanel,#storyEditorTextOverlay,#storyEditorStickerOverlay,#jabzyStickerPickerScreen,button,input,textarea")){start=null;return;}
+   const touch=e.touches[0],rect=stage.getBoundingClientRect();
+   start={x:touch.clientX,y:touch.clientY,fromBottom:touch.clientY>rect.top+rect.height*.68};
+  },{passive:true});
+  stage.addEventListener("touchend",function(e){
+   if(!start||e.changedTouches.length!==1){start=null;return;}
+   const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y,fromBottom=start.fromBottom;start=null;
+   if(getComputedStyle(modal).display==="none"||!fromBottom||dy>-85||Math.abs(dx)>75)return;
+   const image=document.getElementById("storyPreviewImage"),video=document.getElementById("storyPreviewVideo");
+   if(image.style.display==="none"&&video.style.display==="none")return;
+   e.preventDefault();
+   picker.value="";
+   picker.click();
+  },{passive:false});
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
+ setTimeout(bind,500);
+})();
+</script>
