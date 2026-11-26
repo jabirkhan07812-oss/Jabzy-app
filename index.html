@@ -1546,6 +1546,7 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     <div id="jabzyStoryFriends" style="display:flex;gap:14px;"></div>
   </div>
 </div>
+<div id="jabzyVideoCategories" style="display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:2px 12px 12px;margin:0 -12px 8px;scrollbar-width:none;"></div>
 <div id="storyUploadModal" style="display:none;position:fixed;inset:0;z-index:100001;background:#090711;padding:0;overflow:hidden;">
   <div style="width:100%;height:100dvh;max-width:520px;margin:auto;background:#090711;color:white;display:flex;flex-direction:column;position:relative;">
     <div style="height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #30243b;">
@@ -3783,6 +3784,19 @@ function showJabzyInterestPicker(){
   panel.append(heading,intro,grid,counter,errorBox,save);overlay.appendChild(panel);document.body.appendChild(overlay);
 }
 async function ensureJabzyInterests(){const interests=await getJabzyMyInterests();if(!interests)return false;if(interests.size<3){showJabzyInterestPicker();return false;}return true;}
+let jabzyActiveHomeTopic="All";
+function renderJabzyVideoCategories(){
+  const bar=document.getElementById("jabzyVideoCategories");if(!bar)return;
+  const topics=["All",...JABZY_INTEREST_OPTIONS];
+  bar.replaceChildren();
+  topics.forEach(topic=>{
+    const chip=document.createElement("button");chip.type="button";chip.textContent=topic;
+    const active=jabzyActiveHomeTopic===topic;
+    chip.style.cssText="flex:0 0 auto;padding:7px 13px;border-radius:18px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:12px;font-weight:750;white-space:nowrap;";
+    chip.onclick=()=>{if(jabzyActiveHomeTopic===topic)return;jabzyActiveHomeTopic=topic;renderJabzyVideoCategories();loadHomePosts();};
+    bar.appendChild(chip);
+  });
+}
 let jabzyHomePostsLoadToken=0;
 async function loadHomePosts(){
   const loadToken=++jabzyHomePostsLoadToken;
@@ -3792,6 +3806,7 @@ async function loadHomePosts(){
     db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id)
   ]);
   if(loadToken!==jabzyHomePostsLoadToken||!interestsReady)return;
+  renderJabzyVideoCategories();
   const {data:acceptedFriends,error:friendsError}=friendsResult;
   if(loadToken!==jabzyHomePostsLoadToken)return;
   if(friendsError){console.error("Friends audience lookup:",friendsError.message);box.textContent="Friends list load nahi ho payi.";return;}
@@ -3803,16 +3818,17 @@ async function loadHomePosts(){
   const uniquePosts=[...new Map((posts||[]).map(post=>[String(post.id),post])).values()];
   const interestSet=jabzyMyInterestSet||new Set();
   uniquePosts.sort((a,b)=>Number(interestSet.has(b.topic))-Number(interestSet.has(a.topic)));
+  const visiblePosts=jabzyActiveHomeTopic==="All"?uniquePosts:uniquePosts.filter(post=>post.topic===jabzyActiveHomeTopic);
   box.replaceChildren();
-  if(!uniquePosts.length){
+  if(!visiblePosts.length){
     const empty=document.createElement("div");empty.style.cssText="text-align:center;padding:35px 12px;border-bottom:1px solid #382744;";
-    const icon=document.createElement("div");icon.textContent="📸";icon.style.fontSize="38px";
-    const title=document.createElement("strong");title.textContent="Welcome to JABZY";title.style.cssText="font-size:15px;color:#f3dfff;";
-    const msg=document.createElement("p");msg.textContent="Official posts will appear here.";msg.style.cssText="font-size:12px;color:#bba9ca;margin:7px 0;";
+    const icon=document.createElement("div");icon.textContent="🎬";icon.style.fontSize="38px";
+    const title=document.createElement("strong");title.textContent=jabzyActiveHomeTopic==="All"?"Welcome to JABZY":"No videos/posts in "+jabzyActiveHomeTopic+" yet";title.style.cssText="font-size:15px;color:#f3dfff;";
+    const msg=document.createElement("p");msg.textContent=jabzyActiveHomeTopic==="All"?"Official posts will appear here.":"Choose another category to explore.";msg.style.cssText="font-size:12px;color:#bba9ca;margin:7px 0;";
     empty.append(icon,title,msg);box.appendChild(empty);return;
   }
   const [profilesResult,savedResult]=await Promise.all([
-    db.from("profiles").select("id,username,photo_url").in("id",[...new Set(uniquePosts.map(p=>p.user_id))]),
+    db.from("profiles").select("id,username,photo_url").in("id",[...new Set(visiblePosts.map(p=>p.user_id))]),
     db.from("saved_posts").select("post_id").eq("user_id",me.id)
   ]);
   if(loadToken!==jabzyHomePostsLoadToken)return;
@@ -3822,11 +3838,11 @@ async function loadHomePosts(){
   if(loadToken!==jabzyHomePostsLoadToken)return;
   if(savedLoadError)console.warn("Saved posts loading:",savedLoadError.message);
   const savedPostIds=new Set((savedRows||[]).map(row=>String(row.post_id)));
-  const authorIds=[...new Set(uniquePosts.map(post=>post.user_id))];
+  const authorIds=[...new Set(visiblePosts.map(post=>post.user_id))];
   const adminResults=await Promise.all(authorIds.map(id=>db.rpc("is_jabzy_official_admin",{p_user_id:id})));
   if(loadToken!==jabzyHomePostsLoadToken)return;
   const adminMap=new Map(authorIds.map((id,index)=>[id,adminResults[index]?.data===true]));
-  for(const post of uniquePosts){
+  for(const post of visiblePosts){
     if(loadToken!==jabzyHomePostsLoadToken)return;
     const profile=map.get(post.user_id)||{};
     const card=document.createElement("article");card.className="jabzy-post-card";card.style.cssText="padding:14px 12px;margin:0 0 12px;border-bottom:1px solid #49315d;";
@@ -10137,6 +10153,7 @@ async function loadJabzyStories(){
   const storyAdminResults=await Promise.all(ids.map(id=>isOfficialAdminUser(id)));
   const storyAdminMap=new Map(ids.map((id,index)=>[id,storyAdminResults[index]===true]));
   for(const [userId,list] of groups.entries()){
+    if(userId===me.id)continue;
     const btn=document.createElement("button");
     btn.type="button";btn.style.cssText="flex:0 0 68px;width:68px;padding:0;margin:0;background:none;border:0;color:white;";
     const ring=document.createElement("div");
