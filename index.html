@@ -10191,19 +10191,72 @@ function openStoryEditorTool(tool){
 function rotateJabzyStoryPreview(){jabzyStoryEditorRotation=(jabzyStoryEditorRotation+90)%360;applyJabzyStoryEditorStyle();}
 async function makeJabzyStoryEditedImage(file){
   if(!file.type.startsWith("image/"))return file;
-  const img=new Image();img.src=URL.createObjectURL(file);await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;});
-  const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
-  const swapped=Math.abs(jabzyStoryEditorRotation)%180===90;
-  canvas.width=swapped?img.naturalHeight:img.naturalWidth;canvas.height=swapped?img.naturalWidth:img.naturalHeight;
-  ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(jabzyStoryEditorRotation*Math.PI/180);
-  const scale=jabzyStoryEditorFit==="cover"?Math.max(canvas.width/img.naturalWidth,canvas.height/img.naturalHeight):Math.min(canvas.width/img.naturalWidth,canvas.height/img.naturalHeight);
-  ctx.filter=[jabzyStoryEditorFilter,"brightness("+jabzyStoryEditorBrightness+"%)","contrast("+jabzyStoryEditorContrast+"%)","saturate("+jabzyStoryEditorSaturation+"%)"].filter(x=>x&&x!=="none").join(" ")||"none";
-  ctx.drawImage(img,-img.naturalWidth*scale/2,-img.naturalHeight*scale/2,img.naturalWidth*scale,img.naturalHeight*scale);ctx.filter="none";
-  const overlay=document.getElementById("storyEditorTextOverlay"),sticker=document.getElementById("storyEditorStickerOverlay");
-  if(overlay.textContent){ctx.font="bold "+Math.max(24,canvas.width*.055)+"px Arial";ctx.textAlign="center";ctx.fillStyle=overlay.style.color||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(overlay.textContent,canvas.width/2,canvas.height*.52,canvas.width*.78);ctx.shadowBlur=0;}
-  if(sticker.textContent){ctx.font=Math.max(42,canvas.width*.12)+"px Arial";ctx.textAlign="center";ctx.fillText(sticker.textContent,canvas.width/2,canvas.height*.66);}
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,file.type==="image/png"?"image/png":"image/jpeg",.94));
-  URL.revokeObjectURL(img.src);if(!blob)throw new Error("Photo edit export failed");return new File([blob],"jabzy-story.jpg",{type:blob.type});
+  const url=URL.createObjectURL(file),img=new Image();img.src=url;
+  try{
+    await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;});
+    const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+    const swapped=Math.abs(jabzyStoryEditorRotation)%180===90;
+    canvas.width=swapped?img.naturalHeight:img.naturalWidth;canvas.height=swapped?img.naturalWidth:img.naturalHeight;
+    ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(jabzyStoryEditorRotation*Math.PI/180);
+    const scale=jabzyStoryEditorFit==="cover"?Math.max(canvas.width/img.naturalWidth,canvas.height/img.naturalHeight):Math.min(canvas.width/img.naturalWidth,canvas.height/img.naturalHeight);
+    ctx.filter=[jabzyStoryEditorFilter,"brightness("+jabzyStoryEditorBrightness+"%)","contrast("+jabzyStoryEditorContrast+"%)","saturate("+jabzyStoryEditorSaturation+"%)"].filter(x=>x&&x!=="none").join(" ")||"none";
+    ctx.drawImage(img,-img.naturalWidth*scale/2,-img.naturalHeight*scale/2,img.naturalWidth*scale,img.naturalHeight*scale);ctx.filter="none";
+    const overlay=document.getElementById("storyEditorTextOverlay"),sticker=document.getElementById("storyEditorStickerOverlay");
+    if(overlay.textContent){ctx.font="bold "+Math.max(24,canvas.width*.055)+"px Arial";ctx.textAlign="center";ctx.fillStyle=overlay.style.color||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(overlay.textContent,canvas.width/2,canvas.height*.52,canvas.width*.78);ctx.shadowBlur=0;}
+    if(sticker.textContent){ctx.font=Math.max(42,canvas.width*.12)+"px Arial";ctx.textAlign="center";ctx.fillText(sticker.textContent,canvas.width/2,canvas.height*.66);}
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,file.type==="image/png"?"image/png":"image/jpeg",.94));
+    if(!blob)throw new Error("Photo edit export failed");
+    return new File([blob],file.type==="image/png"?"jabzy-story.png":"jabzy-story.jpg",{type:blob.type});
+  }finally{URL.revokeObjectURL(url);}
+}
+async function makeJabzyStoryEditedVideo(file,status){
+  if(!file.type.startsWith("video/"))return file;
+  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error("Is browser mein edited video export support nahi hai. Chrome update karke dobara try karein.");
+  const sourceUrl=URL.createObjectURL(file),video=document.createElement("video");
+  video.src=sourceUrl;video.playsInline=true;video.preload="auto";video.muted=false;
+  let recorder=null,stream=null,sourceStream=null,frame=0,stopped=false;
+  try{
+    await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=()=>reject(new Error("Video open nahi ho paya."));video.load();});
+    if(!Number.isFinite(video.duration)||video.duration<=0)throw new Error("Video duration read nahi ho payi.");
+    const sourceW=video.videoWidth||720,sourceH=video.videoHeight||1280,ratio=Math.min(1,720/Math.max(sourceW,sourceH));
+    const w=Math.max(2,Math.round(sourceW*ratio/2)*2),h=Math.max(2,Math.round(sourceH*ratio/2)*2);
+    const swapped=Math.abs(jabzyStoryEditorRotation)%180===90,canvas=document.createElement("canvas");
+    canvas.width=swapped?h:w;canvas.height=swapped?w:h;
+    const ctx=canvas.getContext("2d");stream=canvas.captureStream(24);
+    try{sourceStream=video.captureStream?video.captureStream():video.mozCaptureStream?video.mozCaptureStream():null;}catch(e){}
+    if(sourceStream)sourceStream.getAudioTracks().forEach(track=>stream.addTrack(track));
+    const types=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+    const mime=types.find(type=>MediaRecorder.isTypeSupported(type))||"";
+    recorder=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:2500000}:{videoBitsPerSecond:2500000});
+    const chunks=[];recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+    const finished=new Promise((resolve,reject)=>{recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||"video/webm"}));recorder.onerror=()=>reject(new Error("Video export fail ho gaya."));});
+    const draw=()=>{
+      if(stopped)return;
+      ctx.save();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(jabzyStoryEditorRotation*Math.PI/180);
+      const scale=jabzyStoryEditorFit==="cover"?Math.max(w/sourceW,h/sourceH):Math.min(w/sourceW,h/sourceH);
+      ctx.filter=[jabzyStoryEditorFilter,"brightness("+jabzyStoryEditorBrightness+"%)","contrast("+jabzyStoryEditorContrast+"%)","saturate("+jabzyStoryEditorSaturation+"%)"].filter(x=>x&&x!=="none").join(" ")||"none";
+      ctx.drawImage(video,-sourceW*scale/2,-sourceH*scale/2,sourceW*scale,sourceH*scale);ctx.filter="none";
+      const overlay=document.getElementById("storyEditorTextOverlay"),sticker=document.getElementById("storyEditorStickerOverlay");
+      if(overlay.textContent){ctx.font="bold "+Math.max(24,canvas.width*.055)+"px Arial";ctx.textAlign="center";ctx.fillStyle=overlay.style.color||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(overlay.textContent,0,-canvas.height*.02,canvas.width*.78);ctx.shadowBlur=0;}
+      if(sticker.textContent){ctx.font=Math.max(42,canvas.width*.12)+"px Arial";ctx.textAlign="center";ctx.fillText(sticker.textContent,0,canvas.height*.16);}
+      ctx.restore();frame=requestAnimationFrame(draw);
+    };
+    status.textContent="Video edit ho rahi hai…";
+    recorder.start(250);await video.play();draw();
+    await new Promise((resolve,reject)=>{video.onended=resolve;video.onerror=()=>reject(new Error("Video processing ruk gayi."));});
+    stopped=true;cancelAnimationFrame(frame);
+    if(recorder.state!=="inactive")recorder.stop();
+    const blob=await finished;
+    if(!blob.size)throw new Error("Edited video empty hai. Dobara try karein.");
+    if(blob.size>50*1024*1024)throw new Error("Edited video 50 MB se badi ho gayi. Chhoti video select karein.");
+    return new File([blob],"jabzy-story.webm",{type:blob.type});
+  }finally{
+    stopped=true;cancelAnimationFrame(frame);
+    if(recorder&&recorder.state!=="inactive")try{recorder.stop();}catch(e){}
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+    if(sourceStream)sourceStream.getTracks().forEach(t=>t.stop());
+    video.pause();video.removeAttribute("src");video.load();URL.revokeObjectURL(sourceUrl);
+  }
 }
 async function uploadJabzyStory(){
   const originalFile=document.getElementById("storyMediaFile").files[0];
@@ -10214,8 +10267,8 @@ async function uploadJabzyStory(){
   if(originalFile.size>50*1024*1024){status.textContent="File 50 MB se chhoti honi chahiye.";return;}
   btn.disabled=true;status.textContent="Preparing your Story...";
   try{
-    const file=await makeJabzyStoryEditedImage(originalFile);
-    const ext=file.type==="image/png"?"png":(file.type.startsWith("video/")?(originalFile.name.split(".").pop()||"mp4"):"jpg");
+    const file=originalFile.type.startsWith("image/")?await makeJabzyStoryEditedImage(originalFile):await makeJabzyStoryEditedVideo(originalFile,status);
+    const ext=file.type==="image/png"?"png":(file.type.startsWith("video/")?(file.type.includes("mp4")?"mp4":"webm"):"jpg");
     const path=me.id+"/"+Date.now()+"."+ext;
     const {error:upErr}=await db.storage.from("stories").upload(path,file,{contentType:file.type,upsert:false});
     if(upErr){status.textContent=upErr.message;btn.disabled=false;return;}
