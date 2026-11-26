@@ -1555,7 +1555,7 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
       <div><div style="font-size:48px;margin-bottom:12px;">＋</div><b style="font-size:17px;">Choose a photo or video</b><p style="font-size:12px;opacity:.75;">Your media will open full screen here</p><button type="button" onclick="document.getElementById('storyMediaFile').click()" style="margin:10px auto 0;padding:11px 20px;border-radius:24px;background:linear-gradient(90deg,#a855f7,#ec4899);color:white;">Open Gallery</button></div>
     </div>
     <div id="storyEditorTextOverlay" style="display:none;position:absolute;left:12%;right:20%;top:42%;z-index:3;text-align:center;color:#fff;font-size:30px;font-weight:800;text-shadow:0 2px 8px #000;pointer-events:none;overflow-wrap:anywhere;"></div>
-    <div id="storyEditorStickerOverlay" style="position:absolute;left:12%;right:20%;top:54%;z-index:3;text-align:center;font-size:42px;pointer-events:none;"></div>
+    <div id="storyEditorStickerOverlay" style="position:absolute;left:50%;top:58%;z-index:9;transform:translate(-50%,-50%);font-size:58px;line-height:1.1;white-space:nowrap;cursor:grab;touch-action:none;user-select:none;pointer-events:auto;filter:drop-shadow(0 2px 5px #0008);" onpointerdown="startJabzyStickerDrag(event)"></div>
     <div style="position:absolute;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:linear-gradient(#0009,transparent);">
       <button type="button" onclick="closeStoryUpload()" aria-label="Close editor" style="width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#0007;border:1px solid #ffffff55;color:white;font-size:19px;">✕</button>
       <b id="storyEditorTitle" style="font-size:15px;text-shadow:0 1px 5px #000;">Edit Story</b>
@@ -10219,6 +10219,40 @@ function previewJabzyStoryMedia(event){
   else{video.src=jabzyStoryEditorObjectUrl;video.style.display="block";video.controls=true;video.playsInline=true;video.play().catch(()=>{});}
   applyJabzyStoryEditorStyle();
 }
+let jabzyStickerDragState=null;
+function openJabzyStickerPicker(){
+  let screen=document.getElementById("jabzyStickerPickerScreen");
+  if(!screen){
+    screen=document.createElement("div");screen.id="jabzyStickerPickerScreen";
+    screen.style.cssText="position:absolute;inset:0;z-index:30;background:linear-gradient(155deg,#21152f,#090711 78%);color:white;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));box-sizing:border-box;overflow-y:auto;";
+    screen.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><button type="button" id="jabzyStickerBack" style="width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#ffffff18;color:white;font-size:22px;">‹</button><b style="font-size:17px;">Choose Sticker</b><span style="width:38px;"></span></div><div style="font-size:11px;color:#cbb7dc;margin-bottom:10px;">Choose your sticker</div><div id="jabzyStickerGrid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;"></div><div style="margin-top:auto;padding-top:22px;"><label style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;">Sticker Size <b id="jabzyStickerSizeValue">58 px</b></label><input id="jabzyStickerSize" type="range" min="28" max="150" value="58" style="width:100%;accent-color:#d46cff;"><p style="font-size:11px;color:#cbb7dc;margin:9px 0 14px;">Story par sticker ko ungli se pakad kar kahin bhi move karein.</p><button type="button" id="jabzyStickerDone" style="width:100%;padding:13px;border:0;border-radius:24px;background:linear-gradient(100deg,#ff55a8,#9657e8);color:white;font-weight:800;">Done</button><button type="button" id="jabzyStickerRemove" style="width:100%;margin-top:8px;padding:10px;border-radius:22px;background:#ffffff12;color:#fff;">Remove Sticker</button></div>';
+    document.getElementById("storyEditorStage").appendChild(screen);
+    document.getElementById("jabzyStickerBack").onclick=closeJabzyStickerPicker;
+    document.getElementById("jabzyStickerDone").onclick=closeJabzyStickerPicker;
+    document.getElementById("jabzyStickerRemove").onclick=()=>{document.getElementById("storyEditorStickerOverlay").textContent="";closeJabzyStickerPicker();};
+    document.getElementById("jabzyStickerSize").oninput=e=>{const size=Number(e.target.value),el=document.getElementById("storyEditorStickerOverlay");el.style.fontSize=size+"px";document.getElementById("jabzyStickerSizeValue").textContent=size+" px";};
+    const emojis=["❤️","😂","🔥","😍","✨","🌸","😎","🥳","💯","🤍","🌈","👏","⭐","🦋","☀️","🎉","💖","💕","😘","🥰","🤣","😜","🤩","🙏","💫","🌟","🌻","🌷","🍀","🫶","💪","🎂","🎈","🎁","🏆","⚡","☁️","🌙","🐱","🐼","🦄","🍕","🍔","⚽","🎮","🎧","📸","💎"];
+    const grid=document.getElementById("jabzyStickerGrid");
+    emojis.forEach(emoji=>{const b=document.createElement("button");b.type="button";b.textContent=emoji;b.style.cssText="height:58px;margin:0;padding:0;border-radius:15px;background:#ffffff12;border:1px solid #ffffff20;font-size:30px;";b.onclick=()=>{const el=document.getElementById("storyEditorStickerOverlay");el.textContent=emoji;el.style.display="block";};grid.appendChild(b);});
+  }
+  const sticker=document.getElementById("storyEditorStickerOverlay"),size=parseInt(sticker.style.fontSize,10)||58;
+  document.getElementById("jabzyStickerSize").value=String(size);document.getElementById("jabzyStickerSizeValue").textContent=size+" px";
+  screen.style.display="flex";
+}
+function closeJabzyStickerPicker(){const screen=document.getElementById("jabzyStickerPickerScreen");if(screen)screen.style.display="none";}
+function startJabzyStickerDrag(event){
+  const el=event.currentTarget;if(!el.textContent)return;
+  event.preventDefault();el.setPointerCapture(event.pointerId);
+  const stage=document.getElementById("storyEditorStage"),rect=stage.getBoundingClientRect();
+  jabzyStickerDragState={pointerId:event.pointerId,stageRect:rect};
+  el.style.cursor="grabbing";
+  const move=e=>{if(!jabzyStickerDragState||e.pointerId!==jabzyStickerDragState.pointerId)return;
+    const x=Math.max(3,Math.min(97,(e.clientX-rect.left)/rect.width*100)),y=Math.max(5,Math.min(95,(e.clientY-rect.top)/rect.height*100));
+    el.style.left=x+"%";el.style.top=y+"%";
+  };
+  const end=e=>{if(!jabzyStickerDragState||e.pointerId!==jabzyStickerDragState.pointerId)return;jabzyStickerDragState=null;el.style.cursor="grab";el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",end);el.removeEventListener("pointercancel",end);};
+  el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
+}
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
 function openStoryEditorTool(tool){
   const panel=document.getElementById("storyEditorPanel"),title=document.getElementById("storyEditorPanelTitle"),content=document.getElementById("storyEditorPanelContent");
@@ -10256,8 +10290,7 @@ function openStoryEditorTool(tool){
     const input=document.createElement("input");input.type="text";input.maxLength=90;input.placeholder="Type your story text";input.style.cssText="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;background:#2a2033;color:white;border:1px solid #80638e;";input.oninput=()=>{const el=document.getElementById("storyEditorTextOverlay");el.textContent=input.value;el.style.display=input.value?"block":"none";};content.appendChild(input);
     addButton("White",()=>document.getElementById("storyEditorTextOverlay").style.color="#fff");addButton("Yellow",()=>document.getElementById("storyEditorTextOverlay").style.color="#ffe16b");addButton("Pink",()=>document.getElementById("storyEditorTextOverlay").style.color="#ff8bc7");
   }else if(tool==="stickers"){
-    ["❤️","😂","🔥","😍","✨","🌸","😎","🥳","💯","🤍","🌈","👏","⭐","🦋","☀️","🎉"].forEach(emoji=>addButton(emoji,()=>{document.getElementById("storyEditorStickerOverlay").textContent=emoji;}));
-    addButton("Remove",()=>document.getElementById("storyEditorStickerOverlay").textContent="");
+    closeStoryEditorTool();openJabzyStickerPicker();
   }else if(tool==="crop"){
     addButton("Fill Screen",()=>{jabzyStoryEditorFit="cover";applyJabzyStoryEditorStyle();},jabzyStoryEditorFit==="cover");addButton("Fit Full Photo",()=>{jabzyStoryEditorFit="contain";applyJabzyStoryEditorStyle();},jabzyStoryEditorFit==="contain");
     addButton("Reset Edit",()=>{resetJabzyStoryEditor();});
@@ -10278,7 +10311,7 @@ async function makeJabzyStoryEditedImage(file){
     ctx.drawImage(img,-img.naturalWidth*scale/2,-img.naturalHeight*scale/2,img.naturalWidth*scale,img.naturalHeight*scale);ctx.filter="none";
     const overlay=document.getElementById("storyEditorTextOverlay"),sticker=document.getElementById("storyEditorStickerOverlay");
     if(overlay.textContent){ctx.font="bold "+Math.max(24,canvas.width*.055)+"px Arial";ctx.textAlign="center";ctx.fillStyle=overlay.style.color||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(overlay.textContent,canvas.width/2,canvas.height*.52,canvas.width*.78);ctx.shadowBlur=0;}
-    if(sticker.textContent){ctx.font=Math.max(42,canvas.width*.12)+"px Arial";ctx.textAlign="center";ctx.fillText(sticker.textContent,canvas.width/2,canvas.height*.66);}
+    if(sticker.textContent){const stage=document.getElementById("storyEditorStage"),rect=stage.getBoundingClientRect(),sx=(parseFloat(sticker.style.left)||50)/100,sy=(parseFloat(sticker.style.top)||58)/100,fs=parseFloat(sticker.style.fontSize)||58;ctx.font=Math.max(24,fs*(canvas.width/Math.max(1,rect.width)))+"px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(sticker.textContent,canvas.width*sx,canvas.height*sy);}
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,file.type==="image/png"?"image/png":"image/jpeg",.94));
     if(!blob)throw new Error("Photo edit export failed");
     return new File([blob],file.type==="image/png"?"jabzy-story.png":"jabzy-story.jpg",{type:blob.type});
@@ -10313,7 +10346,7 @@ async function makeJabzyStoryEditedVideo(file,status){
       ctx.drawImage(video,-sourceW*scale/2,-sourceH*scale/2,sourceW*scale,sourceH*scale);ctx.filter="none";
       const overlay=document.getElementById("storyEditorTextOverlay"),sticker=document.getElementById("storyEditorStickerOverlay");
       if(overlay.textContent){ctx.font="bold "+Math.max(24,canvas.width*.055)+"px Arial";ctx.textAlign="center";ctx.fillStyle=overlay.style.color||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=8;ctx.fillText(overlay.textContent,0,-canvas.height*.02,canvas.width*.78);ctx.shadowBlur=0;}
-      if(sticker.textContent){ctx.font=Math.max(42,canvas.width*.12)+"px Arial";ctx.textAlign="center";ctx.fillText(sticker.textContent,0,canvas.height*.16);}
+      if(sticker.textContent){const stage=document.getElementById("storyEditorStage"),rect=stage.getBoundingClientRect(),sx=(parseFloat(sticker.style.left)||50)/100,sy=(parseFloat(sticker.style.top)||58)/100,fs=parseFloat(sticker.style.fontSize)||58;ctx.font=Math.max(24,fs*(canvas.width/Math.max(1,rect.width)))+"px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(sticker.textContent,canvas.width*sx,canvas.height*sy);}
       ctx.restore();frame=requestAnimationFrame(draw);
     };
     status.textContent="Video edit ho rahi hai…";
