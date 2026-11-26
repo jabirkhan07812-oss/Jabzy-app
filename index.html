@@ -2318,6 +2318,7 @@ box-sizing:border-box;
 
     <input id="message" placeholder="Message..." oninput="updateTypingStatus()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
 
+    <button type="button" id="jabzyVoiceRecordButton" aria-label="Hold to record voice message" title="Hold to record" onpointerdown="startJabzyVoiceRecord(event)" onpointerup="stopJabzyVoiceRecord(event)" onpointercancel="cancelJabzyVoiceRecord(event)" oncontextmenu="event.preventDefault()" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:#49345d;color:white;font-size:19px;touch-action:none;">🎙️</button>
     <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
     <button type="button" onclick="openChatGift()" title="Send a Gift" aria-label="Send a Gift" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:19px;">🎁</button>
 
@@ -6917,7 +6918,7 @@ if(m.reply_to){
 
     quote.textContent=original.message.startsWith("PHOTO:")
       ? "📷 Photo"
-      : original.message;
+      : original.message.startsWith("VOICE:") ? "🎙️ Voice message" : original.message;
 
     row.appendChild(quote);
   }
@@ -6957,6 +6958,18 @@ if(m.message.startsWith("GIFT:")){
   giftCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal();}});
   row.appendChild(giftCard);
  }else{p.textContent="🎁 Gift";row.appendChild(p);}
+}else if(m.message.startsWith("VOICE:")){
+ const voiceParts=m.message.slice(6).split("|");
+ const voicePath=voiceParts[0];
+ const voiceDuration=Math.max(0,Number(voiceParts[1]||0));
+ const voiceWrap=document.createElement("div");
+ voiceWrap.style.display="flex";voiceWrap.style.alignItems="center";voiceWrap.style.gap="8px";voiceWrap.style.minWidth="190px";voiceWrap.style.maxWidth="230px";
+ const voiceIcon=document.createElement("span");voiceIcon.textContent="🎙️";voiceIcon.style.fontSize="20px";
+ const voiceAudio=document.createElement("audio");voiceAudio.controls=true;voiceAudio.preload="none";voiceAudio.style.width="190px";voiceAudio.style.maxWidth="100%";
+ const voiceTime=document.createElement("small");voiceTime.textContent=Math.floor(voiceDuration/60)+":"+String(Math.floor(voiceDuration%60)).padStart(2,"0");voiceTime.style.color="#ded0ec";
+ voiceWrap.append(voiceIcon,voiceAudio);row.appendChild(voiceWrap);row.appendChild(voiceTime);
+ const {data:voiceData,error:voiceError}=await db.storage.from("chat-photos").createSignedUrl(voicePath,3600);
+ if(voiceError){voiceTime.textContent="Voice message unavailable";}else{voiceAudio.src=voiceData.signedUrl;}
 }else if(m.message.startsWith("PHOTO:")){
 p.textContent+="📷 Photo";
 row.appendChild(p);
@@ -12127,4 +12140,76 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
  setTimeout(bind,500);
 })();
+</script>
+
+<script id="jabzy-whatsapp-voice-notes">
+let jabzyVoiceRecorder=null,jabzyVoiceStream=null,jabzyVoiceChunks=[],jabzyVoiceStartedAt=0,jabzyVoiceRecording=false,jabzyVoiceCancelled=false,jabzyVoiceStartPending=false;
+function jabzyVoiceButton(){return document.getElementById("jabzyVoiceRecordButton")}
+function jabzyVoiceUi(active,label){
+ const b=jabzyVoiceButton();if(!b)return;
+ b.style.background=active?"#e83e79":"#49345d";b.textContent=active?"●":"🎙️";b.title=label||"Hold to record";
+}
+async function startJabzyVoiceRecord(event){
+ if(event){event.preventDefault();if(event.button!==undefined&&event.button!==0)return;}
+ if(jabzyVoiceRecording||jabzyVoiceStartPending||chatSendInProgress)return;
+ if(!me||!selected){appStatus("Pehle kisi user ki chat kholein.");return;}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){appStatus("Is browser mein voice recording supported nahi hai.");return;}
+ jabzyVoiceStartPending=true;jabzyVoiceCancelled=false;jabzyVoiceUi(true,"Recording...");
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  if(jabzyVoiceCancelled){stream.getTracks().forEach(t=>t.stop());return;}
+  jabzyVoiceStream=stream;
+  const mime=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"].find(x=>MediaRecorder.isTypeSupported(x));
+  jabzyVoiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+  jabzyVoiceChunks=[];
+  jabzyVoiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)jabzyVoiceChunks.push(e.data)};
+  jabzyVoiceRecorder.onstop=()=>finishJabzyVoiceUpload();
+  jabzyVoiceRecorder.start(250);jabzyVoiceStartedAt=Date.now();jabzyVoiceRecording=true;
+  jabzyVoiceUi(true,"Recording… release to send");
+  const b=jabzyVoiceButton();if(b&&event?.pointerId!==undefined){try{b.setPointerCapture(event.pointerId)}catch(e){}}
+  appStatus("🎙️ Recording… bhejne ke liye ungli chhod dein.");
+  window.jabzyVoiceLimitTimer=setTimeout(()=>{if(jabzyVoiceRecording){appStatus("3 minute limit complete.");stopJabzyVoiceRecord();}},180000);
+ }catch(e){jabzyVoiceUi(false);appStatus("Microphone permission dein: "+(e.message||"Recording start nahi hui."));if(jabzyVoiceStream)jabzyVoiceStream.getTracks().forEach(t=>t.stop());jabzyVoiceStream=null;}
+ finally{jabzyVoiceStartPending=false;}
+}
+function stopJabzyVoiceRecord(event){
+ if(event)event.preventDefault();
+ if(jabzyVoiceStartPending){jabzyVoiceCancelled=true;return;}
+ if(!jabzyVoiceRecording)return;
+ jabzyVoiceRecording=false;clearTimeout(window.jabzyVoiceLimitTimer);
+ try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();}catch(e){appStatus("Voice recording stop nahi hui.");}
+}
+function cancelJabzyVoiceRecord(event){
+ if(event)event.preventDefault();
+ jabzyVoiceCancelled=true;
+ if(jabzyVoiceRecording){jabzyVoiceChunks=[];jabzyVoiceRecording=false;clearTimeout(window.jabzyVoiceLimitTimer);try{if(jabzyVoiceRecorder&&jabzyVoiceRecorder.state!=="inactive")jabzyVoiceRecorder.stop();}catch(e){}}
+}
+async function finishJabzyVoiceUpload(){
+ const chunks=jabzyVoiceChunks.slice(),stream=jabzyVoiceStream,recorder=jabzyVoiceRecorder;
+ jabzyVoiceChunks=[];jabzyVoiceRecorder=null;jabzyVoiceStream=null;
+ if(stream)stream.getTracks().forEach(t=>t.stop());
+ jabzyVoiceUi(false);
+ if(jabzyVoiceCancelled){jabzyVoiceCancelled=false;appStatus("Voice recording cancelled.");return;}
+ const duration=Math.max(0,Math.round((Date.now()-jabzyVoiceStartedAt)/1000));
+ const type=recorder?.mimeType||chunks[0]?.type||"audio/webm";
+ const blob=new Blob(chunks,{type});
+ if(blob.size<1200||duration<1){appStatus("Voice message bahut chhota hai.");return;}
+ if(!me||!selected){appStatus("Chat band ho gayi. Voice message send nahi hua.");return;}
+ if(blob.size>12*1024*1024){appStatus("Voice message 12 MB se bada hai.");return;}
+ if(chatSendInProgress){appStatus("Ek message send ho raha hai. Dobara try karein.");return;}
+ chatSendInProgress=true;const b=jabzyVoiceButton();if(b)b.disabled=true;
+ let path=null;
+ try{
+  const blocked=await getBlockedIds();if(blocked.has(selected))throw new Error("Blocked user ko voice message nahi bhej sakte.");
+  const ext=type.includes("ogg")?"ogg":type.includes("mp4")?"m4a":"webm";
+  path=me.id+"/"+selected+"/"+Date.now()+"_voice."+ext;
+  appStatus("Voice message upload ho raha hai…");
+  const {error:uploadError}=await db.storage.from("chat-photos").upload(path,blob,{contentType:type,upsert:false});
+  if(uploadError)throw uploadError;
+  const {error}=await db.from("messages").insert({sender_id:me.id,receiver_id:selected,message:"VOICE:"+path+"|"+duration});
+  if(error)throw error;
+  appStatus("Voice message sent 🎙️");await loadMessages();
+ }catch(e){if(path)await db.storage.from("chat-photos").remove([path]);appStatus("Voice message send nahi hua: "+(e.message||"Error"));}
+ finally{chatSendInProgress=false;if(b)b.disabled=false;}
+}
 </script>
