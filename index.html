@@ -6824,14 +6824,21 @@ if(m.message.startsWith("GIFT:")){
   giftCard.className="jabzy-chat-gift-card";
   giftCard.setAttribute("role","button");
   giftCard.setAttribute("tabindex","0");
-  giftCard.setAttribute("aria-label","Open "+gift.name+" gift celebration");
-  const art=document.createElement("div");art.className="jabzy-chat-gift-art";art.textContent=gift.emoji;
+  giftCard.setAttribute("aria-expanded","false");
+  giftCard.setAttribute("aria-label","Tap to open a gift");
+  const art=document.createElement("div");art.className="jabzy-chat-gift-art";art.textContent="🎁";
   const sender=document.createElement("div");sender.className="jabzy-chat-gift-sender";sender.textContent=senderName+" sent you a Gift";
   const giftName=document.createElement("div");giftName.className="jabzy-chat-gift-name";giftName.textContent=gift.name;
   const price=document.createElement("div");price.className="jabzy-chat-gift-price";price.textContent="🪙 "+gift.cost.toLocaleString("en-IN")+" Coins";
   giftCard.append(art,sender,giftName,price);
   if(giftParts[1]){const note=document.createElement("div");note.className="jabzy-chat-gift-note";note.textContent="“"+giftParts.slice(1).join("|")+"”";giftCard.appendChild(note);}
-  const reveal=()=>showChatGiftAnimation({gift_code:giftParts[0],sender_name:senderName});
+  const reveal=()=>{
+    giftCard.classList.add("is-open");
+    giftCard.setAttribute("aria-expanded","true");
+    giftCard.setAttribute("aria-label",gift.name+" gift opened");
+    art.textContent=gift.emoji;
+    showChatGiftAnimation({gift_code:giftParts[0],sender_name:senderName});
+  };
   giftCard.addEventListener("click",e=>{e.stopPropagation();reveal();});
   giftCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal();}});
   row.appendChild(giftCard);
@@ -11554,6 +11561,18 @@ body.light-theme .jabzy-profile-topbar,body.light-theme #profileView .jabzy-prof
 
 /* Premium gift cards inside chat; picker dimensions remain unchanged */
 .jabzy-chat-gift-card{width:min(220px,65vw);min-width:150px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 13px 11px;margin:2px 0;border-radius:17px;border:1px solid rgba(245,204,255,.55);background:radial-gradient(circle at 50% 5%,rgba(255,220,151,.24),transparent 38%),linear-gradient(145deg,#392052,#21142f 62%,#4a2356);box-shadow:0 5px 18px rgba(12,4,24,.34),inset 0 1px 0 rgba(255,255,255,.12);color:#fff;text-align:center;cursor:pointer;overflow:hidden;position:relative}
+.jabzy-chat-gift-card:not(.is-open) .jabzy-chat-gift-sender,
+.jabzy-chat-gift-card:not(.is-open) .jabzy-chat-gift-name,
+.jabzy-chat-gift-card:not(.is-open) .jabzy-chat-gift-price,
+.jabzy-chat-gift-card:not(.is-open) .jabzy-chat-gift-note{display:none}
+.jabzy-chat-gift-card:not(.is-open){width:82px;min-width:82px;height:82px;padding:5px;border-radius:22px;background:radial-gradient(circle at 50% 20%,#a45bea55,transparent 65%),linear-gradient(145deg,#44235f,#21142f);box-shadow:0 5px 20px #a45bea55, inset 0 1px 0 #ffffff30}
+.jabzy-chat-gift-card:not(.is-open):after{content:"TAP TO OPEN";font-size:8px;font-weight:900;letter-spacing:1px;color:#ffe5a5}
+.jabzy-chat-gift-card:not(.is-open) .jabzy-chat-gift-art{min-height:52px;font-size:43px;animation:jabzyGiftBoxPulse 1.8s ease-in-out infinite}
+.jabzy-chat-gift-card.is-open{animation:jabzyGiftCardReveal .65s cubic-bezier(.16,1.3,.35,1) both}
+.jabzy-chat-gift-card.is-open .jabzy-chat-gift-art{animation:jabzyGiftBoxBurst .7s cubic-bezier(.16,1.3,.35,1) both}
+@keyframes jabzyGiftBoxPulse{0%,100%{transform:translateY(0) rotate(0) scale(1)}50%{transform:translateY(-4px) rotate(-4deg) scale(1.08)}}
+@keyframes jabzyGiftCardReveal{0%{transform:scale(.72);opacity:.5;filter:brightness(1.8)}65%{transform:scale(1.07)}100%{transform:scale(1);opacity:1;filter:brightness(1)}}
+@keyframes jabzyGiftBoxBurst{0%{transform:scale(.4) rotate(-18deg);filter:brightness(2)}65%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1);filter:drop-shadow(0 0 22px #ffd56f)}}
 .jabzy-chat-gift-card:before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,220,160,.18);border-radius:13px;pointer-events:none}
 .jabzy-chat-gift-art{width:100%;min-height:76px;display:grid;place-items:center;font-size:54px;line-height:1.2;filter:drop-shadow(0 5px 8px rgba(255,203,111,.38));text-shadow:0 0 18px rgba(255,207,120,.35);animation:jabzyGiftFloat 2.8s ease-in-out infinite}
 .jabzy-chat-gift-sender{font-size:11px;font-weight:750;color:#f7dfff;line-height:1.25}
