@@ -1246,6 +1246,9 @@ body.light-theme .bottom-nav button.active{
   box-shadow:inset 0 0 0 1px #e5c6f4,0 3px 12px rgba(139,53,180,.10)!important;
 }
 .bottom-nav button{transition:background .18s ease,color .18s ease,box-shadow .18s ease;}
+.bottom-nav .nav-icon{display:flex;align-items:center;justify-content:center;width:25px;height:25px;flex:0 0 25px;color:currentColor;}
+.bottom-nav .nav-icon svg{display:block;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.bottom-nav .nav-label{display:block;font-size:10.5px;line-height:1.15;font-weight:600;}
 
 
 /* Light theme: clean white chat conversation cards */
@@ -2780,11 +2783,11 @@ box-sizing:border-box;
 </div>
 
 <div class="bottom-nav">
-  <button data-tab="home" data-lang-nav="home" onclick="showTab('home')">🏠<br>Home</button>
-  <button data-tab="friends" data-lang-nav="friends" onclick="showTab('friends')">👥<br>Friends</button>
-  <button data-tab="chats" data-lang-nav="chats" onclick="showTab('chats')">💬<br>Chats</button>
-  <button data-tab="rooms" data-lang-nav="rooms" onclick="showTab('rooms')">🎮<br>Rooms</button>
-  <button data-tab="profile" data-lang-nav="profile" onclick="showTab('profile')">👤<br>Profile</button>
+  <button data-tab="home" data-lang-nav="home" aria-label="Home" onclick="showTab('home')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></svg></span><span class="nav-label">Home</span></button>
+  <button data-tab="friends" data-lang-nav="friends" aria-label="Friends" onclick="showTab('friends')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">Friends</span></button>
+  <button data-tab="chats" data-lang-nav="chats" aria-label="Chats" onclick="showTab('chats')"><span class="nav-icon" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg></span><span class="nav-label">Chats</span></button>
+  <button data-tab="rooms" data-lang-nav="rooms" aria-label="Rooms" onclick="showTab('rooms')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20"/><path d="M5 5a10 10 0 0 0 0 14"/><path d="M19 5a10 10 0 0 1 0 14"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span><span class="nav-label">Rooms</span></button>
+  <button data-tab="profile" data-lang-nav="profile" aria-label="Profile" onclick="showTab('profile')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span class="nav-label">Profile</span></button>
 </div>
   
   
@@ -11288,7 +11291,7 @@ function setAppLanguage(lang){
   document.documentElement.lang=lang;
   translateJabzyElement(document.body,lang);
   const navLabels={home:lang==="hi"?"होम":"Home",friends:lang==="hi"?"दोस्त":"Friends",chats:lang==="hi"?"चैट":"Chats",rooms:lang==="hi"?"रूम्स":"Rooms",profile:lang==="hi"?"प्रोफ़ाइल":"Profile"};
-  document.querySelectorAll("[data-lang-nav]").forEach(btn=>{const key=btn.getAttribute("data-lang-nav");const emoji=({home:"🏠",friends:"👥",chats:"💬",rooms:"🎮",profile:"👤"})[key];btn.innerHTML=emoji+"<br>"+navLabels[key];});
+  document.querySelectorAll("[data-lang-nav]").forEach(btn=>{const key=btn.getAttribute("data-lang-nav");const label=btn.querySelector(".nav-label");if(label)label.textContent=navLabels[key]||key;btn.setAttribute("aria-label",navLabels[key]||key);});
   const hiBtn=document.getElementById("languageHiBtn"),enBtn=document.getElementById("languageEnBtn");
   if(hiBtn)hiBtn.textContent=lang==="hi"?"✓ चुनी गई":"Select";
   if(enBtn)enBtn.textContent=lang==="en"?"✓ Selected":"चुनें";
