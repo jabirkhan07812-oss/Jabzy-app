@@ -1360,6 +1360,44 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
 \n/* JABZY post cards: readable in both appearance modes */\n.jabzy-post-card{background:#21152f;color:#f5eaff;border-color:#49315d;}\n.jabzy-post-card .jabzy-post-caption{color:#f5eaff;}\n.jabzy-post-card .jabzy-post-date{color:#bba9ca;}\n.jabzy-post-card .jabzy-post-actions{border-color:#49315d;}\n.jabzy-post-card .jabzy-post-save{color:inherit;}\nbody.light-theme .jabzy-post-card{background:#fff!important;color:#30233b!important;border-color:#e5d9ec!important;box-shadow:0 2px 10px #39264a0d;}\nbody.light-theme .jabzy-post-card .jabzy-post-caption{color:#30233b!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-date{color:#756480!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-actions{border-color:#e5d9ec!important;}\nbody.light-theme .jabzy-post-card .jabzy-post-save{color:#30233b!important;}\n</style>
   <link rel="icon" type="image/svg+xml" href="./jabzy-app-icon.svg">
   <link rel="apple-touch-icon" href="./jabzy-app-icon.svg">
+<style id="jabzy-fullscreen-search-theme">
+#jabzySearchScreen{position:fixed;inset:0;z-index:100030;display:none;overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(155deg,#100b19,#1b1028 58%,#100b1c);color:#fff;padding:0 0 max(22px,env(safe-area-inset-bottom));box-sizing:border-box}
+.jabzy-search-topbar{height:58px;display:flex;align-items:center;gap:13px;padding:0 14px;border-bottom:1px solid #ffffff18;position:sticky;top:0;background:#160f22;z-index:2}
+.jabzy-search-back{width:38px!important;height:38px!important;min-width:38px;margin:0!important;padding:0!important;border-radius:12px!important;background:#30203f!important;border:1px solid #76538c!important;color:#fff!important;font-size:25px!important;line-height:1!important}
+.jabzy-search-title{font-size:18px;font-weight:850;letter-spacing:.2px;flex:1}.jabzy-search-spacer{width:38px}
+.jabzy-search-content{padding:17px 15px 28px;max-width:620px;margin:0 auto}
+.jabzy-search-form{display:flex;align-items:center;gap:9px;padding:5px 7px 5px 13px;border:1px solid #76538c;border-radius:14px;background:#21172e;box-shadow:0 5px 18px #0003}
+.jabzy-search-form>span{font-size:23px;color:#d9b6f5}
+.jabzy-search-form input{flex:1;min-width:0;width:auto!important;margin:0!important;padding:10px 2px!important;border:0!important;outline:none!important;background:transparent!important;color:#fff!important;font-size:15px!important;box-shadow:none!important}
+.jabzy-search-form input::placeholder{color:#bba9ca}
+.jabzy-search-form button{width:auto!important;margin:0!important;padding:9px 13px!important;border-radius:10px!important;background:linear-gradient(110deg,#a855f7,#e14c9a)!important;font-size:12px!important}
+.jabzy-search-section-title{margin:23px 2px 10px;font-size:13px;font-weight:850;letter-spacing:.5px;color:#e6d2f7}
+.jabzy-search-explore{width:100%!important;display:flex!important;align-items:center!important;gap:12px!important;margin:8px 0!important;padding:13px 12px!important;text-align:left!important;border:1px solid #4e3a60!important;border-radius:15px!important;background:linear-gradient(120deg,#2b1d3b,#1c1528)!important;color:#fff!important;box-shadow:none!important}
+.jabzy-search-explore-icon{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border-radius:12px;background:#75439a44;color:#e4b8ff;font-size:23px}
+.jabzy-search-explore>span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:3px}.jabzy-search-explore b{font-size:14px}
+.jabzy-search-explore small{font-size:11px;font-weight:400;color:#c2b2d1}.jabzy-search-arrow{font-size:25px;color:#cda2ec}
+.jabzy-search-results{display:flex;flex-direction:column;gap:8px}
+.jabzy-search-result{display:flex;align-items:center;gap:11px;width:100%;margin:0;padding:10px;border:1px solid #493657;border-radius:13px;background:#21172e;color:#fff;text-align:left}
+.jabzy-search-result img,.jabzy-search-avatar{width:43px;height:43px;flex:0 0 43px;border-radius:50%;object-fit:cover;background:#4a315c;display:grid;place-items:center}
+.jabzy-search-result-copy{min-width:0;display:flex;flex-direction:column;gap:3px}.jabzy-search-result-copy b{font-size:13px;overflow-wrap:anywhere}
+.jabzy-search-result-copy small{font-size:11px;color:#c2b2d1;overflow-wrap:anywhere}
+.jabzy-search-empty{padding:18px 12px;text-align:center;color:#bba9ca;font-size:12px;border:1px dashed #604b70;border-radius:13px}
+body.light-theme #jabzySearchScreen{background:linear-gradient(155deg,#fff,#f5eef9 62%,#f0e8f7)!important;color:#30213d!important}
+body.light-theme .jabzy-search-topbar{background:#fff!important;border-color:#e8dced!important}
+body.light-theme .jabzy-search-back{background:#f2e8f8!important;border-color:#dfc9eb!important;color:#57366d!important}
+body.light-theme .jabzy-search-form{background:#fff!important;border-color:#d9c4e6!important;box-shadow:0 5px 18px #59346a12}
+body.light-theme .jabzy-search-form>span{color:#8c4db0}
+body.light-theme .jabzy-search-form input{color:#30213d!important}
+body.light-theme .jabzy-search-form input::placeholder{color:#8c7a98}
+body.light-theme .jabzy-search-section-title{color:#654276}
+body.light-theme .jabzy-search-explore{background:linear-gradient(120deg,#fff,#f4eafa)!important;border-color:#e1d0e9!important;color:#39264a!important;box-shadow:0 4px 14px #59346a0c!important}
+body.light-theme .jabzy-search-explore-icon{background:#eadcf3;color:#8747aa}
+body.light-theme .jabzy-search-explore small,body.light-theme .jabzy-search-empty{color:#786585}
+body.light-theme .jabzy-search-arrow{color:#8e53ad}
+body.light-theme .jabzy-search-result{background:#fff;border-color:#e4d6eb;color:#39264a;box-shadow:0 3px 12px #59346a0c}
+body.light-theme .jabzy-search-result-copy small{color:#786585}
+body.light-theme .jabzy-search-empty{border-color:#ddcce6}
+</style>
 </head>
 <body>
   
@@ -1472,6 +1510,7 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
       <p style="margin:3px 0 0;font-size:11px;color:#cbb8df;">Your world. Your people. ❤️</p>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button type="button" onclick="openJabzySearch()" aria-label="Search JABZY" title="Search" style="width:34px;height:34px;padding:0;margin:0;border-radius:11px;background:#281b38;border:1px solid #8055a0;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">⌕</button>
       <button type="button" onclick="openDailyRewards()" aria-label="Daily Rewards" style="width:42px;height:42px;padding:0;margin:0;border-radius:14px;background:linear-gradient(135deg,#49305f,#2a1a3b);border:1px solid #a477c5;color:white;font-size:21px;box-shadow:0 0 14px #b45be733;">🎁</button>
       <button type="button" onclick="openNotifications()" class="notification-bell" style="width:auto;padding:9px 12px;margin:0;border-radius:14px;background:#281b38;border:1px solid #69427f;color:white;">🔔 <span id="notificationCountHome">0</span></button>
       <button type="button" onclick="showTab('profile')" style="width:39px;height:39px;padding:5px;margin:0;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);border:0;">⚙️</button>
@@ -1594,6 +1633,26 @@ body.light-theme .room-gift-tabs button.active{background:linear-gradient(90deg,
 
 
 </div>
+
+<div id="jabzySearchScreen" aria-label="JABZY Search" style="display:none;">
+  <div class="jabzy-search-topbar">
+    <button type="button" onclick="closeJabzySearch()" aria-label="Back to Home" class="jabzy-search-back">←</button>
+    <div class="jabzy-search-title">Search JABZY</div><span class="jabzy-search-spacer"></span>
+  </div>
+  <div class="jabzy-search-content">
+    <form class="jabzy-search-form" onsubmit="event.preventDefault();searchJabzyPeople();">
+      <span aria-hidden="true">⌕</span><input id="jabzyPeopleSearchInput" type="search" placeholder="Search people, creators..." autocomplete="off" enterkeyhint="search">
+      <button type="submit" aria-label="Search">Search</button>
+    </form>
+    <div class="jabzy-search-section-title">Explore JABZY</div>
+    <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">✧</span><span><b>Discover People</b><small>Find new people and profiles</small></span><span class="jabzy-search-arrow">›</span></button>
+    <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">↗</span><span><b>Trending Creators</b><small>Explore popular creators</small></span><span class="jabzy-search-arrow">›</span></button>
+    <button type="button" class="jabzy-search-explore" onclick="openJabzyDiscover()"><span class="jabzy-search-explore-icon">♙</span><span><b>Suggested Users</b><small>Meet people in the JABZY community</small></span><span class="jabzy-search-arrow">›</span></button>
+    <div class="jabzy-search-section-title">Search Results</div>
+    <div id="jabzyPeopleSearchResults" class="jabzy-search-results" aria-live="polite"><div class="jabzy-search-empty">Search by a person's username to find their profile.</div></div>
+  </div>
+</div>
+
 <div id="discoverScreen" class="app-screen" style="display:block">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <h2 class="discover-heading">Discover ✨</h2>
@@ -10425,6 +10484,7 @@ function handleJabzyAndroidBack(){
     return !!el && getComputedStyle(el).display!=="none";
   };
   // Close the most recently opened app overlay/sub-screen before changing tabs.
+  if(visible("jabzySearchScreen")){ jabzyBackPressAt=0; closeJabzySearch(); return true; }
   if(visible("dailyRewardsScreen")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
   if(visible("storyViewerModal")){ jabzyBackPressAt=0; closeJabzyStory(); return true; }
   if(visible("storyUploadModal")){ jabzyBackPressAt=0; closeStoryUpload(); return true; }
@@ -10482,6 +10542,38 @@ function handleJabzyAndroidBack(){
   });
   window.addEventListener("pageshow",addBackGuard);
 })();;
+
+/* JABZY full-screen Search and Discover entry */
+let jabzySearchRequest=0;
+function openJabzySearch(){
+ const screen=document.getElementById("jabzySearchScreen");if(!screen)return;
+ screen.style.display="block";const nav=document.querySelector(".bottom-nav");if(nav)nav.style.display="none";
+ const input=document.getElementById("jabzyPeopleSearchInput");if(input){input.value="";setTimeout(()=>input.focus(),80);}
+ const results=document.getElementById("jabzyPeopleSearchResults");if(results)results.innerHTML='<div class="jabzy-search-empty">Search by a person\'s username to find their profile.</div>';
+}
+function closeJabzySearch(){const screen=document.getElementById("jabzySearchScreen");if(screen)screen.style.display="none";const nav=document.querySelector(".bottom-nav");if(nav)nav.style.display="flex";}
+function openJabzyDiscover(){closeJabzySearch();showTab("discover");}
+async function searchJabzyPeople(){
+ const input=document.getElementById("jabzyPeopleSearchInput"),results=document.getElementById("jabzyPeopleSearchResults");
+ const term=(input?.value||"").trim().replace(/^@/,"");if(!results)return;
+ if(term.length<2){results.innerHTML='<div class="jabzy-search-empty">Type at least 2 letters to search.</div>';return;}
+ const request=++jabzySearchRequest;results.innerHTML='<div class="jabzy-search-empty">Searching JABZY users…</div>';
+ try{
+  const {data,error}=await db.from("profiles").select("id,username,photo_url,bio").ilike("username","%"+term+"%").limit(25);
+  if(request!==jabzySearchRequest)return;if(error)throw error;results.replaceChildren();
+  if(!data?.length){results.innerHTML='<div class="jabzy-search-empty">No users found. Try another username.</div>';return;}
+  data.forEach(profile=>{
+   const row=document.createElement("button");row.type="button";row.className="jabzy-search-result";
+   const avatar=profile.photo_url?document.createElement("img"):document.createElement("span");
+   if(profile.photo_url){avatar.src=profile.photo_url;avatar.alt="";}else{avatar.className="jabzy-search-avatar";avatar.textContent="👤";}
+   const copy=document.createElement("span");copy.className="jabzy-search-result-copy";
+   const name=document.createElement("b");name.textContent=profile.username||"JABZY User";
+   const bio=document.createElement("small");bio.textContent=profile.bio||"View profile";
+   copy.append(name,bio);row.append(avatar,copy);
+   row.addEventListener("click",()=>{closeJabzySearch();openPublicProfile(profile.id);});results.appendChild(row);
+  });
+ }catch(error){console.error("JABZY people search:",error);if(request===jabzySearchRequest)results.innerHTML='<div class="jabzy-search-empty">Search could not load. Please try again.</div>';}
+}
 
 let selectedRoomGift = null;
 let roomGiftsChannel = null;
