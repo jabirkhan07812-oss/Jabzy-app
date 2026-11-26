@@ -10650,33 +10650,26 @@ async function openJabzyStory(userId,index){
   const el=document.createElement(isVideo?"video":"img");
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
   media.appendChild(el);
-  let photoElapsed=0,lastTick=Date.now(),videoLastTime=0;
-  const paintVideoProgress=()=>{
-    if(!isVideo||activeJabzyStory!==story||progress._storyPaused)return;
-    const duration=el.duration;
-    if(Number.isFinite(duration)&&duration>0){
-      const percent=Math.max(0,Math.min(100,(el.currentTime/duration)*100));
-      fills[index].style.width=percent+"%";
-    }
-  };
+  let elapsedMs=0,lastTick=Date.now(),durationMs=5000;
   if(isVideo){
-    el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";el.muted=false;
-    el.addEventListener("loadedmetadata",paintVideoProgress);
-    el.addEventListener("durationchange",paintVideoProgress);
-    el.addEventListener("timeupdate",paintVideoProgress);
-    el.addEventListener("playing",()=>{videoLastTime=el.currentTime;paintVideoProgress();});
+    durationMs=15000;
+    el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";
+    const syncDuration=()=>{if(Number.isFinite(el.duration)&&el.duration>0)durationMs=el.duration*1000;};
+    el.addEventListener("loadedmetadata",syncDuration);
+    el.addEventListener("durationchange",syncDuration);
     el.addEventListener("ended",()=>{if(activeJabzyStory===story){fills[index].style.width="100%";changeJabzyStory(1);}});
+    if(el.readyState>=1)syncDuration();
     el.play().catch(()=>{});
   }
   progress._storyTimer=setInterval(()=>{
     if(activeJabzyStory!==story){clearInterval(progress._storyTimer);progress._storyTimer=null;return;}
     const now=Date.now(),delta=now-lastTick;lastTick=now;
     if(progress._storyPaused)return;
-    if(isVideo){paintVideoProgress();}
-    else{
-      photoElapsed+=delta;
-      fills[index].style.width=Math.min(100,(photoElapsed/5000)*100)+"%";
-      if(photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
+    if(!isVideo||(!el.paused&&!el.seeking)){
+      elapsedMs+=delta;
+      const percent=Math.min(100,(elapsedMs/Math.max(1,durationMs))*100);
+      fills[index].style.width=percent+"%";
+      if(elapsedMs>=durationMs&&activeJabzyStory===story)changeJabzyStory(1);
     }
   },50);
   document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
