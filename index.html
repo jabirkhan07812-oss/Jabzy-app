@@ -10646,12 +10646,25 @@ async function openJabzyStory(userId,index){
     track.appendChild(fill);progress.appendChild(track);fills.push(fill);
   });
   const media=document.getElementById("storyViewerMedia");media.replaceChildren();
-  const el=document.createElement(story.media_type==="video"?"video":"img");
+  const isVideo=String(story.media_type||"").toLowerCase().includes("video");
+  const el=document.createElement(isVideo?"video":"img");
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
   media.appendChild(el);
-  let photoElapsed=0,lastTick=Date.now();
-  if(story.media_type==="video"){
-    el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";
+  let photoElapsed=0,lastTick=Date.now(),videoLastTime=0;
+  const paintVideoProgress=()=>{
+    if(!isVideo||activeJabzyStory!==story||progress._storyPaused)return;
+    const duration=el.duration;
+    if(Number.isFinite(duration)&&duration>0){
+      const percent=Math.max(0,Math.min(100,(el.currentTime/duration)*100));
+      fills[index].style.width=percent+"%";
+    }
+  };
+  if(isVideo){
+    el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";el.muted=false;
+    el.addEventListener("loadedmetadata",paintVideoProgress);
+    el.addEventListener("durationchange",paintVideoProgress);
+    el.addEventListener("timeupdate",paintVideoProgress);
+    el.addEventListener("playing",()=>{videoLastTime=el.currentTime;paintVideoProgress();});
     el.addEventListener("ended",()=>{if(activeJabzyStory===story){fills[index].style.width="100%";changeJabzyStory(1);}});
     el.play().catch(()=>{});
   }
@@ -10659,17 +10672,12 @@ async function openJabzyStory(userId,index){
     if(activeJabzyStory!==story){clearInterval(progress._storyTimer);progress._storyTimer=null;return;}
     const now=Date.now(),delta=now-lastTick;lastTick=now;
     if(progress._storyPaused)return;
-    let percent=0;
-    if(story.media_type==="video"){
-      if(Number.isFinite(el.duration)&&el.duration>0){
-        percent=Math.max(0,Math.min(100,(el.currentTime/el.duration)*100));
-      }
-    }else{
+    if(isVideo){paintVideoProgress();}
+    else{
       photoElapsed+=delta;
-      percent=Math.min(100,(photoElapsed/5000)*100);
+      fills[index].style.width=Math.min(100,(photoElapsed/5000)*100)+"%";
+      if(photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
     }
-    fills[index].style.width=percent+"%";
-    if(story.media_type!=="video"&&photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
   },50);
   document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
   if(!activeJabzyStoryOwner){
