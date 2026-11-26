@@ -1696,8 +1696,9 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     </div>
 
   <div class="discover-actions">
-  <button type="button" class="skip-btn" onclick="dislikeUser()">✕ Skip</button>
-  <button type="button" class="message-btn" onclick="messageCurrentUser()">💬 Message</button>
+  <button type="button" class="skip-btn" onclick="dislikeUser()" aria-label="Skip profile">✕</button>
+  <button type="button" class="friend-btn" id="discoverAddFriendBtn" onclick="likeUser()">＋ Add Friend</button>
+  <button type="button" class="message-btn" onclick="messageCurrentUser()" aria-label="Message user">💬</button>
   </div>
     
   </div>
@@ -5334,89 +5335,74 @@ async function showSwipeCard(){
   const card=document.getElementById("swipeCard");
   const people=window.jabzyPeople||[];
   const p=people[window.jabzyIndex];
-
+  const friendBtn=document.getElementById("discoverAddFriendBtn");
   if(!p){
-    card.innerHTML="Abhi koi aur profile nahi hai ❤️";
+    card.innerHTML='<div class="discover-empty-state">Abhi koi aur profile nahi hai ❤️</div>';
+    if(friendBtn){friendBtn.disabled=true;friendBtn.textContent="No profiles";}
     return;
   }
-
-  card.innerHTML="Loading...";
-
-  const [followResult,requestResult]=await Promise.all([
-    db.from("follows")
-      .select("id")
-      .eq("follower_id",me.id)
-      .eq("following_id",p.id)
-      .maybeSingle(),
-
-    db.from("friend_requests")
-      .select("id,status,sender_id,receiver_id")
-      .or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`)
+  card.innerHTML='<div class="discover-loading">Loading profile…</div>';
+  if(friendBtn){friendBtn.disabled=true;friendBtn.textContent="Loading…";}
+  const [followResult,requestResult,settingsResult]=await Promise.all([
+    db.from("follows").select("id").eq("follower_id",me.id).eq("following_id",p.id).maybeSingle(),
+    db.from("friend_requests").select("id,status,sender_id,receiver_id").or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`),
+    db.from("user_settings").select("show_online_status").eq("user_id",p.id).maybeSingle()
   ]);
-
-  if(followResult.error){
-    card.innerText=followResult.error.message;
-    return;
-  }
-
-  if(requestResult.error){
-    card.innerText=requestResult.error.message;
-    return;
-  }
-
+  if(followResult.error){card.innerText=followResult.error.message;return;}
+  if(requestResult.error){card.innerText=requestResult.error.message;return;}
+  if(settingsResult.error){card.innerText=settingsResult.error.message;return;}
   card.innerHTML="";
-
-  if(p.photo_url){
-    const img=document.createElement("img");
-    img.src=p.photo_url;
-    img.style.cssText="width:100%;height:280px;object-fit:cover;border-radius:15px;cursor:pointer;";
-    img.addEventListener("click",()=>openPublicProfile(p.id));
-    card.appendChild(img);
-  }
-
+  const visual=document.createElement("div");
+  visual.className="discover-card-visual";
+  visual.style.backgroundImage=p.photo_url
+    ? "linear-gradient(180deg,rgba(10,7,18,.12) 25%,rgba(10,7,18,.35) 55%,rgba(10,7,18,.94) 100%),url("+JSON.stringify(p.photo_url)+")"
+    : "linear-gradient(145deg,#58316f,#34234e 55%,#171323)";
+  visual.setAttribute("role","button");
+  visual.setAttribute("tabindex","0");
+  visual.setAttribute("aria-label","Open "+(p.username||"user")+" profile");
+  visual.addEventListener("click",()=>openPublicProfile(p.id));
+  visual.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPublicProfile(p.id);}});
+  const top=document.createElement("div");
+  top.className="discover-card-top";
+  const online=document.createElement("span");
+  online.className="discover-online-pill";
+  const seen=p.last_seen?new Date(p.last_seen).getTime():0;
+  const isOnline=settingsResult.data?.show_online_status!==false&&seen>0&&(Date.now()-seen)<120000;
+  online.textContent=isOnline?"● Online":"Discover";
+  if(!isOnline)online.classList.add("discover-neutral-pill");
+  top.appendChild(online);
+  const follow=document.createElement("button");
+  follow.type="button";
+  follow.className="discover-follow-pill";
+  follow.textContent=followResult.data?"✓ Following":"＋ Follow";
+  follow.addEventListener("click",e=>{e.stopPropagation();toggleFollow(p.id,follow);});
+  top.appendChild(follow);
+  visual.appendChild(top);
+  const details=document.createElement("div");
+  details.className="discover-card-details";
   const name=document.createElement("h2");
-  name.textContent=p.username||"User";
-  name.style.cursor="pointer";
-  name.addEventListener("click",()=>openPublicProfile(p.id));
+  name.textContent=(p.username||"User")+(p.age?", "+p.age:"");
   if(await isOfficialAdminUser(p.id))addOfficialAdminMark(name);
-
-  const info=document.createElement("p");
-  info.textContent=(p.age||"")+" years • "+(p.bio||"");
-
-  card.append(name,info);
-
-  const request=(requestResult.data||[]).find(r=>
-    r.status==="accepted" || r.status==="pending"
-  );
-
-  const actionRow=document.createElement("div");
-  actionRow.className="discover-card-actions";
-
-  const followBtn=document.createElement("button");
-  followBtn.type="button";
-  followBtn.textContent=followResult.data?"✓ Following":"➕ Follow";
-  followBtn.onclick=()=>toggleFollow(p.id,followBtn);
-
-  const friendBtn=document.createElement("button");
-  friendBtn.type="button";
-  friendBtn.textContent="👥 Add Friend";
-  friendBtn.onclick=()=>likeUser();
-
-  if(request){
-    if(request.status==="accepted"){
-      friendBtn.textContent="✓ Friends";
-    }else if(request.sender_id===me.id){
-      friendBtn.textContent="Request Sent";
-    }else{
-      friendBtn.textContent="Request Received";
-    }
-    friendBtn.disabled=true;
+  const bio=document.createElement("p");
+  bio.textContent=p.bio||"";
+  details.append(name,bio);
+  visual.appendChild(details);
+  if(!p.photo_url){
+    const initials=document.createElement("div");
+    initials.className="discover-initial-avatar";
+    initials.textContent=(p.username||"J").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
+    visual.insertBefore(initials,details);
   }
-
-  actionRow.append(followBtn,friendBtn);
-  card.appendChild(actionRow);
+  card.appendChild(visual);
+  const request=(requestResult.data||[]).find(r=>r.status==="accepted"||r.status==="pending");
+  if(friendBtn){
+    friendBtn.disabled=!!request;
+    if(!request)friendBtn.textContent="＋ Add Friend";
+    else if(request.status==="accepted")friendBtn.textContent="✓ Friends";
+    else if(request.sender_id===me.id)friendBtn.textContent="Requested";
+    else friendBtn.textContent="Request Received";
   }
-  
+}
   
 async function likeUser(){
   const p=window.jabzyPeople[window.jabzyIndex];
@@ -12769,6 +12755,33 @@ async function finishJabzyVoiceUpload(){
 #jabzyVoiceInlineIndicator .jabzy-voice-wave i{display:block;width:3px;height:7px;border-radius:5px;background:linear-gradient(180deg,#ff80c2,#a45bea);animation:jabzyVoiceWave .72s ease-in-out infinite alternate}
 #jabzyVoiceInlineIndicator .jabzy-voice-wave i:nth-child(2n){animation-delay:.16s}#jabzyVoiceInlineIndicator .jabzy-voice-wave i:nth-child(3n){animation-delay:.31s}#jabzyVoiceInlineIndicator .jabzy-voice-wave i:nth-child(4n){animation-delay:.08s}
 @keyframes jabzyVoiceWave{from{height:5px;opacity:.65}to{height:25px;opacity:1}}
+
+/* JABZY DISCOVER CARD + ACTION BAR — BOTH THEMES */
+#discoverScreen .swipe-container{max-width:440px;margin:10px auto 8px!important;}
+#discoverScreen #swipeCard{position:relative;padding:0!important;height:62vh;min-height:420px;max-height:650px;overflow:hidden;border-radius:25px;background:#21182d!important;border:1px solid #76508e;box-shadow:0 12px 34px rgba(0,0,0,.28);}
+#discoverScreen .discover-card-visual{position:relative;width:100%;height:100%;min-height:inherit;background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:inherit;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;cursor:pointer;}
+#discoverScreen .discover-card-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px;}
+#discoverScreen .discover-online-pill,#discoverScreen .discover-follow-pill{border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:8px 13px;background:rgba(22,15,32,.42);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#fff;font-size:12px;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.16);}
+#discoverScreen .discover-online-pill{color:#d8ffe5;}
+#discoverScreen .discover-neutral-pill{color:#f3e8ff;}
+#discoverScreen .discover-follow-pill{cursor:pointer;}
+#discoverScreen .discover-card-details{position:relative;z-index:1;padding:20px 17px 22px;color:#fff;pointer-events:none;}
+#discoverScreen .discover-card-details h2{margin:0 0 6px!important;color:#fff!important;font-size:25px!important;text-shadow:0 2px 10px #0009;}
+#discoverScreen .discover-card-details p{margin:0!important;color:#f4edf9!important;font-size:14px!important;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-shadow:0 1px 7px #000b;}
+#discoverScreen .discover-initial-avatar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:84px;font-weight:900;letter-spacing:2px;text-shadow:0 5px 22px #0005;pointer-events:none;}
+#discoverScreen .discover-loading,#discoverScreen .discover-empty-state{height:100%;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#f6eafa;}
+#discoverScreen .discover-actions{display:flex!important;align-items:center;justify-content:space-between;gap:14px;margin:12px auto 0!important;max-width:440px;padding:0 8px;}
+#discoverScreen .discover-actions button{flex:0 0 auto!important;min-width:0!important;width:50px;height:50px;padding:0!important;margin:0!important;border-radius:50%!important;display:flex;align-items:center;justify-content:center;font-size:20px!important;font-weight:800;border:1px solid rgba(255,255,255,.15);box-shadow:0 5px 16px rgba(0,0,0,.16);}
+#discoverScreen .discover-actions .skip-btn{background:rgba(42,34,55,.88)!important;color:#fff!important;border-color:#655271!important;}
+#discoverScreen .discover-actions .friend-btn{flex:1!important;width:auto;height:52px;border-radius:999px!important;background:linear-gradient(110deg,#ff55a8,#a45bea)!important;color:#fff!important;border:0!important;font-size:15px!important;}
+#discoverScreen .discover-actions .message-btn{background:linear-gradient(135deg,#286bd1,#7548c9)!important;color:#fff!important;border-color:#6799ff!important;}
+#discoverScreen .discover-actions button:disabled{opacity:.72;}
+body.light-theme #discoverScreen #swipeCard{background:#fff!important;border-color:#dfd0e9!important;box-shadow:0 8px 25px rgba(55,30,75,.12)!important;}
+body.light-theme #discoverScreen .discover-card-visual{background-color:#eee3f5;}
+body.light-theme #discoverScreen .discover-online-pill,body.light-theme #discoverScreen .discover-follow-pill{background:rgba(45,29,59,.55);border-color:rgba(255,255,255,.6);color:#fff;}
+body.light-theme #discoverScreen .discover-card-details h2,body.light-theme #discoverScreen .discover-card-details p{color:#fff!important;}
+body.light-theme #discoverScreen .discover-loading,body.light-theme #discoverScreen .discover-empty-state{color:#493653;}
+@media(max-height:700px){#discoverScreen #swipeCard{height:58vh;min-height:360px;}}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
