@@ -10,7 +10,8 @@
 <script>
 if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}
 </script>
-  <style>
+  <style>@keyframes jabzyStoryUploadSpin{to{transform:rotate(360deg)}}
+
 .swipe-container{
 width:100%;
 max-width:420px;
@@ -10505,6 +10506,17 @@ async function makeJabzyStoryEditedVideo(file,status){
     video.pause();video.removeAttribute("src");video.load();URL.revokeObjectURL(sourceUrl);
   }
 }
+function showJabzyStoryUploading(){
+  const row=document.getElementById("jabzyStoryFriends");if(!row)return;
+  let item=document.getElementById("jabzyStoryUploadingItem");if(item)item.remove();
+  item=document.createElement("div");item.id="jabzyStoryUploadingItem";item.style.cssText="flex:0 0 68px;width:68px;text-align:center;color:white;";
+  const ring=document.createElement("div");ring.style.cssText="width:60px;height:60px;margin:auto;border-radius:50%;padding:3px;background:conic-gradient(#ff55a8 0 25%,#ffffff35 25% 100%);animation:jabzyStoryUploadSpin 1s linear infinite;";
+  const inner=document.createElement("div");inner.style.cssText="width:100%;height:100%;border-radius:50%;background:#21152d;border:2px solid #21152d;display:flex;align-items:center;justify-content:center;font-size:21px;";inner.textContent="↑";ring.appendChild(inner);
+  const label=document.createElement("div");label.textContent="Your Story";label.style.cssText="font-size:11px;margin-top:6px;white-space:nowrap;";
+  const state=document.createElement("div");state.textContent="Uploading…";state.style.cssText="font-size:9px;color:#ff9bd0;margin-top:2px;";
+  item.append(ring,label,state);row.prepend(item);
+}
+function removeJabzyStoryUploading(){const item=document.getElementById("jabzyStoryUploadingItem");if(item)item.remove();}
 async function uploadJabzyStory(){
   if(jabzyStoryEditorMode==="post"){
     const btn=document.getElementById("storyUploadBtn"),status=document.getElementById("storyUploadStatus"),original=document.getElementById("storyMediaFile").files[0];
@@ -10523,6 +10535,7 @@ async function uploadJabzyStory(){
   if(!originalFile.type.startsWith("image/")&&!originalFile.type.startsWith("video/")){status.textContent="Only photo/video allowed.";return;}
   if(originalFile.size>50*1024*1024){status.textContent="File 50 MB se chhoti honi chahiye.";return;}
   btn.disabled=true;status.textContent="Preparing your Story...";
+  showJabzyStoryUploading();closeStoryUpload();
   try{
     const file=originalFile.type.startsWith("image/")?await makeJabzyStoryEditedImage(originalFile):await makeJabzyStoryEditedVideo(originalFile,status);
     const ext=file.type==="image/png"?"png":(file.type.startsWith("video/")?(file.type.includes("mp4")?"mp4":"webm"):"jpg");
@@ -10533,8 +10546,8 @@ async function uploadJabzyStory(){
     const {error:insertErr}=await db.from("stories").insert({user_id:me.id,media_url:urlData.publicUrl,media_type:file.type.startsWith("video/")?"video":"image",caption:caption||null});
     if(insertErr){await db.storage.from("stories").remove([path]);status.textContent=insertErr.message;btn.disabled=false;return;}
     document.getElementById("storyMediaFile").value="";document.getElementById("storyCaption").value="";
-    status.textContent="Story shared successfully ❤️";await loadJabzyStories();setTimeout(closeStoryUpload,650);
-  }catch(err){status.textContent=err.message||"Story edit failed.";}
+    await loadJabzyStories();removeJabzyStoryUploading();
+  }catch(err){removeJabzyStoryUploading();alert("Story upload nahi hui: "+(err.message||"Please try again."));}
   btn.disabled=false;
 }
 async function loadJabzyStories(){
