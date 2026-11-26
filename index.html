@@ -1616,7 +1616,7 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
 <div id="homePostComposer" style="padding:10px 12px;margin-bottom:14px;border:1px solid #49315d;border-radius:17px;background:linear-gradient(135deg,rgba(139,85,233,.10),rgba(255,85,168,.06));">
   <div style="display:flex;align-items:center;gap:10px;">
     <div id="homePostAvatar" style="width:40px;height:40px;flex:0 0 40px;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#8b55e9);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👤</div>
-    <button id="homePostTrigger" type="button" onclick="openHomePostComposer()" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex:1;min-width:0;text-align:left;width:auto;margin:0;padding:13px 15px;border-radius:24px;background:#21172e;border:1px solid #80539a;color:#e5d5f2;font-size:13px;font-weight:600;box-shadow:0 3px 12px rgba(160,68,184,.14);"><span>What's on your mind?</span><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto;"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-5-5L5 19"/></svg></button>
+    <button id="homePostTrigger" type="button" onclick="openHomePostComposer()" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex:1;min-width:0;text-align:left;width:auto;margin:0;padding:13px 15px;border-radius:24px;background:#21172e;border:1px solid #80539a;color:#e5d5f2;font-size:13px;font-weight:600;box-shadow:0 3px 12px rgba(160,68,184,.14);"><span>What's on your mind?</span><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto;"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-5-5L5 19"/></svg></button>
   </div>
 </div>
 
@@ -3774,7 +3774,7 @@ async function initHomePostComposer(){
   jabzyOfficialAdminSession=!isAdminError&&data===true;
   if(tools)tools.style.display="none";
   const trigger=document.getElementById("homePostTrigger");
-  if(trigger)trigger.style.display=jabzyOfficialAdminSession?"flex":"none";
+  if(trigger)trigger.style.display="flex";
   const modalAvatar=document.getElementById("homePostModalAvatar");
   if(modalAvatar&&avatar&&avatar.querySelector("img")){modalAvatar.replaceChildren(avatar.querySelector("img").cloneNode(true));modalAvatar.firstChild.style.cssText="width:100%;height:100%;object-fit:cover;";}
 
