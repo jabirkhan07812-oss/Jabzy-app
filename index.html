@@ -4693,7 +4693,7 @@ async function loadFriendRequests(){
     if(!requests||requests.length===0){
       const empty=document.createElement("div");
       empty.className="jabzy-friend-empty";
-      empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span>';
+      empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span><button type="button" onclick="openJabzyDiscover()" style="width:auto;margin:8px 0 0;padding:10px 18px;border:0;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;font-weight:800;">Discover People</button>';
       box.appendChild(empty);
       return;
     }
@@ -5870,6 +5870,7 @@ async function loadChatList(){
 const box=document.getElementById("chatListItems");
 
 if(!me)return;
+box.innerHTML='<div class="jabzy-chat-skeleton-list">'+[1,2,3].map(()=>'<div class="jabzy-chat-skeleton-row"><i></i><span><b></b><small></small></span></div>').join('')+'</div>';
 
 const {data:clearRows,error:clearError}=await db
 .from("user_chat_clears_per_chat")
@@ -5925,7 +5926,7 @@ try{
 const ids=[...latest.keys()];
 
 if(!ids.length){
-box.innerText="Abhi koi chat nahi hai.";
+box.innerHTML='<div style="padding:28px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;"><div style="font-size:30px;margin-bottom:8px;">💬</div><b>Abhi koi chat nahi hai</b><div style="font-size:12px;opacity:.72;margin:6px 0 14px;">Discover people and start your first conversation.</div><button type="button" onclick="openJabzyDiscover()" style="width:auto;margin:0;padding:9px 18px;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;">Discover People</button></div>';
 return;
 }
 
@@ -10237,7 +10238,7 @@ async function loadActiveRooms(){
   }
 
   if(!data || data.length === 0){
-    box.innerText = "No live rooms yet.";
+    box.innerHTML = '<div style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b>No live rooms yet</b><div style="font-size:12px;opacity:.72;margin:6px 0 14px;">Be the first to start a room and invite friends.</div><button type="button" onclick="createLiveRoom()" style="width:auto;margin:0;padding:9px 18px;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;">＋ Create Room</button></div>';
     return;
   }
 
@@ -12591,6 +12592,16 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
 })();
 </script>
 
+<style id="jabzy-chat-skeleton-polish">
+.jabzy-chat-skeleton-list{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+.jabzy-chat-skeleton-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:rgba(130,100,150,.10)}
+.jabzy-chat-skeleton-row i{display:block;width:50px;height:50px;flex:0 0 50px;border-radius:50%;background:linear-gradient(90deg,rgba(150,130,165,.16),rgba(190,165,205,.32),rgba(150,130,165,.16));background-size:200% 100%;animation:jabzyChatShimmer 1.25s linear infinite}
+.jabzy-chat-skeleton-row span{display:flex;flex:1;flex-direction:column;gap:9px}
+.jabzy-chat-skeleton-row b,.jabzy-chat-skeleton-row small{display:block;height:10px;border-radius:8px;background:linear-gradient(90deg,rgba(150,130,165,.16),rgba(190,165,205,.32),rgba(150,130,165,.16));background-size:200% 100%;animation:jabzyChatShimmer 1.25s linear infinite}
+.jabzy-chat-skeleton-row b{width:48%}.jabzy-chat-skeleton-row small{width:78%}
+@keyframes jabzyChatShimmer{to{background-position:-200% 0}}
+body.light-theme .jabzy-chat-skeleton-row{background:#f5f0f8}
+</style>
 </body>
   </html>
   
