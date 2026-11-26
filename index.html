@@ -1558,7 +1558,7 @@ body.light-theme .jabzy-search-empty{border-color:#ddcce6}
     <div id="storyEditorStickerOverlay" style="position:absolute;left:12%;right:20%;top:54%;z-index:3;text-align:center;font-size:42px;pointer-events:none;"></div>
     <div style="position:absolute;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:linear-gradient(#0009,transparent);">
       <button type="button" onclick="closeStoryUpload()" aria-label="Close editor" style="width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#0007;border:1px solid #ffffff55;color:white;font-size:19px;">✕</button>
-      <b style="font-size:15px;text-shadow:0 1px 5px #000;">Edit Story</b>
+      <b id="storyEditorTitle" style="font-size:15px;text-shadow:0 1px 5px #000;">Edit Story</b>
       <button type="button" onclick="document.getElementById('storyMediaFile').click()" style="width:auto;margin:0;padding:8px 12px;border-radius:20px;background:#0007;border:1px solid #ffffff55;color:white;font-size:12px;">Gallery</button>
     </div>
     <div id="storyEditorToolbar" style="position:absolute;right:8px;top:50%;transform:translateY(-43%);z-index:7;display:flex;flex-direction:column;gap:9px;align-items:center;max-height:64vh;overflow-y:auto;padding:5px 2px;scrollbar-width:none;">
@@ -3708,10 +3708,11 @@ function ensureJabzyPostCaptionStep(){
 function openJabzyPostCaptionStep(file){
   const step=ensureJabzyPostCaptionStep(),holder=document.getElementById("jabzyPostCaptionMedia");
   holder.replaceChildren();
-  const url=URL.createObjectURL(file),media=document.createElement(file.type.startsWith("image/")?"img":"video");
-  media.src=url;media.style.cssText="max-width:100%;max-height:42vh;object-fit:contain;display:block;";
-  if(media.tagName==="VIDEO"){media.controls=true;media.playsInline=true;}
-  holder.appendChild(media);
+  if(file){const url=URL.createObjectURL(file),media=document.createElement(file.type.startsWith("image/")?"img":"video");
+    media.src=url;media.style.cssText="max-width:100%;max-height:42vh;object-fit:contain;display:block;";
+    if(media.tagName==="VIDEO"){media.controls=true;media.playsInline=true;}
+    holder.appendChild(media);
+  }
   document.getElementById("jabzyPostCaptionText").value=document.getElementById("homePostText").value||"";
   document.getElementById("jabzyPostCaptionAudience").value=document.getElementById("homePostAudience").value||"public";
   document.getElementById("jabzyPostCaptionTopic").value=document.getElementById("homePostTopic").value||"";
@@ -3726,7 +3727,7 @@ function previewHomePostMedia(event){
   document.getElementById("storyCaption").style.display="none";
   document.getElementById("storyUploadStatus").textContent="";
   document.getElementById("storyUploadBtn").textContent="Share ➤";
-  document.querySelector("#storyUploadModal #storyEditorStage b").textContent="Edit Post";
+  document.getElementById("storyEditorTitle").textContent="Edit Post";
   document.getElementById("homePostModal").style.display="none";
   document.getElementById("storyUploadModal").style.display="block";
   document.body.style.overflow="hidden";
@@ -10173,7 +10174,7 @@ function closeStoryUpload(){
   const video=document.getElementById("storyPreviewVideo");video.pause();
   const captionStep=document.getElementById("jabzyPostCaptionStep");if(captionStep)captionStep.style.display="none";
   const stage=document.getElementById("storyEditorStage");if(stage)stage.style.display="block";
-  if(jabzyStoryEditorMode==="post"){jabzyStoryEditorMode="story";jabzyPendingPostEditedFile=null;document.getElementById("storyCaption").style.display="";document.getElementById("storyUploadBtn").textContent="Share Story ➤";document.querySelector("#storyUploadModal #storyEditorStage b").textContent="Edit Story";document.getElementById("homePostModal").style.display="none";}
+  if(jabzyStoryEditorMode==="post"){jabzyStoryEditorMode="story";jabzyPendingPostEditedFile=null;document.getElementById("storyCaption").style.display="";document.getElementById("storyUploadBtn").textContent="Share Story ➤";document.getElementById("storyEditorTitle").textContent="Edit Story";document.getElementById("homePostModal").style.display="none";}
   document.body.style.overflow="";
   if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
 }
