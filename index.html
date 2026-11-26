@@ -10649,32 +10649,33 @@ async function openJabzyStory(userId,index){
   const el=document.createElement(story.media_type==="video"?"video":"img");
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
   media.appendChild(el);
-  let storyElapsed=0,lastTick=Date.now(),storyDuration=story.media_type==="video"?0:5000;
-  const updateStoryProgress=()=>{
-    if(!fills[index])return;
-    const percent=storyDuration>0?Math.min(100,(storyElapsed/storyDuration)*100):0;
-    fills[index].style.width=percent+"%";
-  };
   if(story.media_type==="video"){
     el.controls=false;el.autoplay=true;el.playsInline=true;el.preload="auto";
-    const setVideoDuration=()=>{if(Number.isFinite(el.duration)&&el.duration>0){storyDuration=el.duration*1000;updateStoryProgress();}};
-    el.addEventListener("loadedmetadata",setVideoDuration);
-    el.addEventListener("durationchange",setVideoDuration);
-    el.addEventListener("ended",()=>{if(activeJabzyStory===story)changeJabzyStory(1);});
-    if(el.readyState>=1)setVideoDuration();
-    el.play().catch(()=>{});
-  }
-  progress._storyTimer=setInterval(()=>{
-    if(activeJabzyStory!==story){clearInterval(progress._storyTimer);progress._storyTimer=null;return;}
-    const now=Date.now(),delta=now-lastTick;lastTick=now;
-    if(progress._storyPaused)return;
-    if(story.media_type!=="video"||(!el.paused&&!el.seeking&&el.readyState>=2)){
-      if(storyDuration>0){
-        storyElapsed+=delta;updateStoryProgress();
-        if(storyElapsed>=storyDuration&&activeJabzyStory===story)changeJabzyStory(1);
+    const updateVideoProgress=()=>{
+      if(!fills[index])return;
+      const duration=el.duration;
+      if(Number.isFinite(duration)&&duration>0){
+        const percent=Math.max(0,Math.min(100,(el.currentTime/duration)*100));
+        fills[index].style.width=percent+"%";
       }
-    }
-  },50);
+    };
+    el.addEventListener("loadedmetadata",updateVideoProgress);
+    el.addEventListener("durationchange",updateVideoProgress);
+    el.addEventListener("timeupdate",updateVideoProgress);
+    el.addEventListener("playing",updateVideoProgress);
+    el.addEventListener("ended",()=>{if(activeJabzyStory===story){if(fills[index])fills[index].style.width="100%";changeJabzyStory(1);}});
+    el.play().catch(()=>{});
+  }else{
+    let photoElapsed=0,lastTick=Date.now();
+    progress._storyTimer=setInterval(()=>{
+      if(activeJabzyStory!==story){clearInterval(progress._storyTimer);progress._storyTimer=null;return;}
+      const now=Date.now(),delta=now-lastTick;lastTick=now;
+      if(progress._storyPaused)return;
+      photoElapsed+=delta;
+      fills[index].style.width=Math.min(100,(photoElapsed/5000)*100)+"%";
+      if(photoElapsed>=5000&&activeJabzyStory===story)changeJabzyStory(1);
+    },50);
+  }
   document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
   if(!activeJabzyStoryOwner){
     const {error}=await db.from("story_views").upsert({story_id:story.id,viewer_id:me.id,viewed_at:new Date().toISOString()},{onConflict:"story_id,viewer_id",ignoreDuplicates:true});
