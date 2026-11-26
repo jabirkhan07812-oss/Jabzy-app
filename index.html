@@ -12071,3 +12071,29 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
  display:none!important;
 }
 </style>
+
+<style id="jabzy-chat-composer-all-mobile-fix">
+#matchesScreen #chatWindow{display:flex!important;flex-direction:column!important;height:100dvh!important;max-height:100dvh!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box!important}
+#matchesScreen #chatWindow #messages{flex:1 1 0!important;height:0!important;min-height:0!important;max-height:none!important;overflow-y:auto!important}
+#matchesScreen #chatWindow #chatComposer{position:relative!important;top:auto!important;bottom:auto!important;flex:0 0 auto!important;flex-shrink:0!important;width:auto!important;max-width:none!important;margin:6px 10px max(6px,env(safe-area-inset-bottom))!important;transform:none!important;align-self:stretch!important}
+#matchesScreen #chatWindow #chatPhotoPreview,#matchesScreen #chatWindow #replyPreview,#matchesScreen #chatWindow #appStatus{flex:0 0 auto!important;min-height:0!important}
+@media(max-height:600px){#matchesScreen #chatWindow #chatComposer{margin-top:3px!important;margin-bottom:3px!important}}
+</style>
+<script id="jabzy-chat-composer-viewport-v2">
+(function(){
+ if(window.__jabzyChatComposerV2)return;window.__jabzyChatComposerV2=true;
+ function sync(){
+  const chat=document.getElementById("chatWindow");
+  if(!chat||getComputedStyle(chat).display==="none")return;
+  const vv=window.visualViewport,h=vv?vv.height:window.innerHeight,top=vv?Math.max(0,vv.offsetTop):0;
+  chat.style.setProperty("top",top+"px","important");chat.style.setProperty("height",Math.max(180,h)+"px","important");chat.style.setProperty("max-height",Math.max(180,h)+"px","important");chat.style.setProperty("min-height","0px","important");
+  const list=chat.querySelector("#messages");if(list){list.style.setProperty("min-height","0px","important");list.style.setProperty("height","0px","important")}
+ }
+ let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(sync)}
+ window.addEventListener("resize",schedule,{passive:true});window.addEventListener("orientationchange",schedule,{passive:true});
+ if(window.visualViewport){window.visualViewport.addEventListener("resize",schedule,{passive:true});window.visualViewport.addEventListener("scroll",schedule,{passive:true})}
+ document.addEventListener("focusin",e=>{if(e.target&&e.target.id==="message"){setTimeout(schedule,60);setTimeout(schedule,250);setTimeout(schedule,500)}});
+ const chat=document.getElementById("chatWindow");if(chat)new MutationObserver(schedule).observe(chat,{attributes:true,attributeFilter:["style"]});
+ window.fitJabzyChatToVisibleScreen=sync;schedule();
+})();
+</script>
