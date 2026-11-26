@@ -12213,3 +12213,47 @@ async function finishJabzyVoiceUpload(){
  finally{chatSendInProgress=false;if(b)b.disabled=false;}
 }
 </script>
+
+<style id="jabzy-whatsapp-voice-cancel-style">
+#jabzyVoiceCancelHint{position:fixed;z-index:99999;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 16px;border-radius:24px;background:rgba(28,20,39,.94);border:1px solid rgba(255,110,170,.45);color:#fff;font-size:13px;white-space:nowrap;box-shadow:0 6px 24px #0006;display:none;pointer-events:none}
+#jabzyVoiceCancelHint.cancel-ready{background:#b92354;border-color:#ff8aad}
+</style>
+<script id="jabzy-whatsapp-slide-cancel">
+(function(){
+ let startX=0,startY=0,pointer=null,tracking=false;
+ function hint(){
+  let el=document.getElementById("jabzyVoiceCancelHint");
+  if(!el){el=document.createElement("div");el.id="jabzyVoiceCancelHint";document.body.appendChild(el);}
+  return el;
+ }
+ document.addEventListener("pointerdown",e=>{
+  if(!e.target.closest||!e.target.closest("#jabzyVoiceRecordButton"))return;
+  startX=e.clientX;startY=e.clientY;pointer=e.pointerId;tracking=true;jabzyVoiceCancelled=false;
+  const h=hint();h.textContent="← Slide to cancel";h.classList.remove("cancel-ready");h.style.display="block";
+ },true);
+ document.addEventListener("pointermove",e=>{
+  if(!tracking||e.pointerId!==pointer)return;
+  if(!jabzyVoiceRecording&&!jabzyVoiceStartPending)return;
+  const dx=e.clientX-startX,dy=e.clientY-startY,h=hint();
+  if(dx < -95){jabzyVoiceCancelled=true;h.textContent="✕ Release to cancel";h.classList.add("cancel-ready");}
+  else if(dx > -65){jabzyVoiceCancelled=false;h.textContent="← Slide to cancel";h.classList.remove("cancel-ready");}
+  if(dy < -85&&!jabzyVoiceCancelled){h.textContent="↑ Keep recording";h.classList.remove("cancel-ready");}
+ },true);
+ function finishPointer(e){
+  if(!tracking|| (e.pointerId!==undefined&&e.pointerId!==pointer))return;
+  tracking=false;pointer=null;
+  const h=document.getElementById("jabzyVoiceCancelHint");if(h)h.style.display="none";
+ }
+ document.addEventListener("pointerup",finishPointer,true);
+ document.addEventListener("pointercancel",e=>{
+  if(tracking&&e.pointerId===pointer){jabzyVoiceCancelled=true;cancelJabzyVoiceRecord(e);finishPointer(e);}
+ },true);
+ const originalUi=window.jabzyVoiceUi;
+ if(typeof originalUi==="function")window.jabzyVoiceUi=function(active,label){
+  originalUi(active,label);
+  const h=document.getElementById("jabzyVoiceCancelHint");
+  if(active&&h){h.style.display="block";if(!jabzyVoiceCancelled){h.textContent="← Slide to cancel";h.classList.remove("cancel-ready");}}
+  if(!active&&h)h.style.display="none";
+ };
+})();
+</script>
