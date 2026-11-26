@@ -5343,14 +5343,16 @@ async function showSwipeCard(){
   }
   card.innerHTML='<div class="discover-loading">Loading profile…</div>';
   if(friendBtn){friendBtn.disabled=true;friendBtn.textContent="Loading…";}
-  const [followResult,requestResult,settingsResult]=await Promise.all([
+  const [followResult,requestResult,settingsResult,interestResult]=await Promise.all([
     db.from("follows").select("id").eq("follower_id",me.id).eq("following_id",p.id).maybeSingle(),
     db.from("friend_requests").select("id,status,sender_id,receiver_id").or(`and(sender_id.eq.${me.id},receiver_id.eq.${p.id}),and(sender_id.eq.${p.id},receiver_id.eq.${me.id})`),
-    db.from("user_settings").select("show_online_status").eq("user_id",p.id).maybeSingle()
+    db.from("user_settings").select("show_online_status").eq("user_id",p.id).maybeSingle(),
+    db.rpc("get_discover_user_interests",{p_user_ids:[p.id]})
   ]);
   if(followResult.error){card.innerText=followResult.error.message;return;}
   if(requestResult.error){card.innerText=requestResult.error.message;return;}
   if(settingsResult.error){card.innerText=settingsResult.error.message;return;}
+  if(interestResult.error){console.warn("Discover interests:",interestResult.error.message);}
   card.innerHTML="";
   const visual=document.createElement("div");
   visual.className="discover-card-visual";
@@ -5386,6 +5388,20 @@ async function showSwipeCard(){
   const bio=document.createElement("p");
   bio.textContent=p.bio||"";
   details.append(name,bio);
+  const interestRows=(interestResult.data||[]).slice(0,3);
+  if(interestRows.length){
+    const chips=document.createElement("div");
+    chips.className="discover-interest-chips";
+    const interestIcons={Music:"🎵",Gaming:"🎮",Cricket:"🏏",Memes:"😂",Travel:"✈️",Art:"🎨",Technology:"💻",Fitness:"💪",Food:"🍔",Movies:"🎬",Education:"📚",Fashion:"👗"};
+    interestRows.forEach(row=>{
+      const chip=document.createElement("span");
+      chip.className="discover-interest-chip";
+      const label=String(row.interest||"").trim();
+      chip.textContent=(interestIcons[label]||"✦")+" "+label;
+      chips.appendChild(chip);
+    });
+    details.appendChild(chips);
+  }
   visual.appendChild(details);
   if(!p.photo_url){
     const initials=document.createElement("div");
@@ -12782,6 +12798,13 @@ body.light-theme #discoverScreen .discover-online-pill,body.light-theme #discove
 body.light-theme #discoverScreen .discover-card-details h2,body.light-theme #discoverScreen .discover-card-details p{color:#fff!important;}
 body.light-theme #discoverScreen .discover-loading,body.light-theme #discoverScreen .discover-empty-state{color:#493653;}
 @media(max-height:700px){#discoverScreen #swipeCard{height:58vh;min-height:360px;}}
+
+/* Discover interest chips + light-theme action controls */
+#discoverScreen .discover-interest-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;pointer-events:none;}
+#discoverScreen .discover-interest-chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(22,15,32,.52);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:11px;font-weight:750;line-height:1.2;}
+body.light-theme #discoverScreen .discover-actions .skip-btn{background:#eee7f5!important;border-color:#d8c9e5!important;color:#493653!important;box-shadow:0 4px 12px rgba(70,45,90,.12)!important;}
+body.light-theme #discoverScreen .discover-actions .message-btn{background:#e8efff!important;border-color:#c9d8ff!important;color:#315bb2!important;box-shadow:0 4px 12px rgba(45,80,150,.12)!important;}
+body.light-theme #discoverScreen .discover-interest-chip{background:rgba(45,29,59,.58);border-color:rgba(255,255,255,.65);color:#fff;}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
