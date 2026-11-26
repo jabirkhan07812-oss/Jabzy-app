@@ -10633,24 +10633,31 @@ async function openJabzyStory(userId,index){
   const avatar=document.getElementById("storyViewerAvatar");avatar.replaceChildren();
   if(profile?.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;";avatar.appendChild(img);}else{avatar.textContent="👤";}
   document.getElementById("storyViewerCaption").textContent=story.caption||"";
-  const progress=document.getElementById("storyProgressBars");progress.replaceChildren();
-  let videoProgressFill=null;
-  if(story.media_type==="video"){
-    const track=document.createElement("div");track.style.cssText="height:3px;width:100%;border-radius:4px;background:#ffffff55;overflow:hidden;";
-    videoProgressFill=document.createElement("div");videoProgressFill.style.cssText="height:100%;width:0%;border-radius:4px;background:#fff;transition:none;";
-    track.appendChild(videoProgressFill);progress.appendChild(track);
-  }else{
-    list.forEach((item,i)=>{const bar=document.createElement("div");bar.style.cssText="height:3px;flex:1;border-radius:4px;background:"+(i<=index?"#fff":"#ffffff55")+";";progress.appendChild(bar);});
-  }
+  const progress=document.getElementById("storyProgressBars");
+  if(progress._storyTimer){clearInterval(progress._storyTimer);progress._storyTimer=null;}
+  progress._storyPaused=false;progress.replaceChildren();
+  const fills=[];
+  list.forEach((item,i)=>{
+    const track=document.createElement("div");track.style.cssText="height:3px;flex:1;min-width:0;border-radius:4px;background:#ffffff55;overflow:hidden;";
+    const fill=document.createElement("div");fill.style.cssText="height:100%;width:"+(i<index?"100%":"0%")+";border-radius:4px;background:#fff;transition:none;";
+    track.appendChild(fill);progress.appendChild(track);fills.push(fill);
+  });
   const media=document.getElementById("storyViewerMedia");media.replaceChildren();
   const el=document.createElement(story.media_type==="video"?"video":"img");
   el.src=story.media_url;el.style.cssText="width:100%;height:100%;object-fit:contain;";
   if(story.media_type==="video"){
     el.controls=false;el.autoplay=true;el.playsInline=true;
-    const updateVideoProgress=()=>{if(videoProgressFill && Number.isFinite(el.duration) && el.duration>0)videoProgressFill.style.width=Math.min(100,(el.currentTime/el.duration)*100)+"%";};
+    const updateVideoProgress=()=>{if(Number.isFinite(el.duration)&&el.duration>0)fills[index].style.width=Math.min(100,(el.currentTime/el.duration)*100)+"%";};
     el.addEventListener("timeupdate",updateVideoProgress);
     el.addEventListener("loadedmetadata",updateVideoProgress);
     el.addEventListener("ended",()=>{if(activeJabzyStory===story)changeJabzyStory(1);});
+  }else{
+    let elapsed=0,lastTick=Date.now();
+    progress._storyTimer=setInterval(()=>{
+      const now=Date.now();if(!progress._storyPaused)elapsed+=now-lastTick;lastTick=now;
+      fills[index].style.width=Math.min(100,elapsed/5000*100)+"%";
+      if(elapsed>=5000){clearInterval(progress._storyTimer);progress._storyTimer=null;if(activeJabzyStory===story)changeJabzyStory(1);}
+    },50);
   }
   media.appendChild(el);
   document.getElementById("storyDeleteBtn").style.display=(activeJabzyStoryOwner || (me && me.email==="jabirkhanmewati01@gmail.com"))?"block":"none";
@@ -10791,6 +10798,7 @@ function changeJabzyStory(direction){
 }
 function closeJabzyStory(){
   const panel=document.getElementById("storyOwnerPanel");if(panel)panel.style.display="none";
+  const progress=document.getElementById("storyProgressBars");if(progress&&progress._storyTimer){clearInterval(progress._storyTimer);progress._storyTimer=null;}
   const media=document.getElementById("storyViewerMedia");media.querySelectorAll("video").forEach(v=>v.pause());media.replaceChildren();
   document.getElementById("storyViewerModal").style.display="none";document.body.style.overflow="";activeJabzyStory=null;
 }
@@ -10805,35 +10813,33 @@ let storyTouchStartY=0;
   let storyVideoHoldStartedAt=0;
   let storyVideoStartX=0;
   storyMediaArea.addEventListener("pointerdown",event=>{
+    if(!storyMediaArea.contains(event.target))return;
     const video=storyMediaArea.querySelector("video");
-    if(!video || !video.contains(event.target))return;
-    storyVideoHeld=true;
-    storyVideoHoldStartedAt=Date.now();
-    storyVideoStartX=event.clientX;
-    video.pause();
+    storyVideoHeld=true;storyVideoHoldStartedAt=Date.now();storyVideoStartX=event.clientX;
+    const progress=document.getElementById("storyProgressBars");if(progress)progress._storyPaused=true;
+    if(video)video.pause();
   });
   storyMediaArea.addEventListener("pointerup",event=>{
     if(!storyVideoHeld)return;
     const wasLongHold=Date.now()-storyVideoHoldStartedAt>=220;
-    storyVideoHeld=false;
-    storyVideoHoldStartedAt=0;
+    storyVideoHeld=false;storyVideoHoldStartedAt=0;
     const video=storyMediaArea.querySelector("video");
+    const progress=document.getElementById("storyProgressBars");if(progress)progress._storyPaused=false;
     if(video)video.play().catch(()=>{});
-    storyMediaArea.dataset.skipNextTap="1";
-    if(!wasLongHold){
-      event.preventDefault();
-      event.stopPropagation();
-      const rect=storyMediaArea.getBoundingClientRect();
-      const x=event.clientX || storyVideoStartX;
-      changeJabzyStory(x>rect.left+rect.width/2?1:-1);
+    if(video){
+      storyMediaArea.dataset.skipNextTap="1";
+      if(!wasLongHold){
+        event.preventDefault();event.stopPropagation();
+        const rect=storyMediaArea.getBoundingClientRect(),x=event.clientX||storyVideoStartX;
+        changeJabzyStory(x>rect.left+rect.width/2?1:-1);
+      }
     }
   },true);
   storyMediaArea.addEventListener("pointercancel",()=>{
     if(!storyVideoHeld)return;
-    storyVideoHeld=false;
-    storyVideoHoldStartedAt=0;
-    const video=storyMediaArea.querySelector("video");
-    if(video)video.play().catch(()=>{});
+    storyVideoHeld=false;storyVideoHoldStartedAt=0;
+    const progress=document.getElementById("storyProgressBars");if(progress)progress._storyPaused=false;
+    const video=storyMediaArea.querySelector("video");if(video)video.play().catch(()=>{});
   },true);
   storyMediaArea.addEventListener("click",event=>{
     if(storyMediaArea.dataset.skipNextTap==="1"){delete storyMediaArea.dataset.skipNextTap;return;}
