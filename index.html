@@ -10267,6 +10267,7 @@ function startJabzyTextDrag(){
 }
 function closeStoryEditorTool(){document.getElementById("storyEditorPanel").style.display="none";}
 function openStoryEditorTool(tool){
+  startJabzyTextDrag();
   const panel=document.getElementById("storyEditorPanel"),title=document.getElementById("storyEditorPanelTitle"),content=document.getElementById("storyEditorPanelContent");
   const names={filters:"Filters",adjust:"Adjust Photo",text:"Add Text",stickers:"Choose Stickers",crop:"Photo Fit",effects:"Effects"};
   title.textContent=names[tool]||"Edit Story";content.replaceChildren();panel.style.display="block";
