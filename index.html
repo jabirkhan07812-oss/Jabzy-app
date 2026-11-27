@@ -1526,7 +1526,19 @@ body.light-theme #communityGroupOpenScreen .jabzy-community-group-header{border-
 body.light-theme #communityGroupOpenScreen #openedCommunityGroupInfo{color:#776A83!important}
 body.light-theme #communityGroupOpenScreen #communityGroupChatMessages{background:#F0EDF5!important;border-color:#E7E0ED!important}
 body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233B!important;border-color:#DED4E7!important}
+#communityGroupOpenScreen{background:#0B0D13!important;color:#F9FAFB!important}
+#communityGroupOpenScreen #communityGroupChatMessages{background:#0B0D13!important;border:0!important}
+#communityGroupOpenScreen #communityGroupPostComposer{background:#151823!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:16px!important;padding:9px!important}
+#communityGroupOpenScreen #communityGroupPostInput{height:42px!important;color:#F9FAFB!important}
+#communityGroupOpenScreen #communityGroupPostMediaButton{width:36px!important;height:36px!important;min-height:36px!important;border-radius:50%!important;background:#25283A!important;color:#D8B4FE!important}
+#communityGroupOpenScreen #communityGroupPostButton{height:36px!important;min-height:36px!important;background:#D946EF!important;color:#fff!important;border-radius:11px!important}
+#communityGroupOpenScreen #openedCommunityGroupAvatar{position:relative!important}
+#communityGroupOpenScreen #openedCommunityGroupAvatar:after{content:"";position:absolute;right:0;bottom:0;width:10px;height:10px;border-radius:50%;background:#22C55E;border:2px solid #0B0D13}
+body.light-theme #communityGroupOpenScreen{background:#F7F5FA!important;color:#30233B!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages{background:#F7F5FA!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{background:#fff!important;border-color:#E5DDEB!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#F0EAF6!important;color:#6847A2!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostInput{color:#30233B!important}
 </style></head>
 <body>
   
@@ -10795,6 +10807,21 @@ function openCommunityGroupInfo(){
       #jabzyCommunityGroupModal .jgs-avatar{width:62px;height:62px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#242033;border:1px solid rgba(255,255,255,.12);color:#E879F9;font-size:22px;font-weight:800;flex:0 0 62px}
       #jabzyCommunityGroupModal .jgs-avatar img{width:100%;height:100%;object-fit:cover}
       #jabzyCommunityGroupModal .jgs-muted{color:#9CA3AF;font-size:11px;font-weight:400;line-height:1.45}
+      #jabzyCommunityGroupModal .jgs-input,#jabzyCommunityGroupModal select.jgs-input{min-height:48px;height:48px;border-radius:12px;background:#0E1017}
+      #jabzyCommunityGroupModal textarea.jgs-input{height:auto;min-height:76px}
+      #jabzyCommunityGroupModal .jgs-avatar{width:76px;height:76px;flex-basis:76px}
+      #jabzyCommunityGroupModal .jgs-upload-wrap{align-items:center!important;justify-content:center!important}
+      #jabzyCommunityGroupModal .jgs-upload{height:44px;min-height:44px;padding:0 16px}
+      #jabzyCommunityGroupModal .jgs-invite-preview{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:0 8px 0 13px;box-sizing:border-box;height:48px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:#0E1017}
+      #jabzyCommunityGroupModal .jgs-invite-preview span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#D8B4FE;font-size:12px;font-weight:500}
+      #jabzyCommunityGroupModal .jgs-copy-icon{width:36px;height:36px;min-height:36px;flex:0 0 36px;margin:0;padding:0;border-radius:10px;background:rgba(168,85,247,.16);color:#C084FC;font-size:16px}
+      #jabzyCommunityGroupModal .jgs-reset{width:100%;min-height:44px;background:#202435;color:#E5E7EB;border:1px solid rgba(255,255,255,.09)}
+      #jabzyCommunityGroupModal .jgs-save-footer{position:sticky;bottom:calc(-1 * (env(safe-area-inset-bottom) + 1px));z-index:3;margin:12px -16px calc(-34px - env(safe-area-inset-bottom));padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(21,24,35,.94),#151823 28%);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+      #jabzyCommunityGroupModal .jgs-save-footer .jgs-btn{width:100%;min-height:48px;background:linear-gradient(110deg,#A855F7,#EC4899);box-shadow:0 5px 20px rgba(168,85,247,.22)}
+      body.light-theme #jabzyCommunityGroupModal .jgs-invite-preview{background:#F8F5FA;border-color:#E4D9EA}
+      body.light-theme #jabzyCommunityGroupModal .jgs-invite-preview span{color:#6847A2}
+      body.light-theme #jabzyCommunityGroupModal .jgs-reset{background:#F1ECF4;color:#574A60;border-color:#E4D9EA}
+      body.light-theme #jabzyCommunityGroupModal .jgs-save-footer{background:linear-gradient(180deg,rgba(250,248,252,.94),#FAF8FC 28%);border-top-color:#E9E1ED}
       body.light-theme #jabzyCommunityGroupModal>div{background:#FAF8FC!important;color:#30233B!important;border-color:#E8DDEC!important}
       body.light-theme #jabzyCommunityGroupModal .jgs-section{background:#FFFFFF;border-color:#E9E1ED}
       body.light-theme #jabzyCommunityGroupModal .jgs-heading{color:#81738A}
@@ -10820,8 +10847,8 @@ function openCommunityGroupInfo(){
   const avatar=document.createElement("div");avatar.className="jgs-avatar";
   const paintAvatar=()=>{avatar.replaceChildren();if(iconUrl.value){const img=document.createElement("img");img.src=iconUrl.value;img.onerror=()=>{avatar.textContent=(g.name||"G").trim().charAt(0).toUpperCase();};avatar.appendChild(img);}else avatar.textContent=(g.name||"G").trim().charAt(0).toUpperCase();};
   const iconUrl=document.createElement("input");iconUrl.type="hidden";iconUrl.value=g.icon_url||"";
-  const uploadWrap=document.createElement("div");uploadWrap.style.cssText="display:flex;flex-direction:column;gap:5px;align-items:flex-start;flex:1;";
-  const upload=document.createElement("button");upload.type="button";upload.className="jgs-btn jgs-ghost";upload.textContent="＋ Upload Image";
+  const uploadWrap=document.createElement("div");uploadWrap.className="jgs-upload-wrap";uploadWrap.style.cssText="display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:1;";
+  const upload=document.createElement("button");upload.type="button";upload.className="jgs-btn jgs-ghost jgs-upload";upload.textContent="＋ Upload Image";
   const uploadNote=document.createElement("small");uploadNote.className="jgs-muted";uploadNote.textContent="JPG, PNG or WEBP · Max 5 MB";
   const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp";picker.hidden=true;
   upload.onclick=()=>picker.click();
@@ -10836,9 +10863,10 @@ function openCommunityGroupInfo(){
   const hide=toggle(join,"Hide from Search",g.hide_from_search,"Hidden groups are visible only to existing members and invitees.");
   const approval=toggle(join,"Admin Approval for New Members",g.require_admin_approval||g.visibility==="private","New join requests wait for admin approval.");
   const invitePermission=field(join,"Who Can Invite Members",g.invite_permission||"admins","text",[["admins","Only Admins"],["all_members","All Members"]]);
-  const inviteActions=document.createElement("div");inviteActions.className="jgs-actions";
-  const getLink=document.createElement("button"),resetLink=document.createElement("button");getLink.type=resetLink.type="button";getLink.className="jgs-btn jgs-primary";resetLink.className="jgs-btn jgs-ghost";getLink.style.flex="1";resetLink.style.flex="0 0 auto";
-  getLink.textContent="▢  Copy Invite Link";resetLink.textContent="Reset Link";inviteActions.append(getLink,resetLink);join.appendChild(inviteActions);
+  const invitePreview=document.createElement("div");invitePreview.className="jgs-invite-preview";
+  const inviteText=document.createElement("span");inviteText.textContent="Invite link ready · Tap copy";
+  const getLink=document.createElement("button");getLink.type="button";getLink.className="jgs-copy-icon";getLink.textContent="▢";getLink.setAttribute("aria-label","Copy invite link");invitePreview.append(inviteText,getLink);join.appendChild(invitePreview);
+  const resetLink=document.createElement("button");resetLink.type="button";resetLink.className="jgs-btn jgs-reset";resetLink.textContent="Reset Invite Link";join.appendChild(resetLink);
   const getInvite=async(reset)=>{const {data,error}=await db.rpc("manage_community_group_invite",{p_group_id:g.id,p_reset:reset});if(error){alert("Invite link nahi bana: "+error.message);return;}const url=new URL(location.href);url.searchParams.set("group_invite",data);const link=url.toString();try{await navigator.clipboard.writeText(link);alert(reset?"New invite link copied. Old link is invalid.":"Invite link copied.");}catch(e){prompt("Invite link copy karein:",link);}};
   getLink.onclick=()=>getInvite(false);resetLink.onclick=()=>{if(confirm("Purana invite link band karke naya link banayein?"))getInvite(true);};
   const perms=section("Content & Chat Permissions");
@@ -10848,10 +10876,11 @@ function openCommunityGroupInfo(){
   const media=toggle(perms,"Media Sharing",g.media_sharing_enabled!==false,"Allow members to share supported photos and media.");
   const save=document.createElement("button");save.type="button";save.className="jgs-btn jgs-primary";save.style.cssText="width:100%;min-height:47px;font-size:13px;";save.textContent="Save Changes";
   save.onclick=async()=>{if(!isOwner){alert("Group-wide settings sirf Owner change kar sakta hai.");return;}if(name.value.trim().length<2){alert("Group name kam se kam 2 characters ka hona chahiye.");name.focus();return;}if(description.value.length>500){alert("Description 500 characters se chhoti rakhein.");return;}if(visibility.value==="private")approval.checked=true;const patch={name:name.value.trim(),description:description.value.trim(),icon_url:iconUrl.value.trim()||null,members_visibility:membersVisibility.value,visibility:visibility.value,hide_from_search:hide.checked,require_admin_approval:approval.checked||visibility.value==="private",invite_permission:invitePermission.value,post_access_mode:posts.value,chat_access_mode:chats.value,slow_mode_seconds:Number(slow.value),media_sharing_enabled:media.checked};save.disabled=true;save.textContent="Saving...";const {error}=await db.from("community_groups").update(patch).eq("id",g.id).eq("created_by",me.id);save.disabled=false;save.textContent="Save Changes";if(error){alert("Settings save nahi hui: "+error.message);return;}Object.assign(g,patch);document.getElementById("openedCommunityGroupName").textContent=g.name;const av=document.getElementById("openedCommunityGroupAvatar");if(av){av.replaceChildren();if(g.icon_url){const im=document.createElement("img");im.src=g.icon_url;im.alt="Group avatar";im.style.cssText="width:100%;height:100%;object-fit:cover;";av.appendChild(im);}else av.textContent=(g.name||"J").trim().charAt(0).toUpperCase();}const sub=document.getElementById("openedCommunityGroupInfo");if(sub)sub.textContent=(g.visibility==="private"?"🔒 Private":"🌐 Public")+" · "+(g.members_visibility==="private"?"Members private":communityGroupMembersCache.length+" Member"+(communityGroupMembersCache.length===1?"":"s"))+" ›";document.getElementById("jabzyCommunityGroupModal")?.remove();await loadCommunityGroups();alert("Group settings saved.");};
-  box.appendChild(save);
+  const saveFooter=document.createElement("div");saveFooter.className="jgs-save-footer";saveFooter.appendChild(save);
   if(isOwner){const danger=section("Danger Zone");const del=document.createElement("button");del.type="button";del.className="jgs-btn jgs-danger";del.style.width="100%";del.textContent="♲  Delete Group";del.onclick=async()=>{if(!confirm("Group permanently delete hoga. Continue?"))return;const {error}=await db.rpc("delete_community_group",{p_group_id:g.id});if(error){alert("Delete nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(del);}
   else{const danger=section("Danger Zone");const leave=document.createElement("button");leave.type="button";leave.className="jgs-btn jgs-danger";leave.style.width="100%";leave.textContent="Leave Group";leave.onclick=async()=>{if(!confirm("Group leave karna hai?"))return;const {error}=await db.rpc("leave_community_group",{p_group_id:g.id});if(error){alert("Group leave nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(leave);}
   if(!isOwner){[name,description,membersVisibility,hide,approval,invitePermission,posts,chats,slow,media,save].forEach(el=>{if(el)el.disabled=true;});privacyTabs.buttons.forEach(b=>b.disabled=true);upload.disabled=true;picker.disabled=true;getLink.disabled=resetLink.disabled=!isAdmin&&g.invite_permission!=="all_members";}
+  box.appendChild(saveFooter);
   showCommunityGroupModal("Group Settings",box);
 }
 async function openCommunityGroup(group){
@@ -11013,8 +11042,8 @@ async function loadOpenedCommunityGroup(){
   timeline.replaceChildren();
   if(!items.length){const empty=document.createElement("div");empty.textContent="Abhi group chat khaali hai.";empty.style.cssText="padding:14px;text-align:center;opacity:.7;";timeline.appendChild(empty);}
   items.forEach(async item=>{
-    const line=document.createElement("div");line.className="jgc-message "+(item.user_id===me.id?"jgc-mine":"jgc-theirs");line.style.cssText="max-width:88%;width:fit-content;padding:10px 13px;margin:8px 0;border-radius:15px;background:"+(item.user_id===me.id?"linear-gradient(135deg,#5942B8,#7657E8)":"#202536")+";color:#FFFFFF;"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;")+";box-shadow:0 3px 12px rgba(0,0,0,.12);";
-    if(item._kind==="post"){const tag=document.createElement("small");tag.textContent="Group post";tag.style.cssText="display:block;color:#ffd0ed;font-size:10px;margin-bottom:4px";line.appendChild(tag);}
+    const line=document.createElement("div");line.className="jgc-message "+(item.user_id===me.id?"jgc-mine":"jgc-theirs");line.style.cssText="max-width:88%;width:fit-content;padding:10px 13px;margin:8px 0;border-radius:15px;background:"+(item._kind==="post"?"#1E1B2E":item.user_id===me.id?"linear-gradient(135deg,#7C3AED,#9333EA)":"#202536")+";color:#FFFFFF;"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;")+";box-shadow:0 3px 12px rgba(0,0,0,.12);"+(item._kind==="post"?"border-left:3px solid #EC4899;border-radius:5px 15px 15px 5px;":"");
+    if(item._kind==="post"){const tag=document.createElement("small");tag.textContent="📢 GROUP POST";tag.style.cssText="display:inline-flex;width:max-content;padding:3px 7px;border-radius:6px;background:rgba(236,72,153,.14);color:#F0ABFC;font-size:9px;font-weight:800;letter-spacing:.05em;margin-bottom:7px";line.appendChild(tag);}
     const body=document.createElement("div");body.textContent=item._text;body.style.whiteSpace="pre-wrap";line.appendChild(body);
     if(item.photo_url){
       const {data:signed}=await db.storage.from("community-group-media").createSignedUrl(item.photo_url,3600);
