@@ -13113,6 +13113,40 @@ body.light-theme #roomInvitePicker img+span,
 body.light-theme #roomInvitePicker span{
   color:#493653!important;
 }
+
+/* GROUPS TAB LIGHT/DARK READABILITY */
+#roomsScreen #communityGroupsSection h3{
+  display:block!important;
+  font-weight:900!important;
+  line-height:1.35!important;
+  opacity:1!important;
+}
+#roomsScreen #createCommunityGroupButton{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:46px!important;
+  font-weight:900!important;
+  opacity:1!important;
+}
+body.light-theme #roomsScreen #communityGroupsSection h3{
+  color:#39264a!important;
+  text-shadow:none!important;
+}
+body.light-theme #roomsScreen #communityGroupsSection #createCommunityGroupButton{
+  background:linear-gradient(135deg,#d92f86,#8642c4)!important;
+  color:#fff!important;
+  border:1px solid #c45baf!important;
+  box-shadow:0 4px 12px rgba(110,55,140,.16)!important;
+}
+body:not(.light-theme) #roomsScreen #communityGroupsSection h3{
+  color:#f5eaff!important;
+}
+body:not(.light-theme) #roomsScreen #communityGroupsSection #createCommunityGroupButton{
+  background:linear-gradient(135deg,#ff55a8,#a45bea)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
