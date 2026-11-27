@@ -2480,26 +2480,26 @@ style="display:none;padding:15px 12px 100px;">
     <div id="communityGroupsList">Loading groups...</div>
   </div>
 
-  <div id="communityGroupOpenScreen" style="display:none;position:fixed;inset:0;bottom:calc(74px + env(safe-area-inset-bottom));height:auto;max-height:none;min-height:0;z-index:10002;background:#100b1c;color:#fff;padding:12px 12px 8px;box-sizing:border-box;overflow:hidden;display:none;flex-direction:column;">
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
-      <button onclick="closeCommunityGroup()" style="width:38px;flex-shrink:0;padding:8px;margin:0;background:#342044;">←</button>
+  <div id="communityGroupOpenScreen" class="jabzy-community-group-screen" style="display:none;position:fixed;inset:0;z-index:10002;background:#100b1c;color:#fff;padding:calc(10px + env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:hidden;flex-direction:column;">
+    <div class="jabzy-community-group-header" style="display:flex;align-items:center;gap:10px;flex:0 0 auto;margin:0 0 10px;padding:4px 0 12px;border-bottom:1px solid rgba(180,140,205,.18);">
+      <button onclick="closeCommunityGroup()" aria-label="Back" style="width:38px;height:38px;flex:0 0 38px;padding:0;margin:0;border-radius:50%;background:rgba(150,105,180,.18);">←</button>
       <div style="flex:1;min-width:0;cursor:pointer;" onclick="openCommunityGroupInfo()">
-        <b id="openedCommunityGroupName">JABZY GROUP</b>
-        <div id="openedCommunityGroupInfo" style="font-size:11px;color:#d5b8ec;">Group · Tap for info</div>
+        <b id="openedCommunityGroupName" style="display:block;font-size:16px;line-height:1.25;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">JABZY GROUP</b>
+        <div id="openedCommunityGroupInfo" style="font-size:11px;color:#c7b5d2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔒 Private · 1 Member ›</div>
       </div>
-      <button onclick="openCommunityGroupInfo()" aria-label="Group settings" style="width:38px;flex-shrink:0;padding:8px;margin:0;background:#342044;">⚙</button>
+      <button onclick="openCommunityGroupInfo()" aria-label="Group settings" style="width:38px;height:38px;flex:0 0 38px;padding:0;margin:0;border-radius:50%;background:rgba(150,105,180,.18);">⚙</button>
     </div>
-    <div id="communityGroupMembers" style="flex:0 0 auto;padding:10px;margin-bottom:8px;border-radius:12px;background:#21152f;font-size:12px;">Loading members...</div>
-    <div id="communityGroupPostComposer" style="padding:10px;margin-bottom:12px;border-radius:12px;background:#21152f;">
-      <textarea id="communityGroupPostInput" rows="2" placeholder="Group mein post likhein..." style="width:100%;box-sizing:border-box;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:10px;padding:10px;"></textarea>
-      <button id="communityGroupPostButton" onclick="sendCommunityGroupPost()" style="width:100%;margin:8px 0 0;padding:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);">Post</button>
-    </div>
-    <h3 style="flex:0 0 auto;margin:4px 0 8px;">💬 Group Chat</h3>
+    <div id="communityGroupMembers" style="display:none!important;"></div>
     <div id="communityGroupPosts" style="display:none;"></div>
-    <div id="communityGroupChatMessages" style="flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding:10px;border-radius:12px;background:#21152f;">Loading chat...</div>
-    <div id="communityGroupChatComposer" style="display:flex;flex:0 0 auto;gap:7px;margin-top:9px;padding:8px 0 4px;background:#100b1c;align-items:center;flex-shrink:0;min-height:48px;box-sizing:border-box;">
-      <input id="communityGroupChatInput" type="text" placeholder="Message..." style="flex:1;min-width:0;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:10px;padding:10px;">
-      <button id="communityGroupSendButton" type="button" onmousedown="event.preventDefault()" ontouchstart="document.getElementById('communityGroupChatInput').focus({preventScroll:true})" onclick="sendCommunityGroupMessage()" style="width:auto;margin:0;padding:10px 14px;background:#a45bea;">Send</button>
+    <div id="communityGroupChatMessages" class="jabzy-community-group-timeline" style="flex:1 1 0;min-height:0;height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 8px 16px;border-radius:14px;background:#21152f;">Loading chat...</div>
+    <div id="communityGroupPostComposer" class="jabzy-community-group-post-composer" style="display:flex;flex:0 0 auto;align-items:center;gap:8px;margin:9px 0 0;padding:8px;border-radius:16px;border:1px solid rgba(180,140,205,.22);background:rgba(130,90,160,.12);">
+      <span aria-hidden="true" style="width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-weight:800;">J</span>
+      <input id="communityGroupPostInput" type="text" maxlength="1000" placeholder="Group mein post likhein..." style="flex:1;min-width:0;width:100%;height:38px;box-sizing:border-box;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:#fff;padding:0 4px;font-size:13px;">
+      <button id="communityGroupPostButton" onclick="sendCommunityGroupPost()" style="width:auto;flex:0 0 auto;height:34px;min-height:34px;margin:0;padding:0 14px;border-radius:18px;background:linear-gradient(135deg,#ff55a8,#a45bea);font-size:12px;">Post</button>
+    </div>
+    <div id="communityGroupChatComposer" class="jabzy-community-group-chat-composer" style="display:flex;flex:0 0 auto;gap:8px;margin:8px 0 0;padding:0 0 2px;align-items:center;min-height:46px;box-sizing:border-box;">
+      <input id="communityGroupChatInput" type="text" placeholder="Type a message..." style="flex:1;min-width:0;height:42px;box-sizing:border-box;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:22px;padding:0 15px;font-size:14px;">
+      <button id="communityGroupSendButton" type="button" onmousedown="event.preventDefault()" ontouchstart="document.getElementById('communityGroupChatInput').focus({preventScroll:true})" onclick="sendCommunityGroupMessage()" aria-label="Send message" style="width:42px;height:42px;min-height:42px;flex:0 0 42px;margin:0;padding:0;border-radius:50%;background:linear-gradient(135deg,#ff55a8,#a45bea);font-size:16px;">➤</button>
     </div>
   </div>
 
@@ -10650,6 +10650,8 @@ async function openCommunityGroup(group){
   subtitle.onclick=(event)=>{event.stopPropagation();openCommunityGroupMembers();};
   document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
+  const canPost=group.created_by===me.id||member?.role==="admin"||(member?.can_post===true&&group.post_access_mode!=="admins");
+  const postComposer=document.getElementById("communityGroupPostComposer");if(postComposer)postComposer.style.display=canPost?"flex":"none";
   const canChat=group.created_by===me.id||member?.role==="admin"||(member?.can_chat===true&&group.chat_access_mode!=="admins");
   input.disabled=!canChat;input.placeholder=canChat?"Message...":"Chat permission nahi hai";
   const screen=document.getElementById("communityGroupOpenScreen");
@@ -13075,6 +13077,37 @@ body.light-theme #communityGroupOpenScreen #communityGroupChatMessages>div small
 body.light-theme #jabzyCommunityGroupModal input,body.light-theme #jabzyCommunityGroupModal textarea,body.light-theme #jabzyCommunityGroupModal select{background:#faf7fc!important;color:#30233b!important;border-color:#d9c7e5!important}
 </style>
 
+
+<style id="jabzy-groups-premium-responsive-v2">
+#communityGroupOpenScreen.jabzy-community-group-screen{display:none;inset:0!important;width:100%;height:100vh;height:100dvh;max-height:100dvh;min-height:0;gap:0;background:var(--jabzy-page,#100b1c);color:var(--jabzy-text,#fff);padding-top:calc(10px + env(safe-area-inset-top));padding-bottom:calc(8px + env(safe-area-inset-bottom));}
+#communityGroupOpenScreen.jabzy-community-group-screen[style*="display: flex"]{display:flex!important}
+#communityGroupOpenScreen .jabzy-community-group-header{min-height:54px}
+#communityGroupOpenScreen #openedCommunityGroupAvatar{width:38px!important;height:38px!important;flex:0 0 38px!important}
+#communityGroupOpenScreen #communityGroupChatMessages{flex:1 1 0!important;min-height:0!important;height:0!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-width:thin;background:var(--jabzy-chat-surface,#21152f)!important;color:var(--jabzy-text,#fff)!important}
+#communityGroupOpenScreen #communityGroupPostComposer{flex:0 0 auto!important;min-height:54px;max-width:100%;box-sizing:border-box}
+#communityGroupOpenScreen #communityGroupPostInput{min-width:0!important;max-width:100%;font:inherit!important}
+#communityGroupOpenScreen #communityGroupPostInput::placeholder{color:var(--jabzy-muted,#aaa)!important;opacity:1}
+#communityGroupOpenScreen #communityGroupChatComposer{flex:0 0 auto!important;width:100%;max-width:100%;box-sizing:border-box}
+#communityGroupOpenScreen #communityGroupChatInput{min-width:0!important;max-width:100%;height:42px!important;border-radius:22px!important}
+#communityGroupOpenScreen #communityGroupSendButton{height:42px!important;min-height:42px!important;border-radius:50%!important}
+#communityGroupOpenScreen #communityGroupMembers{display:none!important}
+#communityGroupOpenScreen #communityGroupChatMessages>div{max-width:min(88%,520px)!important;overflow-wrap:anywhere}
+#jabzyCommunityGroupModal{align-items:flex-end!important;padding:0!important}
+#jabzyCommunityGroupModal>div{width:100%!important;max-width:520px!important;max-height:min(88dvh,820px)!important;overflow-y:auto!important;border-radius:22px 22px 0 0!important;padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;box-sizing:border-box!important}
+#jabzyCommunityGroupModal>div input:not([type=checkbox]),#jabzyCommunityGroupModal>div textarea,#jabzyCommunityGroupModal>div select{max-width:100%;min-height:42px;box-sizing:border-box}
+body.light-theme #communityGroupOpenScreen.jabzy-community-group-screen{--jabzy-page:#f8f5fa;--jabzy-text:#30233b;--jabzy-muted:#766782;--jabzy-chat-surface:#f0eaf4;background:#f8f5fa!important;color:#30233b!important}
+body.light-theme #communityGroupOpenScreen .jabzy-community-group-header{border-bottom-color:#e8ddec!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages{background:#f0eaf4!important;color:#30233b!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{background:#fff!important;border-color:#e6d9ed!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostInput{color:#30233b!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostInput::placeholder{color:#85758e!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatComposer{background:#f8f5fa!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233b!important;border-color:#ddcde5!important}
+body.light-theme #jabzyCommunityGroupModal>div{background:#fff!important;color:#30233b!important;border-color:#eadff0!important}
+body.light-theme #jabzyCommunityGroupModal>div input:not([type=checkbox]),body.light-theme #jabzyCommunityGroupModal>div textarea,body.light-theme #jabzyCommunityGroupModal>div select{background:#faf7fc!important;color:#30233b!important;border-color:#dfd0e7!important}
+@media(max-width:380px){#communityGroupOpenScreen.jabzy-community-group-screen{padding-left:9px!important;padding-right:9px!important}#communityGroupOpenScreen #communityGroupPostComposer{gap:6px;padding:6px}#communityGroupOpenScreen #communityGroupPostButton{padding:0 11px!important}}
+@media(max-height:560px){#communityGroupOpenScreen .jabzy-community-group-header{margin-bottom:5px!important;padding-bottom:7px!important}#communityGroupOpenScreen #communityGroupPostComposer{min-height:48px;margin-top:5px!important}#communityGroupOpenScreen #communityGroupChatComposer{margin-top:5px!important}}
+</style>
 </body>
   </html>
   
