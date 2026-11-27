@@ -13147,6 +13147,38 @@ body:not(.light-theme) #roomsScreen #communityGroupsSection #createCommunityGrou
   color:#fff!important;
   border:1px solid rgba(255,255,255,.2)!important;
 }
+
+/* JOINED ROOM INVITE (+) BUTTON — FIX WHITE/EMPTY BOX */
+#joinedRoomScreen>div:first-of-type button[onclick="openRoomInvitePicker()"]{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:0!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  border-radius:12px!important;
+  background:linear-gradient(135deg,#ff55a8,#a45bea)!important;
+  color:#fff!important;
+  font-size:25px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  opacity:1!important;
+  box-shadow:0 3px 12px rgba(164,91,234,.28)!important;
+  -webkit-text-fill-color:#fff!important;
+}
+body.light-theme #joinedRoomScreen>div:first-of-type button[onclick="openRoomInvitePicker()"]{
+  background:linear-gradient(135deg,#d92f86,#8642c4)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border:1px solid #c45baf!important;
+}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
