@@ -10772,6 +10772,7 @@ let communityGroupRealtimeChannel = null;
 let communityGroupMembersCache = [];
 
 function closeCommunityGroup(){
+  if(window.jabzyGroupCountTimer){clearInterval(window.jabzyGroupCountTimer);window.jabzyGroupCountTimer=null;}
   if(communityGroupRealtimeChannel){db.removeChannel(communityGroupRealtimeChannel);communityGroupRealtimeChannel=null;}
   const screen=document.getElementById("communityGroupOpenScreen");
   if(screen)screen.style.display="none";
@@ -10915,7 +10916,7 @@ function openCommunityGroupSettings(){
   if(!isOwnerOrAdmin){uploadWrap.remove();name.readOnly=true;description.readOnly=true;name.style.opacity=".82";description.style.opacity=".82";privacyTabs.buttons[0].parentElement.parentElement.remove();membersVisibility.closest("label")?.remove();join.remove();perms.remove();saveFooter.remove();if(g.invite_permission==="all_members"){profile.appendChild(invitePreview);resetLink.remove();}}
   if(isOwner){const danger=section("Danger Zone");const del=document.createElement("button");del.type="button";del.className="jgs-btn jgs-danger";del.style.width="100%";del.textContent="♲  Delete Group";del.onclick=async()=>{if(!confirm("Group permanently delete hoga. Continue?"))return;const {error}=await db.rpc("delete_community_group",{p_group_id:g.id});if(error){alert("Delete nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(del);}
   else{const danger=section("Danger Zone");const leave=document.createElement("button");leave.type="button";leave.className="jgs-btn jgs-danger";leave.style.width="100%";leave.textContent="Leave Group";leave.onclick=async()=>{if(!confirm("Group leave karna hai?"))return;const {error}=await db.rpc("leave_community_group",{p_group_id:g.id});if(error){alert("Group leave nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(leave);}
-  if(!isOwnerOrAdmin){[name,description,membersVisibility,hide,approval,invitePermission,posts,chats,slow,media,save].forEach(el=>{if(el)el.disabled=true;});privacyTabs.buttons.forEach(b=>b.disabled=true);upload.disabled=true;picker.disabled=true;getLink.disabled=resetLink.disabled=true;}
+  if(!isOwnerOrAdmin){[name,description,membersVisibility,hide,approval,invitePermission,posts,chats,slow,media,save].forEach(el=>{if(el)el.disabled=true;});privacyTabs.buttons.forEach(b=>b.disabled=true);upload.disabled=true;picker.disabled=true;getLink.disabled=g.invite_permission!=="all_members";resetLink.disabled=true;}
   if(isOwnerOrAdmin)box.appendChild(saveFooter);
   showCommunityGroupModal("Group Settings",box);
 }
@@ -10950,7 +10951,10 @@ async function openCommunityGroup(group){
     .on("postgres_changes",{event:"*",schema:"public",table:"community_group_messages",filter:"group_id=eq."+group.id},()=>loadOpenedCommunityGroup())
     .on("postgres_changes",{event:"*",schema:"public",table:"community_group_posts",filter:"group_id=eq."+group.id},()=>loadOpenedCommunityGroup())
     .on("postgres_changes",{event:"*",schema:"public",table:"community_group_members",filter:"group_id=eq."+group.id},()=>loadOpenedCommunityGroup())
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"community_groups",filter:"id=eq."+group.id},()=>refreshOpenedCommunityGroupCounts())
     .subscribe();
+  if(window.jabzyGroupCountTimer)clearInterval(window.jabzyGroupCountTimer);
+  window.jabzyGroupCountTimer=setInterval(()=>refreshOpenedCommunityGroupCounts(),30000);
 }
 async function openCommunityGroupMembers(){
   const g=currentOpenedCommunityGroup;if(!g)return;
@@ -11067,6 +11071,12 @@ async function removeCommunityGroupMember(userId){
   const {error}=await db.from("community_group_members").delete().eq("group_id",g.id).eq("user_id",userId);
   if(error){alert("Member remove nahi hua: "+error.message);return;}
   await openCommunityGroupMembers();await loadOpenedCommunityGroup();
+}
+async function refreshOpenedCommunityGroupCounts(){
+  const group=currentOpenedCommunityGroup;if(!group)return;
+  const {data,error}=await db.rpc("get_community_group_member_counts",{p_group_id:group.id});if(error)return;
+  const c=Array.isArray(data)?data[0]:data;const total=Number(c?.total_members||0),online=Number(c?.online_members||0);
+  const subtitle=document.getElementById("openedCommunityGroupInfo");if(subtitle)subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+total+" Members · 🟢 "+online+" Online ›";
 }
 async function loadOpenedCommunityGroup(){
   const group=currentOpenedCommunityGroup;if(!group)return;
