@@ -1413,6 +1413,50 @@ body.light-theme .jabzy-search-result{background:#fff;border-color:#e4d6eb;color
 body.light-theme .jabzy-search-result-copy small{color:#786585}
 body.light-theme .jabzy-search-empty{border-color:#ddcce6}
 </style>
+<style id="jabzy-groups-premium-list-v2">
+#roomsScreen #jabzyRoomsHeader h2{display:flex!important;align-items:center!important;gap:9px!important}
+#roomsScreen .jabzy-rooms-heading-icon,#communityGroupsSection .jabzy-groups-section-title svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#communityGroupsSection .jabzy-groups-section-title{display:flex;align-items:center;gap:9px;margin:4px 0 13px;font-size:17px;font-weight:900;color:#f4eaf9}
+#communityGroupsSection .jabzy-groups-search-wrap{height:43px;display:flex;align-items:center;gap:10px;padding:0 13px;margin:0 0 12px;border-radius:13px;border:1px solid rgba(170,135,195,.22);background:#161821;box-sizing:border-box}
+#communityGroupsSection .jabzy-groups-search-wrap svg{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:#a99ab5;stroke-width:1.8;stroke-linecap:round}
+#communityGroupsSection .jabzy-groups-search-wrap input{width:100%;min-width:0;height:100%;padding:0;border:0!important;outline:none;background:transparent!important;color:#f5edf9!important;font:13px inherit!important;box-shadow:none!important}
+#communityGroupsSection .jabzy-groups-search-wrap input::placeholder{color:#9b8da7!important;opacity:1}
+#communityGroupsSection .jabzy-groups-filters{display:flex;gap:8px;margin:0 0 12px}
+#communityGroupsSection .jabzy-groups-filters button{height:30px;min-height:30px;margin:0;padding:0 14px;border-radius:999px;border:1px solid rgba(170,135,195,.22);background:rgba(255,255,255,.045);color:#cfc1d9;font-size:11px;font-weight:750}
+#communityGroupsSection .jabzy-groups-filters button.active{background:linear-gradient(100deg,#ed479c,#8950d6);border-color:transparent;color:#fff}
+#communityGroupsList{display:flex;flex-direction:column;gap:9px}
+#communityGroupsList .jabzy-group-card{display:flex;align-items:center;gap:12px;min-width:0;padding:13px 14px;border:1px solid rgba(170,135,195,.16);border-radius:15px;background:#161821;color:#f4edf8;transition:transform .14s ease,border-color .14s ease;cursor:pointer;box-sizing:border-box}
+#communityGroupsList .jabzy-group-card:active{transform:scale(.99);border-color:rgba(224,91,176,.5)}
+#communityGroupsList .jabzy-group-avatar{position:relative;width:48px;height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:center;overflow:visible;border-radius:14px;background:linear-gradient(140deg,#a33dbe,#ed4b9c);color:#fff;font-size:20px;font-weight:900}
+#communityGroupsList .jabzy-group-avatar img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+#communityGroupsList .jabzy-group-privacy{position:absolute;right:-4px;bottom:-4px;width:19px;height:19px;display:grid;place-items:center;border:2px solid #161821;border-radius:50%;background:#282331;font-size:10px}
+#communityGroupsList .jabzy-group-info{flex:1;min-width:0}
+#communityGroupsList .jabzy-group-name{display:block;overflow:hidden;color:inherit;font-size:13px;font-weight:850;white-space:nowrap;text-overflow:ellipsis}
+#communityGroupsList .jabzy-group-description{overflow:hidden;margin-top:3px;color:#a99bad;font-size:11px;white-space:nowrap;text-overflow:ellipsis}
+#communityGroupsList .jabzy-group-meta{display:flex;align-items:center;gap:10px;margin-top:7px;color:#a99bad;font-size:10px}
+#communityGroupsList .jabzy-group-online{display:inline-flex;align-items:center;gap:4px}
+#communityGroupsList .jabzy-group-online i{width:6px;height:6px;border-radius:50%;background:#36cf83;box-shadow:0 0 7px #36cf8370}
+#communityGroupsList .jabzy-group-card-side{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+#communityGroupsList .jabzy-group-role{padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.07);color:#cfc1d9;font-size:9px;font-weight:800}
+#communityGroupsList .jabzy-group-role.admin{background:rgba(227,71,155,.14);color:#ff8dc6}
+#communityGroupsList .jabzy-group-chevron{color:#95869e;font-size:23px;line-height:1}
+#communityGroupsList .jabzy-group-card.pending{cursor:default;opacity:.78}
+#communityGroupsList .jabzy-groups-empty{padding:24px 14px;text-align:center;border:1px dashed rgba(170,135,195,.25);border-radius:14px;color:#a99bad;font-size:12px}
+body.light-theme #communityGroupsSection .jabzy-groups-section-title{color:#39264a}
+body.light-theme #communityGroupsSection .jabzy-groups-search-wrap{background:#fff;border-color:#e2d5e9}
+body.light-theme #communityGroupsSection .jabzy-groups-search-wrap input{color:#30233b!important}
+body.light-theme #communityGroupsSection .jabzy-groups-search-wrap input::placeholder{color:#887b91!important}
+body.light-theme #communityGroupsSection .jabzy-groups-filters button{background:#fff;border-color:#e2d5e9;color:#665273}
+body.light-theme #communityGroupsSection .jabzy-groups-filters button.active{background:linear-gradient(100deg,#d92f86,#8642c4);color:#fff}
+body.light-theme #communityGroupsList .jabzy-group-card{background:#fff;border-color:#e4d8eb;color:#30233b;box-shadow:0 3px 12px rgba(70,35,90,.055)}
+body.light-theme #communityGroupsList .jabzy-group-privacy{border-color:#fff;background:#f1eaf5}
+body.light-theme #communityGroupsList .jabzy-group-description,body.light-theme #communityGroupsList .jabzy-group-meta{color:#786b82}
+body.light-theme #communityGroupsList .jabzy-group-role{background:#f1eaf5;color:#665273}
+body.light-theme #communityGroupsList .jabzy-group-role.admin{background:#fde8f3;color:#a42f78}
+body.light-theme #communityGroupsList .jabzy-group-chevron{color:#887b91}
+body.light-theme #communityGroupsList .jabzy-groups-empty{border-color:#e2d5e9;color:#786b82}
+@media(max-width:360px){#communityGroupsList .jabzy-group-card{gap:9px;padding:11px}#communityGroupsList .jabzy-group-avatar{width:43px;height:43px;flex-basis:43px}#communityGroupsList .jabzy-group-role{font-size:8px;padding:4px 5px}}
+</style>
 </head>
 <body>
   
@@ -2435,7 +2479,7 @@ box-sizing:border-box;
   <div id="roomsScreen" class="app-screen"
 style="display:none;padding:15px 12px 100px;">
 
-  <div id="jabzyRoomsHeader"><h2>👑 JABZY ROOMS</h2><button id="jabzyHeaderCreateRoomButton" type="button" onclick="createLiveRoom()"><span aria-hidden="true">＋</span> Create Room</button></div>
+  <div id="jabzyRoomsHeader"><h2><svg class="jabzy-rooms-heading-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m10 9 5 3-5 3z"></path></svg><span id="jabzyRoomsHeadingText">JABZY ROOMS</span></h2><button id="jabzyHeaderCreateRoomButton" type="button" onclick="createLiveRoom()"><span aria-hidden="true">＋</span> Create Room</button></div>
     <!-- JABZY ROOMS AD -->
 <div id="roomsAds" style="margin:12px 0;"></div>
 <!-- END ROOMS AD -->
@@ -2472,11 +2516,9 @@ style="display:none;padding:15px 12px 100px;">
   </div>
 
   <div id="communityGroupsSection" style="display:none;">
-    <h3>👥 JABZY GROUPS</h3>
-    <button id="createCommunityGroupButton" onclick="createGroup()"
-      style="width:100%;margin:8px 0 12px;padding:11px;border-radius:12px;background:linear-gradient(135deg,#ff55a8,#a45bea);color:#fff!important;font-weight:800;">
-      <span class="jabzy-create-group-content"><span class="jabzy-create-group-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"></path><circle cx="9" cy="7" r="3.5"></circle><path d="M17 8v6m-3-3h6M17 14.5a4 4 0 0 1 4 4V20"></path></svg></span><span>Create Group</span></span>
-    </button>
+    <h3 class="jabzy-groups-section-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"></path><circle cx="9" cy="7" r="3.5"></circle><path d="M17 11a3.5 3.5 0 1 0-1-6.8M18 14.5a4 4 0 0 1 4 4V20"></path></svg> JABZY GROUPS</h3>
+    <div class="jabzy-groups-search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4.5 4.5"></path></svg><input id="communityGroupsSearch" type="search" placeholder="Search groups..." autocomplete="off" aria-label="Search groups"></div>
+    <div id="communityGroupsFilters" class="jabzy-groups-filters"><button type="button" class="active" data-filter="all">All</button><button type="button" data-filter="admin">Admin</button><button type="button" data-filter="joined">Joined</button></div>
     <div id="communityGroupsList">Loading groups...</div>
   </div>
 
@@ -10441,38 +10483,63 @@ data.forEach(room => {
 }
     
 function showRoomsSection(section){
-  const sections = {
-    live: "liveRoomsSection",
-    groups: "communityGroupsSection",
-    private: "privateRoomsSection"
-  };
-
-  const tabs = {
-    live: "liveRoomsTab",
-    groups: "groupsRoomsTab",
-    private: "privateRoomsTab"
-  };
-
-  Object.keys(sections).forEach(key => {
-    document.getElementById(sections[key]).style.display =
-      key === section ? "block" : "none";
-
-    const tab = document.getElementById(tabs[key]);
-    tab.classList.toggle("active", key === section);
-    tab.setAttribute("aria-pressed", key === section ? "true" : "false");
-    tab.style.background = key === section
-      ? "linear-gradient(90deg,#ff55a8,#a45bea)"
-      : "#342044";
+  const sections={live:"liveRoomsSection",groups:"communityGroupsSection",private:"privateRoomsSection"};
+  const tabs={live:"liveRoomsTab",groups:"groupsRoomsTab",private:"privateRoomsTab"};
+  Object.keys(sections).forEach(key=>{
+    document.getElementById(sections[key]).style.display=key===section?"block":"none";
+    const tab=document.getElementById(tabs[key]);
+    tab.classList.toggle("active",key===section);
+    tab.setAttribute("aria-pressed",key===section?"true":"false");
+    tab.style.background=key===section?"linear-gradient(90deg,#ff55a8,#a45bea)":"#342044";
   });
-
-  if(section === "private"){
-    loadMyPrivateRooms();
-  }
-  if(section === "groups"){
-    loadCommunityGroups();
-  }
+  const heading=document.getElementById("jabzyRoomsHeadingText");
+  const headingIcon=document.querySelector("#jabzyRoomsHeader h2 .jabzy-rooms-heading-icon");
+  const create=document.getElementById("jabzyHeaderCreateRoomButton");
+  if(heading)heading.textContent=section==="groups"?"JABZY GROUPS":"JABZY ROOMS";
+  if(headingIcon)headingIcon.innerHTML=section==="groups"?'<path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"></path><circle cx="9" cy="7" r="3.5"></circle><path d="M17 11a3.5 3.5 0 1 0-1-6.8M18 14.5a4 4 0 0 1 4 4V20"></path>':'<rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m10 9 5 3-5 3z"></path>';
+  if(create){create.innerHTML='<span aria-hidden="true">＋</span> '+(section==="groups"?"Create Group":"Create Room");create.onclick=section==="groups"?createGroup:createLiveRoom;}
+  if(section==="private")loadMyPrivateRooms();
+  if(section==="groups")loadCommunityGroups();
 }
-
+let communityGroupsCache=[];
+let communityGroupsFilter="all";
+function filterCommunityGroups(){
+  const search=(document.getElementById("communityGroupsSearch")?.value||"").trim().toLowerCase();
+  const filter=communityGroupsFilter;
+  const rows=communityGroupsCache.filter(item=>{
+    const g=item.group,m=item.membership;
+    const matchesSearch=(g.name||"").toLowerCase().includes(search)||(g.description||"").toLowerCase().includes(search);
+    const isAdmin=g.created_by===me.id||m?.role==="admin";
+    const isJoined=m?.status==="approved"||g.created_by===me.id;
+    return matchesSearch&&(filter==="all"||(filter==="admin"&&isAdmin)||(filter==="joined"&&isJoined));
+  });
+  const box=document.getElementById("communityGroupsList");if(!box)return;
+  box.replaceChildren();
+  if(!rows.length){const empty=document.createElement("div");empty.className="jabzy-groups-empty";empty.textContent=search?"No matching groups found.":filter==="admin"?"You are not an admin of any group.":filter==="joined"?"You haven't joined any groups yet.":"Abhi koi public group nahi hai. Aap naya group bana sakte hain.";box.appendChild(empty);return;}
+  rows.forEach(({group,membership,memberCount,onlineCount})=>{
+    const isOwner=group.created_by===me.id,isAdmin=isOwner||membership?.role==="admin",isJoined=membership?.status==="approved"||isOwner;
+    const card=document.createElement("div");card.className="jabzy-group-card";
+    const avatar=document.createElement("div");avatar.className="jabzy-group-avatar";
+    if(group.icon_url){const img=document.createElement("img");img.src=group.icon_url;img.alt="";avatar.appendChild(img);}
+    else avatar.textContent=(group.name||"J").trim().slice(0,1).toUpperCase();
+    const privacy=document.createElement("span");privacy.className="jabzy-group-privacy";privacy.innerHTML=group.visibility==="private"?'&#128274;':'&#127760;';avatar.appendChild(privacy);
+    const info=document.createElement("div");info.className="jabzy-group-info";
+    const name=document.createElement("b");name.className="jabzy-group-name";name.textContent=group.name||"JABZY Group";
+    const desc=document.createElement("div");desc.className="jabzy-group-description";desc.textContent=group.description||"Community group";
+    const meta=document.createElement("div");meta.className="jabzy-group-meta";
+    const members=document.createElement("span");members.textContent=memberCount+" members";
+    const online=document.createElement("span");online.className="jabzy-group-online";online.innerHTML='<i></i>'+onlineCount+' online';
+    meta.append(members,online);info.append(name,desc,meta);
+    const side=document.createElement("div");side.className="jabzy-group-card-side";
+    const role=document.createElement("span");role.className="jabzy-group-role"+(isAdmin?" admin":"");role.textContent=isAdmin?"Admin":isJoined?"Member":membership?.status==="pending"?"Pending":"Explore";
+    const arrow=document.createElement("span");arrow.className="jabzy-group-chevron";arrow.textContent="›";side.append(role,arrow);
+    card.append(avatar,info,side);
+    if(isJoined){card.setAttribute("role","button");card.tabIndex=0;card.setAttribute("aria-label","Open group "+(group.name||""));card.onclick=()=>openCommunityGroup(group);card.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCommunityGroup(group);}};}
+    else if(membership?.status==="pending"){card.classList.add("pending");}
+    else{card.setAttribute("role","button");card.tabIndex=0;card.onclick=()=>joinCommunityGroup(group);card.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();joinCommunityGroup(group);}};}
+    box.appendChild(card);
+  });
+}
 async function loadCommunityGroups(){
   if(me){
     const inviteToken=new URL(location.href).searchParams.get("group_invite");
@@ -10483,93 +10550,26 @@ async function loadCommunityGroups(){
       else alert(inviteStatus==="pending"?"Invite accepted. Admin approval pending.":"Invite accepted. Group joined!");
     }
   }
-  const box = document.getElementById("communityGroupsList");
-  if(!box || !me) return;
-  box.textContent = "Loading groups...";
-
-  const [groupResult, memberResult] = await Promise.all([
-    db.from("community_groups")
-      .select("id,name,description,created_by,created_at,visibility,members_visibility,hide_from_search,require_admin_approval,invite_permission,post_access_mode,chat_access_mode,photo_access_mode,slow_mode_seconds,media_sharing_enabled,icon_url")
-      .order("created_at",{ascending:false}),
-    db.from("community_group_members")
-      .select("group_id,status,role")
-      .eq("user_id",me.id)
+  const box=document.getElementById("communityGroupsList");if(!box||!me)return;
+  box.textContent="Loading groups...";
+  const [groupResult,memberResult,allMemberResult]=await Promise.all([
+    db.from("community_groups").select("id,name,description,created_by,created_at,visibility,members_visibility,hide_from_search,require_admin_approval,invite_permission,post_access_mode,chat_access_mode,photo_access_mode,slow_mode_seconds,media_sharing_enabled,icon_url").order("created_at",{ascending:false}),
+    db.from("community_group_members").select("group_id,status,role").eq("user_id",me.id),
+    db.from("community_group_members").select("group_id,user_id,status,profiles(last_seen)").eq("status","approved")
   ]);
-
-  if(groupResult.error){
-    box.textContent = "Groups load nahi ho paaye: " + groupResult.error.message;
-    return;
-  }
-  if(memberResult.error){
-    box.textContent = "Membership check nahi ho paaya: " + memberResult.error.message;
-    return;
-  }
-
-  const memberships = new Map((memberResult.data || []).map(m => [m.group_id,m]));
-  const visibleGroups = (groupResult.data || []).filter(g =>
-    (!g.hide_from_search || memberships.has(g.id) || g.created_by === me.id) && (g.visibility === "public" || memberships.has(g.id) || g.created_by === me.id)
-  );
-
-  box.replaceChildren();
-  if(!visibleGroups.length){
-    box.textContent = "Abhi koi public group nahi hai. Aap naya group bana sakte hain.";
-    return;
-  }
-
-  visibleGroups.forEach(group => {
-    const membership = memberships.get(group.id);
-    const card = document.createElement("div");
-    card.style.cssText = "padding:13px;margin:10px 0;border:1px solid #65477c;border-radius:14px;background:linear-gradient(135deg,#261b35,#191321);color:#fff;";
-
-    const title = document.createElement("b");
-    title.textContent = (group.visibility === "private" ? "🔒 " : "🌍 ") + (group.name || "JABZY Group");
-    title.style.cssText = "display:block;font-size:15px;color:inherit;";
-
-    const description = document.createElement("p");
-    description.textContent = group.description || "No group description";
-    description.style.cssText = "margin:7px 0;font-size:12px;opacity:.82;";
-
-    const status = document.createElement("small");
-    status.style.cssText = "display:block;margin:5px 0 9px;opacity:.85;";
-    if(membership?.status === "approved"){
-      status.textContent = membership.role === "admin" ? "Your role: Admin" : "You are a member";
-    }else if(membership?.status === "pending"){
-      status.textContent = "Join request pending approval";
-    }else{
-      status.textContent = group.visibility === "private" ? "Private group · approval required" : "Public group";
-    }
-
-    card.append(title,description,status);
-
-    if(membership?.status === "approved" || group.created_by === me.id){
-      card.style.cursor = "pointer";
-      card.setAttribute("role","button");
-      card.setAttribute("tabindex","0");
-      card.setAttribute("aria-label","Open group "+(group.name || ""));
-      card.onclick = () => openCommunityGroup(group);
-      card.onkeydown = (event) => {
-        if(event.key === "Enter" || event.key === " "){
-          event.preventDefault();
-          openCommunityGroup(group);
-        }
-      };
-    }
-
-    if(!membership && group.created_by !== me.id){
-      const join = document.createElement("button");
-      join.type = "button";
-      join.textContent = group.visibility === "private" ? "Request to Join" : "Join Group";
-      join.style.cssText = "width:100%;margin:4px 0 0;padding:9px;border-radius:10px;";
-      join.onclick = (event) => {
-        event.stopPropagation();
-        joinCommunityGroup(group);
-      };
-      card.appendChild(join);
-    }
-    box.appendChild(card);
-  });
+  if(groupResult.error){box.textContent="Groups load nahi ho paaye: "+groupResult.error.message;return;}
+  if(memberResult.error){box.textContent="Membership check nahi ho paaya: "+memberResult.error.message;return;}
+  const memberships=new Map((memberResult.data||[]).map(m=>[m.group_id,m]));
+  const visibleGroups=(groupResult.data||[]).filter(g=>(!g.hide_from_search||memberships.has(g.id)||g.created_by===me.id)&&(g.visibility==="public"||memberships.has(g.id)||g.created_by===me.id));
+  const counts=new Map();
+  (allMemberResult.data||[]).forEach(m=>{const row=counts.get(m.group_id)||{members:0,online:0};row.members++;if(m.profiles?.last_seen&&Date.now()-new Date(m.profiles.last_seen).getTime()<5*60*1000)row.online++;counts.set(m.group_id,row);});
+  communityGroupsCache=visibleGroups.map(group=>{const count=counts.get(group.id)||{members:group.created_by===me.id?1:0,online:0};return{group,membership:memberships.get(group.id),memberCount:count.members,onlineCount:count.online};});
+  filterCommunityGroups();
+  const search=document.getElementById("communityGroupsSearch");
+  if(search&&!search.dataset.bound){search.dataset.bound="1";search.addEventListener("input",filterCommunityGroups);}
+  const filters=document.getElementById("communityGroupsFilters");
+  if(filters&&!filters.dataset.bound){filters.dataset.bound="1";filters.addEventListener("click",event=>{const button=event.target.closest("button[data-filter]");if(!button)return;communityGroupsFilter=button.dataset.filter;filters.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));filterCommunityGroups();});}
 }
-
 let currentOpenedCommunityGroup = null;
 let communityGroupRealtimeChannel = null;
 let communityGroupMembersCache = [];
