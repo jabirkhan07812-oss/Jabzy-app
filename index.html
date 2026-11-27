@@ -10722,7 +10722,7 @@ function filterCommunityGroups(){
     const online=document.createElement("span");online.className="jabzy-group-online";online.innerHTML='<i></i>'+onlineCount+' online';
     meta.append(members,online);info.append(name,desc,meta);
     const side=document.createElement("div");side.className="jabzy-group-card-side";
-    const role=document.createElement("span");role.className="jabzy-group-role"+(isAdmin?" admin":"");role.textContent=isAdmin?"Admin":isJoined?"Member":membership?.status==="pending"?"Pending":"Explore";
+    const role=document.createElement("span");role.className="jabzy-group-role"+(isAdmin?" admin":"");role.textContent=isOwner?"Owner":isAdmin?"Admin":isJoined?"Member":membership?.status==="pending"?"Pending":"Explore";
     const arrow=document.createElement("span");arrow.className="jabzy-group-chevron";arrow.textContent="›";side.append(role,arrow);
     card.append(avatar,info,side);
     if(isJoined){card.setAttribute("role","button");card.tabIndex=0;card.setAttribute("aria-label","Open group "+(group.name||""));card.onclick=()=>openCommunityGroup(group);card.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCommunityGroup(group);}};}
@@ -10864,6 +10864,7 @@ function openCommunityGroupSettings(){
       body.light-theme #jabzyCommunityGroupModal .jgs-segment button{color:#786A82}
       body.light-theme #jabzyCommunityGroupModal .jgs-toggle small,body.light-theme #jabzyCommunityGroupModal .jgs-muted{color:#81738A}
       body.light-theme #jabzyCommunityGroupModal .jgs-ghost{color:#574A60;border-color:#D8CDD E}
+      body.light-theme #jabzyCommunityGroupModal .jgs-upload{background:linear-gradient(110deg,#A855F7,#EC4899)!important;color:#fff!important;border:0!important;}
       body.light-theme #jabzyCommunityGroupModal .jgs-avatar{background:#F1EAF5;border-color:#E4D8EA}
       @media(min-width:600px){#jabzyCommunityGroupModal{align-items:center!important;padding:20px!important}#jabzyCommunityGroupModal>div{border-radius:22px!important;max-width:520px!important}}
     `.replace("#D8CDD E","#D8CDDE");
