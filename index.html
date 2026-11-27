@@ -4115,7 +4115,7 @@ function renderJabzyVideoCategories(){
   bar.replaceChildren();
   topics.forEach(topic=>{
     const chip=document.createElement("button");chip.type="button";chip.textContent=topic;
-    const active=jabzyActiveHomeTopic===topic;
+    const active=jabzyActiveHomeTopic===topic;chip.className="jabzy-home-category-chip"+(active?" active":"");chip.setAttribute("aria-pressed",active?"true":"false");
     chip.style.cssText="display:inline-flex;flex:0 0 auto;flex-shrink:0;align-items:center;justify-content:center;width:auto;max-width:none;min-width:max-content;padding:5px 8px;border-radius:14px;border:1px solid "+(active?"#ff65b5":"#624477")+";background:"+(active?"linear-gradient(110deg,#ff4fa3,#8655e9)":"#21172e")+";color:#fff;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;";
     chip.onclick=()=>{if(jabzyActiveHomeTopic===topic)return;jabzyActiveHomeTopic=topic;renderJabzyVideoCategories();loadHomePosts();};
     bar.appendChild(chip);
@@ -12796,6 +12796,28 @@ body.light-theme #jabzyVideoCategories button.active{
   border-color:#c45baf!important;
   color:#fff!important;
   -webkit-text-fill-color:#fff!important;
+}
+
+/* FORCE SELECTED HOME CATEGORY CHIP STATE */
+#homeScreen #jabzyVideoCategories button.jabzy-home-category-chip{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  opacity:1!important;font-weight:800!important;border-radius:14px!important;
+  transition:background .15s ease,color .15s ease,border-color .15s ease!important;
+}
+#homeScreen #jabzyVideoCategories button.jabzy-home-category-chip.active,
+#homeScreen #jabzyVideoCategories button.jabzy-home-category-chip[aria-pressed="true"]{
+  background:linear-gradient(110deg,#ff4fa3 0%,#8655e9 100%)!important;
+  background-color:#a044b5!important;border:1px solid #ff65b5!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  box-shadow:0 3px 12px rgba(196,63,157,.28)!important;
+}
+body.light-theme #homeScreen #jabzyVideoCategories button.jabzy-home-category-chip:not(.active){
+  background:#f2eaf7!important;border:1px solid #dfcfe8!important;
+  color:#593b6b!important;-webkit-text-fill-color:#593b6b!important;
+}
+body:not(.light-theme) #homeScreen #jabzyVideoCategories button.jabzy-home-category-chip:not(.active){
+  background:#21172e!important;border:1px solid #624477!important;
+  color:#eadcf5!important;-webkit-text-fill-color:#eadcf5!important;
 }
 </style>
 </body>
