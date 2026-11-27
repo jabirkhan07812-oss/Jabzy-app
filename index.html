@@ -10743,22 +10743,16 @@ async function loadCommunityGroups(){
   }
   const box=document.getElementById("communityGroupsList");if(!box||!me)return;
   box.textContent="Loading groups...";
-  const [groupResult,memberResult,allMemberResult]=await Promise.all([
-    db.from("community_groups").select("id,name,description,created_by,created_at,visibility,members_visibility,hide_from_search,require_admin_approval,invite_permission,post_access_mode,chat_access_mode,photo_access_mode,slow_mode_seconds,media_sharing_enabled,icon_url").order("created_at",{ascending:false}),
-    db.from("community_group_members").select("group_id,status,role").eq("user_id",me.id),
-    db.from("community_group_members").select("group_id,user_id,status").eq("status","approved")
+  const [groupResult,memberResult]=await Promise.all([
+    db.from("community_groups").select("id,name,description,created_by,created_at,visibility,members_visibility,hide_from_search,require_admin_approval,invite_permission,post_access_mode,chat_access_mode,photo_access_mode,slow_mode_seconds,media_sharing_enabled,icon_url,member_count").order("created_at",{ascending:false}),
+    db.from("community_group_members").select("group_id,status,role").eq("user_id",me.id)
   ]);
   if(groupResult.error){box.textContent="Groups load nahi ho paaye: "+groupResult.error.message;return;}
   if(memberResult.error){box.textContent="Membership check nahi ho paaya: "+memberResult.error.message;return;}
-  if(allMemberResult.error){box.textContent="Group member counts load nahi ho paaye: "+allMemberResult.error.message;return;}
   const memberships=new Map((memberResult.data||[]).map(m=>[m.group_id,m]));
-  const approvedRows=allMemberResult.data||[];
-  const profileIds=[...new Set(approvedRows.map(m=>m.user_id).filter(Boolean))];
-  let lastSeenByUser=new Map();
-  if(profileIds.length){const {data:presenceRows,error:presenceError}=await db.from("profiles").select("id,last_seen").in("id",profileIds);if(!presenceError)lastSeenByUser=new Map((presenceRows||[]).map(p=>[p.id,p.last_seen]));}
   const visibleGroups=(groupResult.data||[]).filter(g=>(!g.hide_from_search||memberships.has(g.id)||g.created_by===me.id)&&(g.visibility==="public"||memberships.has(g.id)||g.created_by===me.id));
   const counts=new Map();
-  approvedRows.forEach(m=>{const row=counts.get(m.group_id)||{members:0,online:0};row.members++;const seen=lastSeenByUser.get(m.user_id);if(seen&&Date.now()-new Date(seen).getTime()<5*60*1000)row.online++;counts.set(m.group_id,row);});
+  await Promise.all(visibleGroups.map(async group=>{const {data,error}=await db.rpc("get_community_group_member_counts",{p_group_id:group.id});const c=Array.isArray(data)?data[0]:data;counts.set(group.id,{members:error?Number(group.member_count||0):Number(c?.total_members||0),online:error?0:Number(c?.online_members||0)});}));
   communityGroupsCache=visibleGroups.map(group=>{const count=counts.get(group.id)||{members:0,online:0};const membership=memberships.get(group.id);const normalizedMembership=membership?{...membership,role:group.created_by===me.id?"admin":membership.role}:membership;return{group,membership:normalizedMembership,memberCount:count.members,onlineCount:count.online};});
   filterCommunityGroups();
   if(!communityGroupsRealtimeChannel){communityGroupsRealtimeChannel=db.channel("jabzy-community-groups-list").on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},()=>loadCommunityGroups()).subscribe();}
@@ -10932,7 +10926,6 @@ async function openCommunityGroup(group){
   const titleEl=document.getElementById("openedCommunityGroupName"),header=titleEl?.parentElement?.parentElement;
   if(header&&titleEl){let avatar=document.getElementById("openedCommunityGroupAvatar");if(!avatar){avatar=document.createElement("div");avatar.id="openedCommunityGroupAvatar";avatar.style.cssText="width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-weight:900;font-size:17px;";header.insertBefore(avatar,titleEl.parentElement);}avatar.replaceChildren();if(group.icon_url){const img=document.createElement("img");img.src=group.icon_url;img.alt="Group avatar";img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent=(group.name||"J").trim().charAt(0).toUpperCase();}
   const settingsButton=document.getElementById("openedCommunityGroupSettingsButton");if(settingsButton)settingsButton.style.display=(group.created_by===me.id||member?.role==="admin")?"grid":"none";
-  const groupHeaderTitle=document.getElementById("openedCommunityGroupName")?.parentElement;if(groupHeaderTitle)groupHeaderTitle.onclick=()=>openCommunityGroupInfo();
   const subtitle=document.getElementById("openedCommunityGroupInfo");
   subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(group.members_visibility==="private"?"Members private":(communityGroupMembersCache.length||1)+" Member")+" ›";
   subtitle.style.cssText="font-size:11px;color:var(--jabzy-muted,#aaa);cursor:pointer;";
