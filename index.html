@@ -12833,6 +12833,45 @@ body.light-theme #roomsActionButtons #liveRoomsTab,body.light-theme #roomsAction
 body.light-theme #roomsActionButtons #createLiveRoomButton,body.light-theme #communityGroupsSection #createCommunityGroupButton{background:linear-gradient(110deg,#d92f86,#8642c4)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #c45baf!important}
 body:not(.light-theme) #communityGroupsSection #createCommunityGroupButton{background:linear-gradient(110deg,#ff55a8,#a45bea)!important}
 </style>
+<style id="jabzy-room-actions-horizontal-line-icons">
+#roomsActionButtons{gap:6px!important;align-items:center!important}
+#roomsActionButtons button{
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;min-height:44px!important;height:44px!important;padding:5px 3px!important;
+ border-radius:12px!important;white-space:nowrap!important;overflow:hidden!important;
+}
+#roomsActionButtons .jabzy-room-nav-icon,#roomsActionButtons .jabzy-room-create-icon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:17px!important;height:20px!important;flex:0 0 17px!important;
+}
+#roomsActionButtons .jabzy-room-nav-icon svg,#roomsActionButtons .jabzy-room-create-icon svg{
+ display:block!important;width:17px!important;height:17px!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#roomsActionButtons .jabzy-room-nav-label{
+ display:inline-block!important;font-size:9px!important;font-weight:850!important;
+ line-height:1!important;white-space:nowrap!important;overflow:visible!important;
+}
+#roomsActionButtons #createLiveRoomButton{gap:4px!important}
+#roomsActionButtons #createLiveRoomButton .jabzy-room-nav-label{font-size:8px!important}
+#communityGroupsSection #createCommunityGroupButton{
+ min-height:44px!important;height:44px!important;padding:8px 14px!important;
+}
+#communityGroupsSection .jabzy-create-group-content{
+ display:inline-flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:center!important;gap:8px!important;
+}
+#communityGroupsSection .jabzy-create-group-icon{width:20px!important;height:20px!important}
+#communityGroupsSection .jabzy-create-group-icon svg{width:20px!important;height:20px!important}
+@media(max-width:380px){
+ #roomsActionButtons{gap:4px!important}
+ #roomsActionButtons button{gap:3px!important;padding-left:1px!important;padding-right:1px!important}
+ #roomsActionButtons .jabzy-room-nav-label{font-size:8px!important}
+ #roomsActionButtons .jabzy-room-nav-icon,#roomsActionButtons .jabzy-room-create-icon{width:15px!important;flex-basis:15px!important}
+ #roomsActionButtons .jabzy-room-nav-icon svg,#roomsActionButtons .jabzy-room-create-icon svg{width:15px!important;height:15px!important}
+}
+</style>
 </style>
 </body>
   </html>
