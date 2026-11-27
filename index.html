@@ -10389,7 +10389,7 @@ async function loadActiveRooms(){
   }
 
   if(!data || data.length === 0){
-    box.innerHTML = '<div style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b>No live rooms yet</b><div style="font-size:12px;opacity:.72;margin:6px 0 14px;">Be the first to start a room and invite friends.</div><button type="button" onclick="createLiveRoom()" style="width:auto;margin:0;padding:9px 18px;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;">＋ Create Room</button></div>';
+    box.innerHTML = '<div id="jabzyNoLiveRooms" style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b class="jabzy-empty-title">No live rooms yet</b><div class="jabzy-empty-description" style="font-size:12px;margin:6px 0 14px;">Be the first to start a room and invite friends.</div><button type="button" onclick="createLiveRoom()" class="jabzy-empty-create" style="width:auto;margin:0;padding:9px 18px;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff!important;">＋ Create Room</button></div>';
     return;
   }
 
@@ -12994,6 +12994,49 @@ body.light-theme #jabzyWelcomeStatus{color:#93416d}
 .jabzy-profile-default-avatar{width:112px;height:112px;margin:0 auto;font-size:46px}
 .jabzy-public-default-avatar{width:158px;height:158px;margin:0 auto;font-size:64px}
 body.light-theme .jabzy-profile-default-avatar,body.light-theme .jabzy-public-default-avatar{box-shadow:0 7px 22px #69408a22}
+
+/* JABZY ROOMS — COMPLETE LIGHT/DARK THEME READABILITY */
+body.light-theme #roomsScreen{background:#f7f3fa!important;color:#30233b!important}
+body.light-theme #roomsScreen h2,body.light-theme #roomsScreen h3,
+body.light-theme #roomsScreen #liveRoomsSection,
+body.light-theme #roomsScreen #communityGroupsSection,
+body.light-theme #roomsScreen #activeRoomsList,
+body.light-theme #roomsScreen #communityGroupsList{color:#30233b!important}
+body.light-theme #roomsScreen #roomsActionButtons button:not(#createLiveRoomButton){background:#eee5f4!important;color:#493653!important;border:1px solid #dfd1e9!important}
+body.light-theme #roomsScreen #createLiveRoomButton,
+body.light-theme #roomsScreen #createLiveRoomButton span{color:#fff!important}
+body.light-theme #jabzyNoLiveRooms{background:#fff!important;border-color:#d9c5e5!important;color:#30233b!important;box-shadow:0 5px 18px rgba(70,35,90,.06)}
+body.light-theme #jabzyNoLiveRooms .jabzy-empty-title{display:block;color:#30233b!important;font-weight:800}
+body.light-theme #jabzyNoLiveRooms .jabzy-empty-description{color:#6d5a78!important;opacity:1!important}
+body.light-theme #jabzyNoLiveRooms .jabzy-empty-create{background:linear-gradient(110deg,#d92f86,#8642c4)!important;color:#fff!important;border:0!important}
+body.light-theme #joinedRoomScreen{background:#f7f3fa!important;color:#30233b!important}
+body.light-theme #joinedRoomScreen h3,
+body.light-theme #joinedRoomScreen b,
+body.light-theme #joinedRoomScreen span,
+body.light-theme #joinedRoomScreen label{color:#30233b!important}
+body.light-theme #joinedRoomScreen small{color:#6d5a78!important}
+body.light-theme #joinedRoomScreen #roomSpeakers{background:linear-gradient(145deg,#fff,#f1e9f6)!important;border-color:#d9c5e5!important}
+body.light-theme #joinedRoomScreen #roomOwnerSeat,
+body.light-theme #joinedRoomScreen .room-stage-seat{background:#eee3f5!important;color:#493653!important;border-color:#c9a9dc!important}
+body.light-theme #joinedRoomScreen #roomListeners,
+body.light-theme #joinedRoomScreen #roomAllMembers,
+body.light-theme #joinedRoomScreen #roomChatMessages{background:#fff!important;color:#30233b!important;border:1px solid #e3d8eb!important}
+body.light-theme #joinedRoomScreen input,
+body.light-theme #joinedRoomScreen textarea{background:#fff!important;color:#30233b!important;border-color:#d8c9e2!important}
+body.light-theme #joinedRoomScreen input::placeholder,
+body.light-theme #joinedRoomScreen textarea::placeholder{color:#83718e!important;opacity:1!important}
+body.light-theme #joinedRoomScreen button{color:#493653!important;border-color:#ddcfe7!important}
+body.light-theme #joinedRoomScreen button[onclick="toggleRoomMic()"],
+body.light-theme #joinedRoomScreen button[onclick="openRoomInvitePicker()"]{color:#fff!important}
+body.light-theme #joinedRoomScreen button[onclick="leaveJoinedRoom()"]{color:#fff!important;background:#b83255!important}
+body:not(.light-theme) #roomsScreen{background:#100b1c;color:#fff}
+body:not(.light-theme) #roomsScreen #jabzyNoLiveRooms{background:rgba(150,90,190,.08);color:#fff;border-color:rgba(180,130,210,.35)}
+body:not(.light-theme) #jabzyNoLiveRooms .jabzy-empty-title{color:#fff}
+body:not(.light-theme) #jabzyNoLiveRooms .jabzy-empty-description{color:#d5c6df}
+body:not(.light-theme) #joinedRoomScreen{background:#100b1c;color:#fff}
+body:not(.light-theme) #joinedRoomScreen h3,
+body:not(.light-theme) #joinedRoomScreen b,
+body:not(.light-theme) #joinedRoomScreen span{color:inherit}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
