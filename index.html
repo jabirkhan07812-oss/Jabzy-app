@@ -10755,7 +10755,9 @@ async function loadCommunityGroups(){
   await Promise.all(visibleGroups.map(async group=>{const {data,error}=await db.rpc("get_community_group_member_counts",{p_group_id:group.id});const c=Array.isArray(data)?data[0]:data;counts.set(group.id,{members:error?Number(group.member_count||0):Number(c?.total_members||0),online:error?0:Number(c?.online_members||0)});}));
   communityGroupsCache=visibleGroups.map(group=>{const count=counts.get(group.id)||{members:0,online:0};const membership=memberships.get(group.id);const normalizedMembership=membership?{...membership,role:group.created_by===me.id?"admin":membership.role}:membership;return{group,membership:normalizedMembership,memberCount:count.members,onlineCount:count.online};});
   filterCommunityGroups();
-  if(!communityGroupsRealtimeChannel){communityGroupsRealtimeChannel=db.channel("jabzy-community-groups-list").on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},()=>loadCommunityGroups()).subscribe();}
+  if(!communityGroupsRealtimeChannel){communityGroupsRealtimeChannel=db.channel("jabzy-community-groups-list").on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},()=>loadCommunityGroups()).on("postgres_changes",{event:"UPDATE",schema:"public",table:"community_groups"},()=>loadCommunityGroups()).subscribe();}
+  if(window.jabzyGroupListCountsTimer)clearInterval(window.jabzyGroupListCountsTimer);
+  window.jabzyGroupListCountsTimer=setInterval(async()=>{if(!me||!communityGroupsCache.length)return;await Promise.all(communityGroupsCache.map(async item=>{const {data,error}=await db.rpc("get_community_group_member_counts",{p_group_id:item.group.id});if(error)return;const c=Array.isArray(data)?data[0]:data;item.memberCount=Number(c?.total_members||0);item.onlineCount=Number(c?.online_members||0);}));filterCommunityGroups();},30000);
   const search=document.getElementById("communityGroupsSearch");
   if(search&&!search.dataset.bound){search.dataset.bound="1";search.addEventListener("input",filterCommunityGroups);}
   const filters=document.getElementById("communityGroupsFilters");
@@ -11011,6 +11013,7 @@ async function openCommunityGroupMembers(){
     if(top+230>window.innerHeight)top=Math.max(12,rect.top-230);
     menu.style.left=left+"px";menu.style.top=top+"px";
     const add=(label,kind,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;if(kind)b.className=kind;b.onclick=()=>{closeMenu();fn();};menu.appendChild(b);};
+    if(g.created_by===me.id&&m.user_id!==me.id&&m.status==="approved")add("✉  Message Member","jgm-primary",()=>{overlay?.remove();chooseUser(m.user_id,p.username||"Member");});
     if(m.role!=="admin")add("♛  Make Admin","jgm-primary",()=>{if(confirm("Is member ko Admin banana hai?"))manageCommunityGroupMember(m.user_id,{role:"admin"});});
     add("⚙  Permissions","",()=>openCommunityGroupMemberPermissions(m,p.username));
     add(m.can_chat?"◉  Mute":"◉  Unmute","",()=>manageCommunityGroupMember(m.user_id,{can_chat:!m.can_chat}));
@@ -11030,9 +11033,6 @@ async function openCommunityGroupMembers(){
     if(m.role==="admin"||m.user_id===g.created_by){const badge=document.createElement("span");badge.className="jgm-role";badge.textContent=m.user_id===g.created_by?"Owner":"Admin";nameLine.appendChild(badge);}
     const meta=document.createElement("small");meta.className="jgm-member-meta";meta.textContent=(m.status==="approved"?"Member · Joined":"Member · Pending approval");
     info.append(nameLine,meta);row.append(avatar,info);
-    if(g.created_by===me.id&&m.user_id!==me.id&&m.status==="approved"){
-      const messageBtn=document.createElement("button");messageBtn.type="button";messageBtn.className="jgm-manage";messageBtn.textContent="✉";messageBtn.setAttribute("aria-label","Message member");messageBtn.onclick=()=>{overlay?.remove();chooseUser(m.user_id,p.username||"Member");};row.appendChild(messageBtn);
-    }
     if(isAdmin&&m.user_id!==g.created_by){
       if(m.status==="pending"){
         const approve=document.createElement("button");approve.type="button";approve.className="jgm-approve";approve.textContent="Approve";approve.onclick=()=>manageCommunityGroupMember(m.user_id,{status:"approved",can_chat:true,can_post:true,can_upload:true});row.appendChild(approve);
