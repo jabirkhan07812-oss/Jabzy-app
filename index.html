@@ -1468,6 +1468,28 @@ body.light-theme #communityGroupOpenScreen #communityGroupPostInput{color:#30233
 body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#f1eaf5!important;color:#493458!important}
 body.light-theme #communityGroupPostMediaPreview{color:#665273!important}
 </style>
+<style id="jabzy-post-action-polish">
+.jabzy-post-actions{display:flex!important;align-items:center!important;gap:clamp(14px,4vw,20px)!important;border-top:1px solid rgba(161,161,170,.13)!important}
+.jabzy-post-action{width:auto!important;min-width:0!important;min-height:34px!important;flex:0 0 auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;margin:0!important;padding:5px 2px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#a1a1aa!important;font-size:12px!important;font-weight:600!important;cursor:pointer!important}
+.jabzy-post-action svg{width:21px;height:21px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.jabzy-post-action span{font-size:12px;color:#a1a1aa;font-variant-numeric:tabular-nums}
+.jabzy-post-like.is-liked{color:#f43f5e!important;filter:drop-shadow(0 0 5px rgba(244,63,94,.25))}
+.jabzy-post-like.is-liked svg{fill:#f43f5e;stroke:#f43f5e}
+.jabzy-post-like.is-liked span{color:#f43f5e}
+.jabzy-post-save{margin-left:auto!important;width:30px!important;height:34px!important}
+.jabzy-post-save svg{width:23px;height:23px}
+.jabzy-post-save.is-saved{color:#a855f7!important;filter:drop-shadow(0 0 5px rgba(168,85,247,.28))}
+.jabzy-post-save.is-saved svg{fill:#a855f7;stroke:#a855f7}
+.jabzy-post-action:active{transform:scale(.94)}
+.jabzy-post-action.jabzy-action-pop svg{animation:jabzyLikePop .24s ease}
+@keyframes jabzyLikePop{0%{transform:scale(1)}45%{transform:scale(1.3)}100%{transform:scale(1)}}
+body.light-theme .jabzy-post-action{color:#85838d!important}
+body.light-theme .jabzy-post-action span{color:#85838d}
+body.light-theme .jabzy-post-like.is-liked,body.light-theme .jabzy-post-like.is-liked span{color:#f43f5e!important}
+body.light-theme .jabzy-post-save.is-saved{color:#9333ea!important}
+body.light-theme .jabzy-post-actions{border-top-color:rgba(120,105,130,.16)!important}
+@media(prefers-reduced-motion:reduce){.jabzy-post-action.jabzy-action-pop svg{animation:none!important}}
+</style>
 </head>
 <body>
   
@@ -4258,7 +4280,7 @@ async function loadHomePosts(){
     saveButton.type="button";saveButton.className="jabzy-post-save";saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';
     saveButton.setAttribute("aria-label",savedPostIds.has(String(post.id))?"Unsave post":"Save post");
     saveButton.title=savedPostIds.has(String(post.id))?"Unsave post":"Save post";
-    saveButton.style.cssText="width:38px;height:38px;flex:0 0 38px;margin:0;padding:8px;border:0;border-radius:10px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;";
+    saveButton.classList.add("jabzy-post-action","jabzy-post-save");if(savedPostIds.has(String(post.id)))saveButton.classList.add("is-saved");
     saveButton.onclick=async()=>{
       saveButton.disabled=true;
       const alreadySaved=savedPostIds.has(String(post.id));
@@ -4267,8 +4289,8 @@ async function loadHomePosts(){
         : await db.from("saved_posts").insert({user_id:me.id,post_id:post.id});
       saveButton.disabled=false;
       if(result.error){appStatus("Post save nahi hui: "+result.error.message);return;}
-      if(alreadySaved){savedPostIds.delete(String(post.id));saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Save post");saveButton.title="Save post";appStatus("Post Saved se hata di.");}
-      else{savedPostIds.add(String(post.id));saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Unsave post");saveButton.title="Unsave post";appStatus("Post Saved Posts mein add ho gayi ❤️");}
+      if(alreadySaved){savedPostIds.delete(String(post.id));saveButton.classList.remove("is-saved");saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Save post");saveButton.title="Save post";appStatus("Post Saved se hata di.");}
+      else{savedPostIds.add(String(post.id));saveButton.classList.add("is-saved");saveButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" width="21" height="21" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M6 3.8h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.8a1 1 0 0 1 1-1Z"/></svg>';saveButton.setAttribute("aria-label","Unsave post");saveButton.title="Unsave post";appStatus("Post Saved Posts mein add ho gayi ❤️");}
     };
     card.appendChild(header);
     if(post.content){const body=document.createElement("p");body.textContent=post.content;body.className="jabzy-post-caption";body.style.cssText="white-space:pre-wrap;font-size:14px;line-height:1.5;margin:8px 0 12px;";card.appendChild(body);}
@@ -4281,20 +4303,21 @@ async function loadHomePosts(){
     }
     // Post actions are rendered BELOW the post media/content.
     const actions=document.createElement("div");
-    actions.className="jabzy-post-actions";actions.style.cssText="display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:10px;border-top:1px solid #49315d;";
+    actions.className="jabzy-post-actions";actions.style.cssText="display:flex;align-items:center;gap:18px;margin-top:12px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08);";
     const likeButton=document.createElement("button");
-    likeButton.type="button";likeButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    likeButton.type="button";likeButton.className="jabzy-post-action jabzy-post-like";
     const commentButton=document.createElement("button");
-    commentButton.type="button";commentButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    commentButton.type="button";commentButton.className="jabzy-post-action jabzy-post-comment";
     const shareButton=document.createElement("button");
-    shareButton.type="button";shareButton.style.cssText="flex:1;width:auto;margin:0;padding:9px 5px;border-radius:12px;background:#30203f;font-size:12px;";
+    shareButton.type="button";shareButton.className="jabzy-post-action jabzy-post-share";
     const {data:likes,error:likesError}=await db.from("post_likes").select("user_id").eq("post_id",post.id);
     if(loadToken!==jabzyHomePostsLoadToken)return;
     if(likesError)console.warn("Post likes:",likesError.message);
     const likeRows=likes||[];
     let liked=likeRows.some(row=>row.user_id===me.id);
     let likeCount=likeRows.length;
-    likeButton.textContent=(liked?"❤️":"🤍")+" Like "+likeCount;
+    const renderLikeAction=()=>{likeButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.8 4.8 0 0 1 12 6.1a4.8 4.8 0 0 1 8.8 2.7Z"/></svg><span>'+likeCount+'</span>';likeButton.classList.toggle("is-liked",liked);likeButton.setAttribute("aria-label",(liked?"Unlike":"Like")+" post, "+likeCount+" likes");};
+    renderLikeAction();
     likeButton.onclick=async()=>{
       likeButton.disabled=true;
       const nextLiked=!liked;
@@ -4304,16 +4327,17 @@ async function loadHomePosts(){
       likeButton.disabled=false;
       if(result.error){appStatus(result.error.message);return;}
       liked=nextLiked;likeCount=Math.max(0,likeCount+(liked?1:-1));
-      likeButton.textContent=(liked?"❤️":"🤍")+" Like "+likeCount;
+      renderLikeAction();likeButton.classList.remove("jabzy-action-pop");void likeButton.offsetWidth;likeButton.classList.add("jabzy-action-pop");
     };
     const {count:commentCount,error:commentCountError}=await db.from("post_comments").select("id",{count:"exact",head:true}).eq("post_id",post.id);
     if(loadToken!==jabzyHomePostsLoadToken)return;
     if(commentCountError)console.warn("Post comments:",commentCountError.message);
     let commentCountValue=commentCount||0;
-    commentButton.textContent="💬 Comment "+commentCountValue;
+    commentButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-6.5A7.5 7.5 0 1 1 20 11.5Z"/></svg><span>'+commentCountValue+'</span>';
+    commentButton.setAttribute("aria-label","Comment, "+commentCountValue+" comments");
     commentButton.onclick=()=>{const area=card.querySelector(".post-comment-area");if(area){area.style.display="flex";document.body.style.overflow="hidden";const input=area.querySelector("input");if(input)setTimeout(()=>input.focus(),80);}};
-    shareButton.textContent="↗ Share";
-    shareButton.onclick=()=>openPostShare(post);
+    shareButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L7 8m5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+    shareButton.setAttribute("aria-label","Share post");shareButton.onclick=()=>openPostShare(post);
     actions.append(likeButton,commentButton,shareButton,saveButton);
     if(jabzyOfficialAdminSession&&post.user_id===me.id){
       const menuWrap=document.createElement("div");menuWrap.style.cssText="position:relative;margin-left:auto;flex:0 0 auto;";
