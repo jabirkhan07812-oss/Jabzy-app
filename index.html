@@ -1551,7 +1551,13 @@ body.light-theme #communityGroupOpenScreen #communityGroupChatMessages{backgroun
 body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{background:#fff!important;border-color:#E5DDEB!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#F0EAF6!important;color:#6847A2!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostInput{color:#30233B!important}
-</style></head>
+</style><style id="jabzy-group-chat-permission-placeholder">
+#communityGroupOpenScreen #communityGroupChatInput:disabled{opacity:1!important;cursor:not-allowed!important}
+#communityGroupOpenScreen #communityGroupChatInput:disabled::placeholder{color:#c9b8d8!important;opacity:1!important;font-size:12px!important}
+#communityGroupOpenScreen #communityGroupSendButton:disabled{display:none!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatInput:disabled::placeholder{color:#796887!important;opacity:1!important}
+</style>
+</head>
 <body>
   
   
@@ -10936,10 +10942,16 @@ async function openCommunityGroup(group){
   subtitle.onclick=canViewGroupMembers?(event)=>{event.stopPropagation();openCommunityGroupMembers();}:null;
   document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
-  const canPost=group.created_by===me.id||member?.role==="admin"||(member?.can_post===true&&group.post_access_mode!=="admins");
+  const isGroupOwner=group.created_by===me.id;
+  const isGroupAdmin=member?.role==="admin";
+  const isApprovedGroupMember=member?.status==="approved";
+  const canPost=isGroupOwner||isGroupAdmin||(isApprovedGroupMember&&group.post_access_mode!=="admins"&&member?.can_post===true);
   const postComposer=document.getElementById("communityGroupPostComposer");if(postComposer)postComposer.style.display=canPost?"flex":"none";
-  const canChat=group.created_by===me.id||member?.role==="admin"||(member?.can_chat===true&&group.chat_access_mode!=="admins");
-  input.disabled=!canChat;input.placeholder=canChat?"Message...":"Chat permission nahi hai";
+  const canChat=isGroupOwner||isGroupAdmin||(isApprovedGroupMember&&group.chat_access_mode!=="admins"&&member?.can_chat===true);
+  input.disabled=!canChat;
+  input.placeholder=canChat?"Message...":(group.chat_access_mode==="admins"?"Only Owner & Admins can send messages":"Only Owner can send messages");
+  input.setAttribute("aria-label",input.placeholder);
+  const sendButton=document.getElementById("communityGroupSendButton");if(sendButton)sendButton.disabled=!canChat;
   const screen=document.getElementById("communityGroupOpenScreen");
   screen.style.display="flex";
   await loadOpenedCommunityGroup();
@@ -11153,7 +11165,9 @@ async function sendCommunityGroupPost(){
 async function sendCommunityGroupMessage(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupChatInput"),button=document.getElementById("communityGroupSendButton"),message=(input?.value||"").trim();
   if(!group||!message||!me||!input||input.dataset.sending==="1")return;
-  if(!(group.created_by===me.id||group.membership?.role==="admin"||(group.chat_access_mode!=="admins"&&(group.membership?.can_chat===true&&group.chat_access_mode!=="admins")))){alert("Aapko chat permission nahi hai.");return;}
+  const isOwner=group.created_by===me.id,isAdmin=group.membership?.role==="admin",isApproved=group.membership?.status==="approved";
+  const canChat=isOwner||isAdmin||(isApproved&&group.chat_access_mode!=="admins"&&group.membership?.can_chat===true);
+  if(!canChat){input.placeholder=group.chat_access_mode==="admins"?"Only Owner & Admins can send messages":"Only Owner can send messages";input.disabled=true;return;}
   input.dataset.sending="1";if(button){button.disabled=true;button.style.opacity=".6";}
   try{const {error}=await db.from("community_group_messages").insert({group_id:group.id,user_id:me.id,message});if(error){alert("Message nahi bheja: "+error.message);return;}input.value="";await loadOpenedCommunityGroup();}
   finally{input.dataset.sending="0";if(button){button.disabled=false;button.style.opacity="1";}}
