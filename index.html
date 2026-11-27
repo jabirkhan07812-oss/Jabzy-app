@@ -2268,6 +2268,11 @@ box-sizing:border-box;
 
   </div>
 
+  <h3 style="margin:18px 0 8px;font-size:15px;">Posts</h3>
+  <div id="publicProfilePosts" class="jabzy-profile-grid">
+    <div class="jabzy-profile-empty">Loading posts...</div>
+  </div>
+
   <div class="profile-stats">
   <div role="button" tabindex="0" onclick="openFollowList(window.currentPublicProfileId,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(window.currentPublicProfileId,'followers')}" style="cursor:pointer;">👥 Followers <strong id="publicFollowers">0</strong></div>
   <div id="publicFollowingStat" style="cursor:default;">➕ Following <strong id="publicFollowing">0</strong></div>
@@ -4848,6 +4853,28 @@ async function loadMyProfilePosts(){
   });
 }
 
+async function loadPublicProfilePosts(userId){
+  const box=document.getElementById("publicProfilePosts");if(!box||!userId)return;
+  box.innerHTML='<div class="jabzy-profile-empty">Loading posts...</div>';
+  let query=db.from("posts").select("id,user_id,content,media_url,media_type,created_at,audience").eq("user_id",userId).order("created_at",{ascending:false});
+  if(userId!==me?.id)query=query.or("audience.eq.public,audience.is.null");
+  const {data:posts,error}=await query;
+  if(error){console.warn("Public profile posts:",error.message);box.innerHTML='<div class="jabzy-profile-empty">Posts load nahi ho paaye.</div>';return;}
+  box.replaceChildren();
+  if(!posts?.length){box.innerHTML='<div class="jabzy-profile-empty">📸<br><strong>No public posts yet</strong></div>';return;}
+  posts.forEach(async post=>{
+    const tile=document.createElement("div");tile.className="jabzy-profile-grid-item";
+    if(post.media_url&&post.media_type==="image"){
+      const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const img=document.createElement("img");img.src=mediaUrl;img.alt="Profile post";img.loading="lazy";img.onclick=()=>openJabzyPhotoViewer(mediaUrl,"Profile post");img.style.cursor="zoom-in";tile.appendChild(img);
+    }else if(post.media_url&&post.media_type==="video"){
+      const mediaUrl=await getJabzyPostMediaUrl(post.media_url);const video=document.createElement("video");video.src=mediaUrl;video.muted=true;video.playsInline=true;video.preload="metadata";video.onclick=()=>{video.controls=true;video.muted=false;video.play().catch(()=>{});};tile.appendChild(video);
+      const mark=document.createElement("span");mark.className="jabzy-grid-video";mark.textContent="▶";tile.appendChild(mark);
+    }else{
+      const content=document.createElement("div");content.className="jabzy-grid-text";content.textContent=post.content||"JABZY";tile.appendChild(content);
+    }
+    box.appendChild(tile);
+  });
+}
 async function shareMyProfile(){
   const shareData={title:"My JABZY Profile",text:"Connect with me on JABZY",url:location.href};
   try{if(navigator.share){await navigator.share(shareData);}else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(location.href);appStatus("JABZY profile link copied!");}else{appStatus("Profile link: "+location.href);}}catch(error){if(error?.name!=="AbortError")appStatus("Profile share nahi ho paya.");}
@@ -5292,6 +5319,7 @@ async function openPublicProfile(userId){
   document.getElementById("publicAge").innerText=(p.age||"")+" years";
   document.getElementById("publicBio").innerText=p.bio||"";
   window.currentPublicProfileId=userId;
+  await loadPublicProfilePosts(userId);
   const followingStat=document.getElementById("publicFollowingStat");
   if(userId===me.id){
     followingStat.style.cursor="pointer";
