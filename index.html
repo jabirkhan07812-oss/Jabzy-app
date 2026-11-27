@@ -2487,7 +2487,7 @@ style="display:none;padding:15px 12px 100px;">
         <b id="openedCommunityGroupName">JABZY GROUP</b>
         <div id="openedCommunityGroupInfo" style="font-size:11px;color:#d5b8ec;">Group · Tap for info</div>
       </div>
-      <button onclick="loadOpenedCommunityGroup()" style="width:38px;flex-shrink:0;padding:8px;margin:0;background:#342044;">↻</button>
+      <button onclick="openCommunityGroupInfo()" aria-label="Group settings" style="width:38px;flex-shrink:0;padding:8px;margin:0;background:#342044;">⚙</button>
     </div>
     <div id="communityGroupMembers" style="flex:0 0 auto;padding:10px;margin-bottom:8px;border-radius:12px;background:#21152f;font-size:12px;">Loading members...</div>
     <div id="communityGroupPostComposer" style="padding:10px;margin-bottom:12px;border-radius:12px;background:#21152f;">
@@ -10480,7 +10480,7 @@ async function loadCommunityGroups(){
 
   const [groupResult, memberResult] = await Promise.all([
     db.from("community_groups")
-      .select("id,name,description,created_by,created_at,visibility")
+      .select("id,name,description,created_by,created_at,visibility,members_visibility,hide_from_search,require_admin_approval,invite_permission,post_access_mode,chat_access_mode,photo_access_mode,slow_mode_seconds,media_sharing_enabled,icon_url")
       .order("created_at",{ascending:false}),
     db.from("community_group_members")
       .select("group_id,status,role")
@@ -10498,7 +10498,7 @@ async function loadCommunityGroups(){
 
   const memberships = new Map((memberResult.data || []).map(m => [m.group_id,m]));
   const visibleGroups = (groupResult.data || []).filter(g =>
-    g.visibility === "public" || memberships.has(g.id) || g.created_by === me.id
+    (!g.hide_from_search || memberships.has(g.id) || g.created_by === me.id) && (g.visibility === "public" || memberships.has(g.id) || g.created_by === me.id)
   );
 
   box.replaceChildren();
@@ -10584,22 +10584,44 @@ function showCommunityGroupModal(title,contentNode){
 }
 function openCommunityGroupInfo(){
   const g=currentOpenedCommunityGroup;if(!g)return;
+  const isOwner=g.created_by===me.id;
+  const isAdmin=isOwner||g.membership?.role==="admin";
   const box=document.createElement("div");
-  const desc=document.createElement("p");desc.textContent=g.description||"No group description";desc.style.cssText="white-space:pre-wrap;line-height:1.5;";
-  const privacy=document.createElement("p");privacy.textContent=(g.visibility==="private"?"🔒 Private group":"🌍 Public group");privacy.style.fontWeight="700";
-  const role=document.createElement("p");role.textContent="Your role: "+(g.created_by===me.id?"Owner":g.membership?.role||"Member");
-  const count=document.createElement("p");count.textContent="Approved members: "+communityGroupMembersCache.length;
-  box.append(desc,privacy,role,count);
-  if(g.created_by===me.id){
-    const label=document.createElement("label");label.textContent="Members List Visibility";label.style.cssText="display:block;margin-top:16px;font-weight:700;";
-    const select=document.createElement("select");select.style.cssText="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:var(--jabzy-input,#160f20);color:var(--jabzy-text,#fff);border:1px solid rgba(160,120,190,.4);";
-    select.innerHTML='<option value="public">Public — Anyone can view members</option><option value="private">Private — Only owner, admins and members</option>';
-    select.value=g.members_visibility||"public";
-    const save=document.createElement("button");save.type="button";save.textContent="Save visibility";save.style.cssText="width:100%;margin-top:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);";
-    save.onclick=async()=>{save.disabled=true;const {error}=await db.from("community_groups").update({members_visibility:select.value}).eq("id",g.id).eq("created_by",me.id);save.disabled=false;if(error){alert("Setting save nahi hui: "+error.message);return;}g.members_visibility=select.value;document.getElementById("openedCommunityGroupInfo").textContent=(g.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(communityGroupMembersCache.length||1)+" Member ›";document.getElementById("jabzyCommunityGroupModal")?.remove();alert("Members visibility updated.");};
-    box.append(label,select,save);
-  }
-  showCommunityGroupModal("Group information",box);
+  box.style.cssText="display:flex;flex-direction:column;gap:12px;";
+  const section=(title)=>{const card=document.createElement("section");card.style.cssText="padding:13px;border:1px solid rgba(160,120,190,.22);border-radius:14px;background:var(--jabzy-card,rgba(130,90,160,.09));";const h=document.createElement("b");h.textContent=title;h.style.cssText="display:block;margin-bottom:10px;font-size:14px;";card.appendChild(h);box.appendChild(card);return card;};
+  const field=(card,label,value,type="text",options=null)=>{const wrap=document.createElement("label");wrap.style.cssText="display:block;margin:9px 0;font-size:12px;font-weight:700;";wrap.append(document.createTextNode(label));let el;if(options){el=document.createElement("select");options.forEach(o=>{const op=document.createElement("option");op.value=o[0];op.textContent=o[1];el.appendChild(op);});}else if(type==="textarea"){el=document.createElement("textarea");el.rows=3;}else{el=document.createElement("input");el.type=type;}el.value=value??"";el.style.cssText="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid rgba(160,120,190,.38);background:var(--jabzy-input,#160f20);color:var(--jabzy-text,#fff);font:inherit;";wrap.appendChild(el);card.appendChild(wrap);return el;};
+  const toggle=(card,label,checked,note="")=>{const row=document.createElement("label");row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(150,120,170,.12);font-size:13px;";const left=document.createElement("span");left.textContent=label;if(note){const small=document.createElement("small");small.textContent=note;small.style.cssText="display:block;opacity:.68;font-weight:400;margin-top:3px;";left.appendChild(small);}const input=document.createElement("input");input.type="checkbox";input.checked=!!checked;input.style.cssText="width:20px;height:20px;flex:0 0 auto;";row.append(left,input);card.appendChild(row);return input;};
+  const privacy=section("Group Profile & Privacy");
+  const name=field(privacy,"Group Name",g.name);
+  const description=field(privacy,"Description / Bio",g.description||"","textarea");
+  const iconUrl=field(privacy,"Group Icon URL (optional)",g.icon_url||"");
+  const privacyChoice=document.createElement("div");privacyChoice.style.cssText="display:flex;gap:8px;margin-top:8px;";
+  const publicBtn=document.createElement("button"),privateBtn=document.createElement("button");
+  [publicBtn,privateBtn].forEach(b=>{b.type="button";b.style.cssText="flex:1;width:auto;margin:0;padding:10px;border-radius:22px;font-size:12px;";});
+  const paintPrivacy=()=>{publicBtn.style.background=g.visibility==="public"?"linear-gradient(100deg,#d92f86,#8642c4)":"#51445c";privateBtn.style.background=g.visibility==="private"?"linear-gradient(100deg,#d92f86,#8642c4)":"#51445c";};
+  publicBtn.textContent="🌐 Public";privateBtn.textContent="🔒 Private";
+  publicBtn.onclick=()=>{g.visibility="public";paintPrivacy();};privateBtn.onclick=()=>{g.visibility="private";g.require_admin_approval=true;approval.checked=true;paintPrivacy();};
+  privacyChoice.append(publicBtn,privateBtn);privacy.appendChild(privacyChoice);paintPrivacy();
+  const join=section("Join & Invite Controls");
+  const hide=toggle(join,"Hide from Search",g.hide_from_search,"Hidden groups are visible only to existing members and invitees.");
+  const approval=toggle(join,"Admin Approval for New Members",g.require_admin_approval||g.visibility==="private","New join requests wait for admin approval.");
+  const invitePermission=field(join,"Who Can Invite Members",g.invite_permission||"admins","text",[["admins","Only Admins"],["all_members","All Members"]]);
+  const inviteActions=document.createElement("div");inviteActions.style.cssText="display:flex;gap:8px;margin-top:10px;";
+  const getLink=document.createElement("button"),resetLink=document.createElement("button");getLink.type=resetLink.type="button";getLink.textContent="Copy Invite Link";resetLink.textContent="Reset Link";[getLink,resetLink].forEach(b=>b.style.cssText="flex:1;width:auto;margin:0;padding:10px;font-size:11px;border-radius:11px;");inviteActions.append(getLink,resetLink);join.appendChild(inviteActions);
+  const getInvite=async(reset)=>{const {data,error}=await db.rpc("manage_community_group_invite",{p_group_id:g.id,p_reset:reset});if(error){alert("Invite link nahi bana: "+error.message);return;}const url=new URL(location.href);url.searchParams.set("group_invite",data);const link=url.toString();try{await navigator.clipboard.writeText(link);alert(reset?"New invite link copied. Old link is invalid.":"Invite link copied.");}catch(e){prompt("Invite link copy karein:",link);}};
+  getLink.onclick=()=>getInvite(false);resetLink.onclick=()=>{if(confirm("Purana invite link band karke naya link banayein?"))getInvite(true);};
+  const perms=section("Content & Chat Permissions");
+  const posts=field(perms,"Who Can Create Posts",g.post_access_mode||"all","text",[["all","All Members"],["admins","Only Admins"],["selected","Members with permission"]]);
+  const chats=field(perms,"Who Can Send Messages",g.chat_access_mode||"all","text",[["all","All Members"],["admins","Only Admins"],["selected","Members with permission"]]);
+  const slow=field(perms,"Slow Mode",String(g.slow_mode_seconds||0),"text",[["0","Off"],["5","5 seconds"],["30","30 seconds"],["60","1 minute"]]);
+  const media=toggle(perms,"Media Sharing",g.media_sharing_enabled!==false,"Allow members to share supported photos and media.");
+  const save=document.createElement("button");save.type="button";save.textContent="Save Group Settings";save.style.cssText="width:100%;margin:0;padding:12px;border-radius:12px;background:linear-gradient(100deg,#ff4b9b,#8a2be2);";
+  save.onclick=async()=>{if(!isOwner){alert("Group-wide settings sirf Owner change kar sakta hai.");return;}if(name.value.trim().length<2){alert("Group name kam se kam 2 characters ka hona chahiye.");return;}if(description.value.length>500){alert("Description 500 characters se chhoti rakhein.");return;}if(g.visibility==="private")approval.checked=true;const patch={name:name.value.trim(),description:description.value.trim(),icon_url:iconUrl.value.trim()||null,visibility:g.visibility,hide_from_search:hide.checked,require_admin_approval:approval.checked||g.visibility==="private",invite_permission:invitePermission.value,post_access_mode:posts.value,chat_access_mode:chats.value,slow_mode_seconds:Number(slow.value),media_sharing_enabled:media.checked};save.disabled=true;save.textContent="Saving...";const {error}=await db.from("community_groups").update(patch).eq("id",g.id).eq("created_by",me.id);save.disabled=false;save.textContent="Save Group Settings";if(error){alert("Settings save nahi hui: "+error.message);return;}Object.assign(g,patch);document.getElementById("openedCommunityGroupName").textContent=g.name;const sub=document.getElementById("openedCommunityGroupInfo");if(sub)sub.textContent=(g.visibility==="private"?"🔒 Private":"🌐 Public")+" · "+communityGroupMembersCache.length+" Member ›";document.getElementById("jabzyCommunityGroupModal")?.remove();await loadCommunityGroups();alert("Group settings saved.");};
+  if(isOwner){const danger=section("Danger Zone");const del=document.createElement("button");del.type="button";del.textContent="Delete Group";del.style.cssText="width:100%;background:#b8324c;border-radius:11px;";del.onclick=async()=>{if(!confirm("Group permanently delete hoga. Continue?"))return;const {error}=await db.rpc("delete_community_group",{p_group_id:g.id});if(error){alert("Delete nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(del);}
+  else{const danger=section("Danger Zone");const leave=document.createElement("button");leave.type="button";leave.textContent="Leave Group";leave.style.cssText="width:100%;background:#b8324c;border-radius:11px;";leave.onclick=async()=>{if(!confirm("Group leave karna hai?"))return;const {error}=await db.rpc("leave_community_group",{p_group_id:g.id});if(error){alert("Group leave nahi hua: "+error.message);return;}document.getElementById("jabzyCommunityGroupModal")?.remove();closeCommunityGroup();await loadCommunityGroups();};danger.appendChild(leave);}
+  box.appendChild(save);
+  if(!isOwner){[name,description,iconUrl,publicBtn,privateBtn,hide,approval,invitePermission,posts,chats,slow,media,save].forEach(el=>{if(el)el.disabled=true;});getLink.disabled=resetLink.disabled=!isAdmin&&g.invite_permission!=="all_members";}
+  showCommunityGroupModal("Group Settings",box);
 }
 async function openCommunityGroup(group){
   if(!me||!group?.id)return;
@@ -10616,7 +10638,7 @@ async function openCommunityGroup(group){
   subtitle.onclick=(event)=>{event.stopPropagation();openCommunityGroupMembers();};
   document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
-  const canChat=member?.can_chat===true||group.created_by===me.id;
+  const canChat=(member?.can_chat===true||group.created_by===me.id)&&(group.chat_access_mode!=="admins"||group.created_by===me.id||member?.role==="admin");
   input.disabled=!canChat;input.placeholder=canChat?"Message...":"Chat permission nahi hai";
   const screen=document.getElementById("communityGroupOpenScreen");
   screen.style.display="flex";
@@ -10712,7 +10734,7 @@ async function loadOpenedCommunityGroup(){
 async function sendCommunityGroupPost(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupPostInput"),content=(input?.value||"").trim();
   if(!group||!content||!me)return;
-  if(!(group.membership?.can_post===true||group.created_by===me.id)){alert("Aapko post permission nahi hai.");return;}
+  if(!(group.created_by===me.id||group.membership?.role==="admin"||(group.chat_access_mode!=="admins"&&group.post_access_mode!=="admins"&&(group.membership?.can_post===true||group.post_access_mode==="all")))){alert("Aapko post permission nahi hai.");return;}
   const button=document.getElementById("communityGroupPostButton");button.disabled=true;
   try{const {error}=await db.from("community_group_posts").insert({group_id:group.id,user_id:me.id,content});if(error){alert("Post nahi hua: "+error.message);return;}input.value="";await loadOpenedCommunityGroup();}
   finally{button.disabled=false;}
@@ -10720,17 +10742,17 @@ async function sendCommunityGroupPost(){
 async function sendCommunityGroupMessage(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupChatInput"),button=document.getElementById("communityGroupSendButton"),message=(input?.value||"").trim();
   if(!group||!message||!me||!input||input.dataset.sending==="1")return;
-  if(!(group.membership?.can_chat===true||group.created_by===me.id)){alert("Aapko chat permission nahi hai.");return;}
+  if(!(group.created_by===me.id||group.membership?.role==="admin"||(group.chat_access_mode!=="admins"&&(group.membership?.can_chat===true||group.chat_access_mode==="all")))){alert("Aapko chat permission nahi hai.");return;}
   input.dataset.sending="1";if(button){button.disabled=true;button.style.opacity=".6";}
   try{const {error}=await db.from("community_group_messages").insert({group_id:group.id,user_id:me.id,message});if(error){alert("Message nahi bheja: "+error.message);return;}input.value="";await loadOpenedCommunityGroup();}
   finally{input.dataset.sending="0";if(button){button.disabled=false;button.style.opacity="1";}}
 }
 async function joinCommunityGroup(group){
   if(!me||!group?.id)return;
-  const isPrivate=group.visibility==="private";
-  const {error}=await db.from("community_group_members").insert({group_id:group.id,user_id:me.id,role:"member",status:isPrivate?"pending":"approved",can_post:!isPrivate,can_chat:!isPrivate,can_upload:!isPrivate});
+  const needsApproval=group.visibility==="private"||group.require_admin_approval;
+  const {error}=await db.from("community_group_members").insert({group_id:group.id,user_id:me.id,role:"member",status:needsApproval?"pending":"approved",can_post:!needsApproval,can_chat:!needsApproval,can_upload:!needsApproval});
   if(error){alert(error.code==="23505"?"Aap pehle se is group mein hain.":error.message);return;}
-  alert(isPrivate?"Join request bhej di gayi hai.":"Aap group join kar chuke hain.");await loadCommunityGroups();
+  alert(needsApproval?"Join request bhej di gayi hai.":"Aap group join kar chuke hain.");await loadCommunityGroups();
 }
 
 async function loadJabzyAds(placement){
