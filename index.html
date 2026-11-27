@@ -10860,7 +10860,7 @@ async function loadOpenedCommunityGroup(){
   const nearBottom=timeline.scrollHeight-timeline.scrollTop-timeline.clientHeight<120;
   timeline.replaceChildren();
   if(!items.length){const empty=document.createElement("div");empty.textContent="Abhi group chat khaali hai.";empty.style.cssText="padding:14px;text-align:center;opacity:.7;";timeline.appendChild(empty);}
-  items.forEach(item=>{
+  items.forEach(async item=>{
     const line=document.createElement("div");line.style.cssText="max-width:88%;width:fit-content;padding:9px 12px;margin:8px 0;border-radius:14px;background:"+(item.user_id===me.id?"linear-gradient(135deg,#7b3ca7,#a45bea)":"#30203f")+";"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;");
     if(item._kind==="post"){const tag=document.createElement("small");tag.textContent="Group post";tag.style.cssText="display:block;color:#ffd0ed;font-size:10px;margin-bottom:4px";line.appendChild(tag);}
     const body=document.createElement("div");body.textContent=item._text;body.style.whiteSpace="pre-wrap";line.appendChild(body);
