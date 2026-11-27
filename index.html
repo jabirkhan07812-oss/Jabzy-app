@@ -10679,6 +10679,9 @@ async function openCommunityGroupMembers(){
       }else{
         const perms=document.createElement("button");perms.textContent="Permissions";perms.style.cssText="margin:0;padding:7px 9px;font-size:11px;";
         perms.onclick=()=>openCommunityGroupMemberPermissions(m,p.username);row.appendChild(perms);
+        if(m.role!=="admin"){const promote=document.createElement("button");promote.textContent="Make Admin";promote.style.cssText="margin:0;padding:7px 9px;font-size:11px;background:#286fbd;";promote.onclick=()=>{if(confirm("Is member ko Admin banana hai?"))manageCommunityGroupMember(m.user_id,{role:"admin"});};row.appendChild(promote);}
+        const mute=document.createElement("button");mute.textContent=m.can_chat?"Mute":"Unmute";mute.style.cssText="margin:0;padding:7px 9px;font-size:11px;background:#72518c;";mute.onclick=()=>manageCommunityGroupMember(m.user_id,{can_chat:!m.can_chat});row.appendChild(mute);
+        const ban=document.createElement("button");ban.textContent="Ban";ban.style.cssText="margin:0;padding:7px 9px;background:#a83245;font-size:11px;";ban.onclick=async()=>{if(!confirm("Is member ko group se ban karein?"))return;await manageCommunityGroupMember(m.user_id,{status:"banned",can_chat:false,can_post:false,can_upload:false});};row.appendChild(ban);
         const kick=document.createElement("button");kick.textContent="Remove";kick.style.cssText="margin:0;padding:7px 9px;background:#a83245;font-size:11px;";
         kick.onclick=()=>removeCommunityGroupMember(m.user_id);row.appendChild(kick);
       }
