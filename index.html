@@ -10734,8 +10734,8 @@ function closeCommunityGroup(){
 function showCommunityGroupModal(title,contentNode){
   document.getElementById("jabzyCommunityGroupModal")?.remove();
   const overlay=document.createElement("div");overlay.id="jabzyCommunityGroupModal";
-  overlay.style.cssText="position:fixed;inset:0;z-index:10030;background:rgba(8,5,14,.78);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
-  const panel=document.createElement("div");panel.style.cssText="width:100%;max-width:430px;max-height:82dvh;overflow:auto;background:var(--jabzy-panel,#21152f);color:var(--jabzy-text,#fff);border:1px solid rgba(190,145,220,.28);border-radius:18px;padding:16px;box-sizing:border-box;";
+  overlay.style.cssText="position:fixed;inset:0;z-index:2147483000;background:rgba(8,5,14,.78);display:flex;align-items:center;justify-content:center;padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;";
+  const panel=document.createElement("div");panel.style.cssText="width:100%;max-width:430px;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--jabzy-panel,#21152f);color:var(--jabzy-text,#fff);border:1px solid rgba(190,145,220,.28);border-radius:18px;padding:16px 14px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box;";
   const head=document.createElement("div");head.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;";
   const h=document.createElement("b");h.textContent=title;h.style.fontSize="17px";
   const close=document.createElement("button");close.type="button";close.textContent="✕";close.style.cssText="display:grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;margin:0;border:0;border-radius:50%;background:rgba(150,110,170,.18);font-size:17px;line-height:1;text-align:center;";
