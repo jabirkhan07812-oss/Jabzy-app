@@ -10613,7 +10613,7 @@ async function openCommunityGroup(group){
   const subtitle=document.getElementById("openedCommunityGroupInfo");
   subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(group.members_visibility==="private"?"Members private":(communityGroupMembersCache.length||1)+" Member")+" ›";
   subtitle.style.cssText="font-size:11px;color:var(--jabzy-muted,#aaa);cursor:pointer;";
-  subtitle.onclick=openCommunityGroupMembers;
+  subtitle.onclick=(event)=>{event.stopPropagation();openCommunityGroupMembers();};
   document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
   const canChat=member?.can_chat===true||group.created_by===me.id;
