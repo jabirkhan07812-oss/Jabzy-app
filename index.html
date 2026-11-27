@@ -12753,6 +12753,51 @@ body.light-theme #chatWindow button[onclick="backToChatList()"],body.light-theme
 @keyframes jabzyChatShimmer{to{background-position:-200% 0}}
 body.light-theme .jabzy-chat-skeleton-row{background:#f5f0f8}
 </style>
+
+<style id="jabzy-home-search-category-theme">
+/* HOME SEARCH BUTTON + INTEREST CATEGORY CHIPS */
+#homeScreen button[onclick="openJabzySearch()"]{
+  background:#281b38!important;
+  border:1px solid #8055a0!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:0 2px 9px rgba(0,0,0,.18)!important;
+}
+#jabzyVideoCategories button{
+  opacity:1!important;
+  -webkit-text-fill-color:currentColor!important;
+}
+#jabzyVideoCategories button:not(.active){
+  background:#21172e!important;
+  border-color:#624477!important;
+  color:#eadcf5!important;
+}
+#jabzyVideoCategories button.active{
+  background:linear-gradient(110deg,#ff4fa3,#8655e9)!important;
+  border-color:#ff65b5!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+body.light-theme #homeScreen button[onclick="openJabzySearch()"]{
+  background:#f1e8f7!important;
+  border:1px solid #d9c5e6!important;
+  color:#59376d!important;
+  -webkit-text-fill-color:#59376d!important;
+  box-shadow:0 2px 8px rgba(75,40,95,.08)!important;
+}
+body.light-theme #jabzyVideoCategories button:not(.active){
+  background:#f2eaf7!important;
+  border-color:#dfcfe8!important;
+  color:#593b6b!important;
+  -webkit-text-fill-color:#593b6b!important;
+}
+body.light-theme #jabzyVideoCategories button.active{
+  background:linear-gradient(110deg,#d92f86,#8642c4)!important;
+  border-color:#c45baf!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+</style>
 </body>
   </html>
   
