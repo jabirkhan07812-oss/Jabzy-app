@@ -10891,7 +10891,7 @@ function openCommunityGroupSettings(){
   const description=field(profile,"Description / Bio",g.description||"","textarea");
   const visibility={value:g.visibility||"public"};
   const privacyTabs=makeSegment(profile,"Group Visibility",[["public","🌐 Public"],["private","🔒 Private"]],()=>visibility.value,value=>{visibility.value=value;if(value==="private")approval.checked=true;});
-  const membersVisibility=field(profile,"Members List Visibility",g.members_visibility||"public","text",[["public","Anyone can view members"],["private","Members only"]]);
+  const membersVisibility=field(profile,"Members List Visibility","private","text",[["private","Owner & Admin Only"]]);
   const join=section("Join & Invite Controls");
   const hide=toggle(join,"Hide from Search",g.hide_from_search,"Hidden groups are visible only to existing members and invitees.");
   const approval=toggle(join,"Admin Approval for New Members",g.require_admin_approval||g.visibility==="private","New join requests wait for admin approval.");
