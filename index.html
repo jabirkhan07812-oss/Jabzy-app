@@ -10589,7 +10589,17 @@ function openCommunityGroupInfo(){
   const privacy=document.createElement("p");privacy.textContent=(g.visibility==="private"?"🔒 Private group":"🌍 Public group");privacy.style.fontWeight="700";
   const role=document.createElement("p");role.textContent="Your role: "+(g.created_by===me.id?"Owner":g.membership?.role||"Member");
   const count=document.createElement("p");count.textContent="Approved members: "+communityGroupMembersCache.length;
-  box.append(desc,privacy,role,count);showCommunityGroupModal("Group information",box);
+  box.append(desc,privacy,role,count);
+  if(g.created_by===me.id){
+    const label=document.createElement("label");label.textContent="Members List Visibility";label.style.cssText="display:block;margin-top:16px;font-weight:700;";
+    const select=document.createElement("select");select.style.cssText="width:100%;margin-top:8px;padding:11px;border-radius:10px;background:var(--jabzy-input,#160f20);color:var(--jabzy-text,#fff);border:1px solid rgba(160,120,190,.4);";
+    select.innerHTML='<option value="public">Public — Anyone can view members</option><option value="private">Private — Only owner, admins and members</option>';
+    select.value=g.members_visibility||"public";
+    const save=document.createElement("button");save.type="button";save.textContent="Save visibility";save.style.cssText="width:100%;margin-top:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);";
+    save.onclick=async()=>{save.disabled=true;const {error}=await db.from("community_groups").update({members_visibility:select.value}).eq("id",g.id).eq("created_by",me.id);save.disabled=false;if(error){alert("Setting save nahi hui: "+error.message);return;}g.members_visibility=select.value;document.getElementById("openedCommunityGroupInfo").textContent=(g.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(communityGroupMembersCache.length||1)+" Member ›";document.getElementById("jabzyCommunityGroupModal")?.remove();alert("Members visibility updated.");};
+    box.append(label,select,save);
+  }
+  showCommunityGroupModal("Group information",box);
 }
 async function openCommunityGroup(group){
   if(!me||!group?.id)return;
@@ -10600,7 +10610,11 @@ async function openCommunityGroup(group){
   }
   currentOpenedCommunityGroup={...group,membership:member};
   document.getElementById("openedCommunityGroupName").textContent=group.name||"JABZY GROUP";
-  document.getElementById("openedCommunityGroupInfo").textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · Tap for group info";
+  const subtitle=document.getElementById("openedCommunityGroupInfo");
+  subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(group.members_visibility==="private"?"Members private":(communityGroupMembersCache.length||1)+" Member")+" ›";
+  subtitle.style.cssText="font-size:11px;color:var(--jabzy-muted,#aaa);cursor:pointer;";
+  subtitle.onclick=openCommunityGroupMembers;
+  document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
   const canChat=member?.can_chat===true||group.created_by===me.id;
   input.disabled=!canChat;input.placeholder=canChat?"Message...":"Chat permission nahi hai";
@@ -10616,9 +10630,10 @@ async function openCommunityGroup(group){
 }
 async function openCommunityGroupMembers(){
   const g=currentOpenedCommunityGroup;if(!g)return;
+  const isAdmin=g.created_by===me.id||g.membership?.role==="admin";
+  if(g.members_visibility==="private"&&!isAdmin&&g.membership?.status!=="approved"){alert("Members list private hai. Sirf group members ise dekh sakte hain.");return;}
   const box=document.createElement("div");box.textContent="Loading members...";
   showCommunityGroupModal("Group members",box);
-  const isAdmin=g.created_by===me.id||g.membership?.role==="admin";
   let q=db.from("community_group_members").select("user_id,role,status,can_chat,can_post,can_upload,joined_at").eq("group_id",g.id);
   const {data:rows,error}=await q.order("joined_at",{ascending:true});
   if(error){box.textContent="Members load nahi hue: "+error.message;return;}
@@ -10679,7 +10694,7 @@ async function loadOpenedCommunityGroup(){
   ]);
   const memberBox=document.getElementById("communityGroupMembers"),timeline=document.getElementById("communityGroupChatMessages");
   if(membersRes.error)memberBox.textContent="Members load error: "+membersRes.error.message;
-  else{communityGroupMembersCache=membersRes.data||[];memberBox.textContent="👥 "+communityGroupMembersCache.length+" Members · Tap to view";memberBox.onclick=openCommunityGroupMembers;memberBox.style.cursor="pointer";}
+  else{communityGroupMembersCache=membersRes.data||[];memberBox.textContent="👥 "+communityGroupMembersCache.length+" Members";memberBox.onclick=openCommunityGroupMembers;memberBox.style.cursor="pointer";memberBox.style.display="none";const subtitle=document.getElementById("openedCommunityGroupInfo");if(subtitle)subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(group.members_visibility==="private"?"Members private":communityGroupMembersCache.length+" Member"+(communityGroupMembersCache.length===1?"":"s"))+" ›";}
   if(postsRes.error||messagesRes.error){timeline.textContent="Group chat load error: "+(postsRes.error?.message||messagesRes.error?.message);return;}
   const items=[...(postsRes.data||[]).map(x=>({...x,_kind:"post",_text:x.content||""})),...(messagesRes.data||[]).map(x=>({...x,_kind:"message",_text:x.message||""}))].sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
   const nearBottom=timeline.scrollHeight-timeline.scrollTop-timeline.clientHeight<120;
