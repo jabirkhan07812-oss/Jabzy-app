@@ -8696,28 +8696,28 @@ status("Logged out successfully.");
 }
   
 async function createGroup(){
-  const name = prompt("Group ka naam likho:");
-  if(!name || !name.trim()) return;
-
-  const description = prompt("Group ke baare mein likho:");
-  if(description === null) return;
-
-  const visibility = prompt("Public ya Private group?");
-  if(!visibility) return;
-
-  const {data, error} = await db.rpc("create_community_group", {
-    p_name: name.trim(),
-    p_description: description.trim(),
-    p_visibility: visibility.trim().toLowerCase()
-  });
-
-  if(error){
-    alert(error.message);
-    return;
-  }
-
-  alert("Group successfully created!");
-  showRoomsSection("groups");
+  const form=document.createElement("div");
+  form.style.cssText="display:flex;flex-direction:column;gap:10px;";
+  const name=document.createElement("input");name.placeholder="Group name (2–60 characters)";name.maxLength=60;name.required=true;
+  const description=document.createElement("textarea");description.placeholder="Group description (optional)";description.maxLength=500;description.rows=3;
+  const privacy=document.createElement("select");privacy.innerHTML='<option value="public">🌍 Public group</option><option value="private">🔒 Private group (approval required)</option>';
+  [name,description,privacy].forEach(el=>el.style.cssText="width:100%;box-sizing:border-box;padding:12px;border-radius:11px;border:1px solid #806292;background:#21152f;color:#fff;font:inherit;");
+  const note=document.createElement("small");note.textContent="Public groups can be joined directly. Private groups require admin approval.";note.style.opacity=".75";
+  const submit=document.createElement("button");submit.type="button";submit.textContent="Create Group";submit.style.cssText="width:100%;margin:4px 0 0;padding:12px;border-radius:12px;background:linear-gradient(100deg,#ff4b9b,#8a2be2);color:#fff;font-weight:800;";
+  form.append(name,description,privacy,note,submit);
+  if(typeof showCommunityGroupModal==="function")showCommunityGroupModal("Create JABZY Group",form);
+  else{alert("Group form load nahi hua.");return;}
+  submit.onclick=async()=>{
+    const groupName=name.value.trim(),groupDescription=description.value.trim();
+    if(groupName.length<2){alert("Group name kam se kam 2 characters ka hona chahiye.");name.focus();return;}
+    submit.disabled=true;submit.textContent="Creating...";
+    const {error}=await db.rpc("create_community_group",{p_name:groupName,p_description:groupDescription,p_visibility:privacy.value});
+    submit.disabled=false;submit.textContent="Create Group";
+    if(error){alert("Group create nahi hua: "+error.message);return;}
+    document.getElementById("jabzyCommunityGroupModal")?.remove();
+    await loadCommunityGroups();
+    alert("Group successfully created!");
+  };
 }
   
 
@@ -13009,6 +13009,18 @@ body.light-theme #communityGroupOpenScreen #openedCommunityGroupInfo{color:#765b
 body.light-theme #jabzyCommunityGroupModal>div{background:#fff!important;color:#30233b!important}
 body.light-theme #jabzyCommunityGroupModal button{color:#fff!important}
 @media(max-width:380px){#communityGroupOpenScreen{padding-left:9px!important;padding-right:9px!important}#communityGroupOpenScreen #communityGroupSendButton{padding:0 12px!important}}
+</style>
+
+
+<style id="jabzy-groups-list-and-chat-light-polish">
+#communityGroupsList>div{transition:transform .15s ease,border-color .15s ease}
+#communityGroupsList>div[role="button"]:active{transform:scale(.99)}
+body.light-theme #communityGroupsList>div{background:#fff!important;border-color:#e0d2e9!important;color:#30233b!important;box-shadow:0 3px 12px rgba(70,35,90,.06)!important}
+body.light-theme #communityGroupsList>div p,body.light-theme #communityGroupsList>div small{color:#665471!important;opacity:1!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages>div{background:#fff!important;color:#30233b!important;border:1px solid #e4d8eb!important;box-shadow:0 2px 7px rgba(60,35,80,.05)!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages>div small{color:#796b82!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages>div small:first-child{color:#a13a83!important}
+body.light-theme #jabzyCommunityGroupModal input,body.light-theme #jabzyCommunityGroupModal textarea,body.light-theme #jabzyCommunityGroupModal select{background:#faf7fc!important;color:#30233b!important;border-color:#d9c7e5!important}
 </style>
 
 </body>
