@@ -1490,6 +1490,28 @@ body.light-theme .jabzy-post-save.is-saved{color:#9333ea!important}
 body.light-theme .jabzy-post-actions{border-top-color:rgba(120,105,130,.16)!important}
 @media(prefers-reduced-motion:reduce){.jabzy-post-action.jabzy-action-pop svg{animation:none!important}}
 </style>
+<style id="jabzy-story-editor-theme-v2">
+#storyUploadModal,#storyEditorStage{background:#090711!important;color:#fff!important}
+#storyPreviewImage,#storyPreviewVideo{object-fit:cover!important}
+#storyEditorTopGradient{height:120px!important;background:linear-gradient(to bottom,rgba(0,0,0,.58),transparent)!important}
+#storyEditorBottomBar{background:linear-gradient(to top,rgba(0,0,0,.78),transparent)!important}
+#storyEditorToolbar button{background:rgba(0,0,0,.48)!important;border:1px solid rgba(255,255,255,.38)!important;color:#fff!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#storyEditorTopGradient button,#storyEditorBottomBar button[onclick*="storyMediaFile"]{background:rgba(0,0,0,.48)!important;border:1px solid rgba(255,255,255,.42)!important;color:#fff!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#storyEditorPanel{z-index:29!important}
+#jabzyStickerPickerScreen{z-index:30!important}
+body.light-theme #storyUploadModal,body.light-theme #storyEditorStage{background:#fff!important;color:#30233b!important}
+body.light-theme #storyEditorPanel{background:rgba(255,255,255,.97)!important;color:#30233b!important;border-color:#e5d9ec!important;box-shadow:0 8px 28px rgba(50,30,65,.16)!important}
+body.light-theme #storyEditorPanel b,body.light-theme #storyEditorPanel label,body.light-theme #storyEditorPanel span,body.light-theme #storyEditorPanel p{color:#493653!important}
+body.light-theme #storyEditorPanel button{color:#493653}
+body.light-theme #storyEditorToolbar button,body.light-theme #storyEditorTopGradient button,body.light-theme #storyEditorBottomBar button[onclick*="storyMediaFile"]{background:rgba(255,255,255,.82)!important;border:1px solid rgba(70,45,85,.22)!important;color:#382448!important;box-shadow:0 2px 12px rgba(30,15,40,.12)}
+body.light-theme #storyEditorTopGradient{background:linear-gradient(to bottom,rgba(255,255,255,.68),transparent)!important}
+body.light-theme #storyEditorBottomBar{background:linear-gradient(to top,rgba(255,255,255,.88),transparent)!important}
+body.light-theme #jabzyStickerPickerScreen{background:rgba(255,255,255,.97)!important;color:#30233b!important;border-color:#e5d9ec!important;box-shadow:0 -8px 28px rgba(50,30,65,.14)!important}
+body.light-theme #jabzyStickerBack{background:#f3edf7!important;border-color:#e5d9ec!important;color:#493653!important}
+body.light-theme #jabzyStickerGrid button{background:#f5eff8!important;border-color:#e5d9ec!important}
+body.light-theme #jabzyStickerRemove{background:#f3edf7!important;border-color:#e5d9ec!important;color:#493653!important}
+@media(max-width:380px){#storyEditorToolbar{right:7px!important;gap:9px!important}#storyEditorToolbar button{width:38px!important;height:38px!important}#storyEditorBottomBar{left:9px!important;right:9px!important}}
+</style>
 </head>
 <body>
   
@@ -1644,7 +1666,7 @@ body.light-theme .jabzy-post-actions{border-top-color:rgba(120,105,130,.16)!impo
       <button type="button" onclick="openStoryEditorTool('filters')" aria-label="Filters" title="Filters" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:19px;">◐</button>
       <button type="button" onclick="openStoryEditorTool('effects')" aria-label="Effects" title="Effects" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:20px;">✧</button>
     </div>
-    <div id="storyEditorPanel" style="display:none;position:absolute;left:10px;right:62px;bottom:88px;z-index:8;max-height:34vh;overflow-y:auto;padding:12px;border-radius:18px;background:#160f20eF;border:1px solid #ffffff35;box-shadow:0 8px 28px #0008;">
+    <div id="storyEditorPanel" style="display:none;position:absolute;left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:29;max-height:42vh;overflow-y:auto;padding:14px 14px calc(14px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:rgba(22,15,32,.96);border:1px solid #ffffff35;border-bottom:0;box-shadow:0 8px 28px #0008;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><b id="storyEditorPanelTitle" style="font-size:14px;">Filters</b><button type="button" onclick="closeStoryEditorTool()" style="width:28px;height:28px;margin:0;padding:0;border-radius:50%;background:#ffffff20;color:white;">✕</button></div>
       <div id="storyEditorPanelContent"></div>
     </div>
@@ -11117,11 +11139,11 @@ function openStoryUpload(){
   window.jabzySelectedStoryOriginalFile=null;
   if(img){img.removeAttribute("src");img.style.display="none";}
   if(video){video.pause();video.removeAttribute("src");video.load();video.style.display="none";}
-  if(empty)empty.style.display="flex";
+  if(empty)empty.style.display="none";
   if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
   const status=document.getElementById("storyUploadStatus");if(status)status.textContent="";
   setupJabzyStorySwipeActions();
-  if(input)input.click();
+  if(input){input.click();}
 }
 function closeStoryUpload(){
   const modal=document.getElementById("storyUploadModal");modal.style.display="none";
@@ -11153,8 +11175,8 @@ function previewJabzyStoryMedia(event){
   img.style.display="none";video.style.display="none";img.removeAttribute("src");video.pause();video.removeAttribute("src");video.load();
   if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
   resetJabzyStoryEditor();
-  if(!file)return;
-  if(!file.type.startsWith("image/") && !file.type.startsWith("video/"))return;
+  if(!file){const modal=document.getElementById("storyUploadModal");if(modal)modal.style.display="none";document.body.style.overflow="";return;}
+  if(!file.type.startsWith("image/") && !file.type.startsWith("video/")){const modal=document.getElementById("storyUploadModal");if(modal)modal.style.display="none";document.body.style.overflow="";return;}
   const modal=document.getElementById("storyUploadModal");if(modal)modal.style.display="block";document.body.style.overflow="hidden";
   jabzyStoryEditorObjectUrl=URL.createObjectURL(file);empty.style.display="none";const tools=document.getElementById("storyEditorToolbar");if(tools)tools.style.display="flex";
   if(file.type.startsWith("image/")){img.src=jabzyStoryEditorObjectUrl;img.style.display="block";}
