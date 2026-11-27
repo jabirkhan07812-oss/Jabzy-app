@@ -1512,7 +1512,22 @@ body.light-theme #jabzyStickerGrid button{background:#f5eff8!important;border-co
 body.light-theme #jabzyStickerRemove{background:#f3edf7!important;border-color:#e5d9ec!important;color:#493653!important}
 @media(max-width:380px){#storyEditorToolbar{right:7px!important;gap:9px!important}#storyEditorToolbar button{width:38px!important;height:38px!important}#storyEditorBottomBar{left:9px!important;right:9px!important}}
 </style>
-</head>
+<style id="jabzy-community-chat-premium-v1">
+#communityGroupOpenScreen{background:#0F111A!important;color:#F7F7FB!important}
+#communityGroupOpenScreen .jabzy-community-group-header{border-bottom-color:rgba(255,255,255,.08)!important}
+#communityGroupOpenScreen #openedCommunityGroupInfo{color:#AEB6C7!important;letter-spacing:.01em}
+#communityGroupOpenScreen .jabzy-community-group-header button:last-child{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.08)!important;color:#E9EAF2!important}
+#communityGroupOpenScreen #communityGroupChatMessages{background:#131722!important;border:1px solid rgba(255,255,255,.06)!important}
+#communityGroupOpenScreen .jgc-message{color:#fff!important}
+#communityGroupOpenScreen #communityGroupChatInput{background:#181D2A!important;color:#fff!important;border-color:rgba(255,255,255,.1)!important}
+#communityGroupOpenScreen #communityGroupPostComposer{background:#151A26!important;border-color:rgba(255,255,255,.08)!important}
+body.light-theme #communityGroupOpenScreen{background:#F7F5FA!important;color:#30233B!important}
+body.light-theme #communityGroupOpenScreen .jabzy-community-group-header{border-bottom-color:#E8E1ED!important}
+body.light-theme #communityGroupOpenScreen #openedCommunityGroupInfo{color:#776A83!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatMessages{background:#F0EDF5!important;border-color:#E7E0ED!important}
+body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233B!important;border-color:#DED4E7!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{background:#fff!important;border-color:#E5DDEB!important}
+</style></head>
 <body>
   
   
@@ -10736,10 +10751,12 @@ function showCommunityGroupModal(title,contentNode){
   const overlay=document.createElement("div");overlay.id="jabzyCommunityGroupModal";
   overlay.style.cssText="position:fixed;inset:0;z-index:2147483000;background:rgba(8,5,14,.78);display:flex;align-items:center;justify-content:center;padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;";
   const panel=document.createElement("div");panel.style.cssText="width:100%;max-width:430px;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--jabzy-panel,#21152f);color:var(--jabzy-text,#fff);border:1px solid rgba(190,145,220,.28);border-radius:18px;padding:16px 14px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box;";
+  const isMembersSheet=title==="Group members";
+  if(isMembersSheet){overlay.classList.add("jgm-sheet");overlay.style.cssText="position:fixed;inset:0;z-index:2147483000;background:rgba(4,6,12,.72);display:flex;align-items:flex-end;justify-content:center;padding:0;box-sizing:border-box;backdrop-filter:blur(8px);";panel.style.cssText="width:100%;max-width:560px;max-height:84dvh;min-height:180px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#181B28;color:#F7F7FB;border:1px solid rgba(255,255,255,.08);border-bottom:0;border-radius:24px 24px 0 0;padding:10px 16px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -18px 55px rgba(0,0,0,.42);box-sizing:border-box;";}
   const head=document.createElement("div");head.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;";
   const h=document.createElement("b");h.textContent=title;h.style.fontSize="17px";
   const close=document.createElement("button");close.type="button";close.textContent="✕";close.style.cssText="display:grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;margin:0;border:0;border-radius:50%;background:rgba(150,110,170,.18);font-size:17px;line-height:1;text-align:center;";
-  close.onclick=()=>overlay.remove();head.append(h,close);panel.append(head,contentNode);overlay.appendChild(panel);
+  close.onclick=()=>overlay.remove();head.append(h,close);panel.append(head,contentNode);if(isMembersSheet){const handle=document.createElement("div");handle.className="jgm-handle";handle.setAttribute("aria-hidden","true");panel.insertBefore(handle,head);head.style.marginBottom="12px";}overlay.appendChild(panel);
   overlay.addEventListener("click",e=>{if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
 function openCommunityGroupInfo(){
@@ -10872,16 +10889,46 @@ async function openCommunityGroupMembers(){
   const g=currentOpenedCommunityGroup;if(!g)return;
   const isAdmin=g.created_by===me.id||g.membership?.role==="admin";
   if(g.members_visibility==="private"&&!isAdmin&&g.membership?.status!=="approved"){alert("Members list private hai. Sirf group members ise dekh sakte hain.");return;}
-  if(!document.getElementById("jabzy-group-member-responsive-style")){const style=document.createElement("style");style.id="jabzy-group-member-responsive-style";style.textContent=`
-    #jabzyCommunityGroupModal .jgm-member-row{display:grid;grid-template-columns:38px minmax(0,1fr) 68px!important;align-items:center;column-gap:clamp(6px,2vw,10px);width:100%;min-width:0;box-sizing:border-box;}
-    #jabzyCommunityGroupModal .jgm-member-info{min-width:0!important;width:100%!important;max-width:100%!important;overflow:hidden!important;}
-    #jabzyCommunityGroupModal .jgm-member-name,#jabzyCommunityGroupModal .jgm-member-meta{display:block;width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    #jabzyCommunityGroupModal .jgm-approve{grid-column:3;grid-row:1;width:100%!important;min-width:0!important;max-width:100%!important;white-space:nowrap;}
-    @media(max-width:380px){#jabzyCommunityGroupModal>div{padding-left:12px!important;padding-right:12px!important;}#jabzyCommunityGroupModal .jgm-member-row{grid-template-columns:36px minmax(0,1fr)!important;column-gap:8px;row-gap:5px;min-height:66px!important;}#jabzyCommunityGroupModal .jgm-member-info{grid-column:2;grid-row:1;}#jabzyCommunityGroupModal .jgm-approve{grid-column:2;grid-row:2;justify-self:start;width:auto!important;min-width:74px!important;max-width:100px!important;height:28px!important;min-height:28px!important;padding:0 12px!important;font-size:10px!important;}}
-    @media(min-width:381px) and (max-width:520px){#jabzyCommunityGroupModal>div{width:100%!important;padding-left:14px!important;padding-right:14px!important;}#jabzyCommunityGroupModal .jgm-member-row{grid-template-columns:38px minmax(0,1fr) 68px!important;}}
-  `;document.head.appendChild(style);}
+  if(!document.getElementById("jabzy-group-members-premium-style")){
+    const style=document.createElement("style");style.id="jabzy-group-members-premium-style";style.textContent=`
+      #jabzyCommunityGroupModal.jgm-sheet{align-items:flex-end!important;padding:0!important;background:rgba(4,6,12,.72)!important;backdrop-filter:blur(8px)!important}
+      #jabzyCommunityGroupModal.jgm-sheet>div{width:100%!important;max-width:560px!important;max-height:84dvh!important;min-height:180px!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;background:#181B28!important;color:#F7F7FB!important;border:1px solid rgba(255,255,255,.08)!important;border-bottom:0!important;border-radius:24px 24px 0 0!important;padding:10px 16px calc(22px + env(safe-area-inset-bottom))!important;box-shadow:0 -18px 55px rgba(0,0,0,.42)!important}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-handle{width:38px;height:4px;border-radius:8px;background:#687080;margin:0 auto 13px}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-search{width:100%;height:42px;box-sizing:border-box;margin:2px 0 12px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:#0F111A;color:#fff;outline:none;font-size:13px}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-member-row{display:grid;grid-template-columns:42px minmax(0,1fr) 38px;align-items:center;gap:10px;width:100%;min-width:0;min-height:66px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.065);box-sizing:border-box}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-avatar{width:40px;height:40px;min-width:40px;position:relative;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#5943A6,#8B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-avatar img{width:100%;height:100%;object-fit:cover}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-member-info{display:flex;min-width:0;flex-direction:column;gap:3px;overflow:hidden}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-name-line{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-member-name{min-width:0;max-width:100%;font-size:13px;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-role{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;background:rgba(216,182,106,.13);border:1px solid rgba(216,182,106,.28);color:#E7C879;font-size:9px;font-weight:800;line-height:14px}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-member-meta{font-size:10px;line-height:14px;color:#9AA3B5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-manage{width:36px;height:36px;min-height:36px;min-width:36px;margin:0;padding:0;border-radius:11px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#E7EAF2;font-size:20px;line-height:1}
+      #jabzyCommunityGroupModal.jgm-sheet .jgm-approve{grid-column:2;justify-self:start;width:auto;min-width:76px;height:29px;min-height:29px;margin:0;padding:0 12px;border-radius:9px;background:#1D7656;color:#D8FFEF;font-size:10px}
+      #jabzyCommunityGroupModal .jgm-action-menu{position:fixed;z-index:2147483001;width:min(220px,calc(100vw - 28px));padding:6px;border-radius:15px;background:#202536;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 40px rgba(0,0,0,.48)}
+      #jabzyCommunityGroupModal .jgm-action-menu button{display:flex;align-items:center;width:100%;min-height:40px;margin:0;padding:0 11px;border:0;border-radius:9px;background:transparent;color:#EEF0F7;text-align:left;font-size:12px}
+      #jabzyCommunityGroupModal .jgm-action-menu button:active{background:rgba(139,92,246,.2)}
+      #jabzyCommunityGroupModal .jgm-action-menu button.jgm-primary{color:#B8A7FF}
+      #jabzyCommunityGroupModal .jgm-action-menu button.jgm-danger{color:#F19A9F}
+      #jabzyCommunityGroupModal .jgm-action-menu button+button{margin-top:2px}
+      body.light-theme #jabzyCommunityGroupModal.jgm-sheet>div{background:#FFFFFF!important;color:#30233B!important;border-color:#E9E1EF!important;box-shadow:0 -14px 40px rgba(40,20,55,.16)!important}
+      body.light-theme #jabzyCommunityGroupModal.jgm-sheet .jgm-search{background:#F6F3F9;color:#30233B;border-color:#E8DFEF}
+      body.light-theme #jabzyCommunityGroupModal.jgm-sheet .jgm-member-meta{color:#766C82}
+      body.light-theme #jabzyCommunityGroupModal.jgm-sheet .jgm-manage{background:#F4F0F8;border-color:#E6DDED;color:#51405F}
+      body.light-theme #jabzyCommunityGroupModal .jgm-action-menu{background:#fff;border-color:#E8DFEF;box-shadow:0 12px 35px rgba(40,20,55,.18)}
+      body.light-theme #jabzyCommunityGroupModal .jgm-action-menu button{color:#40334D}
+      body.light-theme #jabzyCommunityGroupModal .jgm-action-menu button.jgm-primary{color:#6847C5}
+      body.light-theme #jabzyCommunityGroupModal .jgm-action-menu button.jgm-danger{color:#B64250}
+      @media(max-width:360px){#jabzyCommunityGroupModal.jgm-sheet>div{padding-left:12px!important;padding-right:12px!important}#jabzyCommunityGroupModal.jgm-sheet .jgm-member-row{grid-template-columns:38px minmax(0,1fr) 34px;gap:7px}}
+    `;document.head.appendChild(style);
+  }
   const box=document.createElement("div");box.textContent="Loading members...";
   showCommunityGroupModal("Group members",box);
+  const overlay=document.getElementById("jabzyCommunityGroupModal");
+  if(overlay&&!overlay.classList.contains("jgm-sheet"))overlay.classList.add("jgm-sheet");
+  const handle=document.createElement("div");handle.className="jgm-handle";handle.setAttribute("aria-hidden","true");
+  const search=document.createElement("input");search.className="jgm-search";search.type="search";search.placeholder="⌕  Search members";search.setAttribute("aria-label","Search members");
+  box.before(search);
   let q=db.from("community_group_members").select("user_id,role,status,can_chat,can_post,can_upload,joined_at").eq("group_id",g.id);
   const {data:rows,error}=await q.order("joined_at",{ascending:true});
   if(error){box.textContent="Members load nahi hue: "+error.message;return;}
@@ -10889,33 +10936,46 @@ async function openCommunityGroupMembers(){
   const {data:profiles}=ids.length?await db.from("profiles").select("id,username,photo_url").in("id",ids):{data:[]};
   const map=new Map((profiles||[]).map(p=>[p.id,p]));
   communityGroupMembersCache=(rows||[]).filter(x=>x.status==="approved");
-  box.replaceChildren();
+  box.replaceChildren();box.style.cssText="width:100%;min-width:0;";
+  const visibleRows=[];
+  function closeMenu(){overlay?.querySelector(".jgm-action-menu")?.remove();}
+  function showMenu(button,m,p){
+    closeMenu();
+    const menu=document.createElement("div");menu.className="jgm-action-menu";
+    const rect=button.getBoundingClientRect();const menuWidth=Math.min(220,window.innerWidth-28);let left=Math.max(14,Math.min(window.innerWidth-menuWidth-14,rect.right-menuWidth));let top=rect.bottom+6;
+    if(top+230>window.innerHeight)top=Math.max(12,rect.top-230);
+    menu.style.left=left+"px";menu.style.top=top+"px";
+    const add=(label,kind,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;if(kind)b.className=kind;b.onclick=()=>{closeMenu();fn();};menu.appendChild(b);};
+    if(m.role!=="admin")add("♛  Make Admin","jgm-primary",()=>{if(confirm("Is member ko Admin banana hai?"))manageCommunityGroupMember(m.user_id,{role:"admin"});});
+    add("⚙  Permissions","",()=>openCommunityGroupMemberPermissions(m,p.username));
+    add(m.can_chat?"◉  Mute":"◉  Unmute","",()=>manageCommunityGroupMember(m.user_id,{can_chat:!m.can_chat}));
+    add("−  Remove","jgm-danger",()=>removeCommunityGroupMember(m.user_id));
+    add("⊘  Ban","jgm-danger",()=>{if(confirm("Is member ko group se ban karein?"))manageCommunityGroupMember(m.user_id,{status:"banned",can_chat:false,can_post:false,can_upload:false});});
+    overlay.appendChild(menu);
+    setTimeout(()=>{const outside=e=>{if(!menu.contains(e.target)&&e.target!==button){menu.remove();document.removeEventListener("pointerdown",outside,true);}};document.addEventListener("pointerdown",outside,true);},0);
+  }
   (rows||[]).filter(x=>isAdmin||x.status==="approved").forEach(m=>{
     const p=map.get(m.user_id)||{};
-    const row=document.createElement("div");row.className="jgm-member-row";row.style.cssText="display:grid;grid-template-columns:36px minmax(0,1fr) 64px;align-items:center;column-gap:7px;width:100%;min-width:0;min-height:58px;padding:7px 0;border-bottom:1px solid rgba(150,120,170,.18);box-sizing:border-box;";
-    const avatar=document.createElement("div");avatar.style.cssText="width:38px;height:38px;min-width:38px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#7542a0,#d34c9c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;";
-    if(p.photo_url){const img=document.createElement("img");img.src=p.photo_url;img.alt="";img.style.cssText="display:block;width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else{avatar.textContent=(p.username||"J").slice(0,1).toUpperCase();}row.appendChild(avatar);
-    const info=document.createElement("div");info.className="jgm-member-info";info.style.cssText="display:flex;min-width:0;width:auto;max-width:100%;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;overflow:hidden;grid-column:2;grid-row:1;";
-    const name=document.createElement("b");name.className="jgm-member-name";name.textContent=p.username?"@"+p.username:"JABZY member";name.style.cssText="display:block;width:100%;font-size:13px;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-    const meta=document.createElement("small");meta.className="jgm-member-meta";meta.textContent=(m.role==="admin"?"Admin":m.user_id===g.created_by?"Owner":"Member")+" · "+(m.status==="approved"?"Joined":"Pending approval");meta.style.cssText="display:block;width:100%;max-width:100%;min-width:0;min-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.82;font-size:9px;line-height:13px;";
-    info.append(name,meta);row.appendChild(info);
+    const row=document.createElement("div");row.className="jgm-member-row";row.dataset.search=(p.username||"JABZY member").toLowerCase();
+    const avatar=document.createElement("div");avatar.className="jgm-avatar";
+    if(p.photo_url){const img=document.createElement("img");img.src=p.photo_url;img.alt="";avatar.appendChild(img);}else avatar.textContent=(p.username||"J").slice(0,1).toUpperCase();
+    const info=document.createElement("div");info.className="jgm-member-info";
+    const nameLine=document.createElement("div");nameLine.className="jgm-name-line";
+    const name=document.createElement("b");name.className="jgm-member-name";name.textContent=p.username?"@"+p.username:"JABZY member";nameLine.appendChild(name);
+    if(m.role==="admin"||m.user_id===g.created_by){const badge=document.createElement("span");badge.className="jgm-role";badge.textContent=m.user_id===g.created_by?"Owner":"Admin";nameLine.appendChild(badge);}
+    const meta=document.createElement("small");meta.className="jgm-member-meta";meta.textContent=(m.status==="approved"?"Member · Joined":"Member · Pending approval");
+    info.append(nameLine,meta);row.append(avatar,info);
     if(isAdmin&&m.user_id!==g.created_by){
       if(m.status==="pending"){
-        const approve=document.createElement("button");approve.className="jgm-approve";approve.textContent="Approve";approve.style.cssText="display:flex;align-items:center;justify-content:center;grid-column:3;grid-row:1;align-self:center;width:64px;min-width:64px;max-width:64px;height:32px;min-height:32px;white-space:nowrap;line-height:1;margin:0;padding:0 3px;background:#269b69;font-size:10px;border-radius:9px;";
-        approve.onclick=()=>manageCommunityGroupMember(m.user_id,{status:"approved",can_chat:true,can_post:true,can_upload:true});row.appendChild(approve);
+        const approve=document.createElement("button");approve.type="button";approve.className="jgm-approve";approve.textContent="Approve";approve.onclick=()=>manageCommunityGroupMember(m.user_id,{status:"approved",can_chat:true,can_post:true,can_upload:true});row.appendChild(approve);
       }else{
-        const perms=document.createElement("button");perms.textContent="Permissions";perms.style.cssText="margin:0;padding:7px 9px;font-size:11px;";
-        perms.onclick=()=>openCommunityGroupMemberPermissions(m,p.username);row.appendChild(perms);
-        if(m.role!=="admin"){const promote=document.createElement("button");promote.textContent="Make Admin";promote.style.cssText="margin:0;padding:7px 9px;font-size:11px;background:#286fbd;";promote.onclick=()=>{if(confirm("Is member ko Admin banana hai?"))manageCommunityGroupMember(m.user_id,{role:"admin"});};row.appendChild(promote);}
-        const mute=document.createElement("button");mute.textContent=m.can_chat?"Mute":"Unmute";mute.style.cssText="margin:0;padding:7px 9px;font-size:11px;background:#72518c;";mute.onclick=()=>manageCommunityGroupMember(m.user_id,{can_chat:!m.can_chat});row.appendChild(mute);
-        const ban=document.createElement("button");ban.textContent="Ban";ban.style.cssText="margin:0;padding:7px 9px;background:#a83245;font-size:11px;";ban.onclick=async()=>{if(!confirm("Is member ko group se ban karein?"))return;await manageCommunityGroupMember(m.user_id,{status:"banned",can_chat:false,can_post:false,can_upload:false});};row.appendChild(ban);
-        const kick=document.createElement("button");kick.textContent="Remove";kick.style.cssText="margin:0;padding:7px 9px;background:#a83245;font-size:11px;";
-        kick.onclick=()=>removeCommunityGroupMember(m.user_id);row.appendChild(kick);
+        const manage=document.createElement("button");manage.type="button";manage.className="jgm-manage";manage.textContent="⋮";manage.setAttribute("aria-label","Manage member");manage.onclick=()=>showMenu(manage,m,p);row.appendChild(manage);
       }
     }
-    box.appendChild(row);
+    box.appendChild(row);visibleRows.push(row);
   });
-  if(!rows?.length)box.textContent="Abhi koi member nahi hai.";
+  search.addEventListener("input",()=>{const value=search.value.trim().toLowerCase();visibleRows.forEach(row=>{row.style.display=row.dataset.search.includes(value)?"grid":"none";});});
+  if(!visibleRows.length)box.textContent="Abhi koi member nahi hai.";
 }
 async function manageCommunityGroupMember(userId,values){
   const g=currentOpenedCommunityGroup;if(!g)return;
@@ -10953,7 +11013,7 @@ async function loadOpenedCommunityGroup(){
   timeline.replaceChildren();
   if(!items.length){const empty=document.createElement("div");empty.textContent="Abhi group chat khaali hai.";empty.style.cssText="padding:14px;text-align:center;opacity:.7;";timeline.appendChild(empty);}
   items.forEach(async item=>{
-    const line=document.createElement("div");line.style.cssText="max-width:88%;width:fit-content;padding:9px 12px;margin:8px 0;border-radius:14px;background:"+(item.user_id===me.id?"linear-gradient(135deg,#7b3ca7,#a45bea)":"#30203f")+";"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;");
+    const line=document.createElement("div");line.className="jgc-message "+(item.user_id===me.id?"jgc-mine":"jgc-theirs");line.style.cssText="max-width:88%;width:fit-content;padding:10px 13px;margin:8px 0;border-radius:15px;background:"+(item.user_id===me.id?"linear-gradient(135deg,#5942B8,#7657E8)":"#202536")+";color:#FFFFFF;"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;")+";box-shadow:0 3px 12px rgba(0,0,0,.12);";
     if(item._kind==="post"){const tag=document.createElement("small");tag.textContent="Group post";tag.style.cssText="display:block;color:#ffd0ed;font-size:10px;margin-bottom:4px";line.appendChild(tag);}
     const body=document.createElement("div");body.textContent=item._text;body.style.whiteSpace="pre-wrap";line.appendChild(body);
     if(item.photo_url){
@@ -10964,7 +11024,7 @@ async function loadOpenedCommunityGroup(){
         else{const link=document.createElement("a");link.href=signed.signedUrl;link.target="_blank";link.rel="noopener";link.textContent="📎 "+(item.media_name||"Download file");link.style.cssText="display:block;margin-top:7px;color:#f4b6dd;overflow-wrap:anywhere;";line.appendChild(link);}
       }
     }
-    const meta=document.createElement("small");meta.textContent=(item.user_id===me.id?"You":"Member")+" · "+new Date(item.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});meta.style.cssText="display:block;margin-top:5px;color:#e1cbef;font-size:10px";line.appendChild(meta);timeline.appendChild(line);
+    const meta=document.createElement("small");meta.textContent=(item.user_id===me.id?"You":"Member")+" · "+new Date(item.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});meta.style.cssText="display:block;margin-top:5px;color:#D5D9E5;font-size:10px;opacity:.76;";line.appendChild(meta);timeline.appendChild(line);
   });
   if(nearBottom||timeline.scrollHeight===timeline.clientHeight)timeline.scrollTop=timeline.scrollHeight;
 }
