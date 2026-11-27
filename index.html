@@ -12873,6 +12873,57 @@ body:not(.light-theme) #communityGroupsSection #createCommunityGroupButton{backg
 }
 </style>
 </style>
+<style id="jabzy-room-tabs-no-box">
+#roomsActionButtons{
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;
+ justify-content:space-between!important;gap:8px!important;padding:0 2px!important;
+}
+#roomsActionButtons button,
+#roomsActionButtons button#liveRoomsTab,
+#roomsActionButtons button#groupsRoomsTab,
+#roomsActionButtons button#createLiveRoomButton,
+#roomsActionButtons button#privateRoomsTab{
+ display:inline-flex!important;flex:0 1 auto!important;width:auto!important;
+ min-width:0!important;max-width:none!important;height:32px!important;min-height:32px!important;
+ margin:0!important;padding:3px 2px!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;overflow:visible!important;
+}
+#roomsActionButtons .jabzy-room-nav-icon,
+#roomsActionButtons .jabzy-room-create-icon{
+ width:17px!important;height:18px!important;flex:0 0 17px!important;
+}
+#roomsActionButtons .jabzy-room-nav-icon svg,
+#roomsActionButtons .jabzy-room-create-icon svg{
+ width:17px!important;height:17px!important;stroke:currentColor!important;
+}
+#roomsActionButtons .jabzy-room-nav-label{
+ font-size:10px!important;font-weight:750!important;line-height:1!important;
+ white-space:nowrap!important;
+}
+#roomsActionButtons #liveRoomsTab,
+#roomsActionButtons #groupsRoomsTab,
+#roomsActionButtons #privateRoomsTab{
+ color:#f1e7f8!important;-webkit-text-fill-color:#f1e7f8!important;
+}
+#roomsActionButtons #createLiveRoomButton{
+ color:#ff75ba!important;-webkit-text-fill-color:#ff75ba!important;
+}
+body.light-theme #roomsActionButtons #liveRoomsTab,
+body.light-theme #roomsActionButtons #groupsRoomsTab,
+body.light-theme #roomsActionButtons #privateRoomsTab{
+ color:#56386a!important;-webkit-text-fill-color:#56386a!important;
+}
+body.light-theme #roomsActionButtons #createLiveRoomButton{
+ color:#bd328a!important;-webkit-text-fill-color:#bd328a!important;
+}
+@media(max-width:380px){
+ #roomsActionButtons{gap:5px!important}
+ #roomsActionButtons .jabzy-room-nav-label{font-size:9px!important}
+ #roomsActionButtons button{gap:3px!important}
+}
+</style>
 </body>
   </html>
   
