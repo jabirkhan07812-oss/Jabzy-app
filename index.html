@@ -13037,6 +13037,82 @@ body:not(.light-theme) #joinedRoomScreen{background:#100b1c;color:#fff}
 body:not(.light-theme) #joinedRoomScreen h3,
 body:not(.light-theme) #joinedRoomScreen b,
 body:not(.light-theme) #joinedRoomScreen span{color:inherit}
+
+/* HOME EMPTY FEED + ROOM INVITE PICKER — BOTH THEMES */
+#homeScreen #homeFeed>div:first-child{
+  background:transparent!important;
+  border-bottom:1px solid rgba(140,105,160,.22)!important;
+}
+#homeScreen #homeFeed>div:first-child strong{
+  display:block!important;
+  color:#f3dfff!important;
+  font-weight:850!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.18);
+}
+#homeScreen #homeFeed>div:first-child p{
+  color:#d0bfdc!important;
+  opacity:1!important;
+  font-size:13px!important;
+}
+body.light-theme #homeScreen #homeFeed>div:first-child{
+  background:linear-gradient(180deg,#fff 0%,#faf6fd 100%)!important;
+  border-bottom:1px solid #e5d9ec!important;
+}
+body.light-theme #homeScreen #homeFeed>div:first-child strong{
+  color:#452b59!important;
+  text-shadow:none!important;
+}
+body.light-theme #homeScreen #homeFeed>div:first-child p{
+  color:#705d7d!important;
+}
+body:not(.light-theme) #roomInvitePicker{
+  background:#100b1c!important;
+  color:#f7efff!important;
+}
+body:not(.light-theme) #roomInvitePicker b,
+body:not(.light-theme) #roomInvitePicker span,
+body:not(.light-theme) #roomInvitePicker div{
+  color:inherit;
+}
+#roomInvitePicker button{
+  min-height:34px!important;
+  border-radius:10px!important;
+  font-weight:800!important;
+}
+#roomInvitePicker button[aria-label="Close"]{
+  background:#382547!important;
+  color:#fff!important;
+}
+#roomInvitePicker button:not([aria-label="Close"]){
+  color:#fff!important;
+}
+body.light-theme #roomInvitePicker{
+  background:#f7f3fa!important;
+  color:#30233b!important;
+}
+body.light-theme #roomInvitePicker b,
+body.light-theme #roomInvitePicker span,
+body.light-theme #roomInvitePicker div{
+  color:#30233b;
+}
+body.light-theme #roomInvitePicker button{
+  background:linear-gradient(110deg,#d92f86,#8642c4)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 3px 10px rgba(110,55,140,.16)!important;
+}
+body.light-theme #roomInvitePicker button[aria-label="Close"]{
+  width:34px!important;
+  min-width:34px!important;
+  background:#eee5f4!important;
+  color:#493653!important;
+  border:1px solid #dfd1e9!important;
+  box-shadow:none!important;
+}
+body.light-theme #roomInvitePicker img+span,
+body.light-theme #roomInvitePicker span{
+  color:#493653!important;
+}
 </style>
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
