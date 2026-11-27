@@ -10747,7 +10747,7 @@ async function loadOpenedCommunityGroup(){
 async function sendCommunityGroupPost(){
   const group=currentOpenedCommunityGroup,input=document.getElementById("communityGroupPostInput"),content=(input?.value||"").trim();
   if(!group||!content||!me)return;
-  if(!(group.created_by===me.id||group.membership?.role==="admin"||(group.chat_access_mode!=="admins"&&group.post_access_mode!=="admins"&&(group.membership?.can_post===true&&group.post_access_mode!=="admins")))){alert("Aapko post permission nahi hai.");return;}
+  if(!(group.created_by===me.id||group.membership?.role==="admin"||(group.post_access_mode!=="admins"&&group.membership?.can_post===true))){alert("Aapko post permission nahi hai.");return;}
   const button=document.getElementById("communityGroupPostButton");button.disabled=true;
   try{const {error}=await db.from("community_group_posts").insert({group_id:group.id,user_id:me.id,content});if(error){alert("Post nahi hua: "+error.message);return;}input.value="";await loadOpenedCommunityGroup();}
   finally{button.disabled=false;}
