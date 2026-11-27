@@ -2397,7 +2397,7 @@ box-sizing:border-box;
 
 <div id="chatWindow" style="display:none;background:#171124;color:white;min-height:80vh;">
 
-  <div style="display:flex;align-items:center;gap:10px;padding:12px;background:#241832;border-bottom:1px solid #493257;position:sticky;top:0;z-index:10;">
+  <div class="jabzy-chat-topbar">
 
     <button onclick="backToChatList()" style="width:auto;flex-shrink:0;background:transparent;border:0;color:white;font-size:25px;padding:4px;margin:0;">←</button>
 
@@ -2411,9 +2411,9 @@ box-sizing:border-box;
     </div>
 
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-      <button onclick="startVoiceCall()" title="Voice Call" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📞</button>
-      <button onclick="chatComingSoon('Video Call')" title="Video Call" style="width:auto;background:transparent;color:white;border:0;font-size:20px;padding:5px;">📹</button>
-      <button onclick="showChatMenu()" style="width:auto;background:transparent;color:white;border:0;font-size:23px;padding:5px;">⋮</button>
+      <button class="jabzy-chat-icon-btn" onclick="startVoiceCall()" title="Voice Call" aria-label="Voice Call"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a15 15 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1C10 20 4 14 4 5a1 1 0 0 1 1-1Z"/></svg></button>
+      <button class="jabzy-chat-icon-btn" onclick="chatComingSoon('Video Call')" title="Video Call" aria-label="Video Call"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3z"/></svg></button>
+      <button class="jabzy-chat-icon-btn jabzy-chat-more-btn" onclick="showChatMenu()" title="More options" aria-label="More options">⋮</button>
         </div>
   </div>
 
@@ -2521,10 +2521,10 @@ box-sizing:border-box;
 
     <input id="message" placeholder="Message..." oninput="updateTypingStatus();jabzyUpdateComposerMode()" style="flex:1;min-width:0;border:none;outline:none;background:#352541;color:white;border-radius:22px;padding:12px;margin:0;">
 
-    <label for="chatPhotoFile" style="font-size:24px;cursor:pointer;">📎</label>
-    <button type="button" onclick="openChatGift()" title="Send a Gift" aria-label="Send a Gift" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:19px;">🎁</button>
+    <label for="chatPhotoFile" class="jabzy-chat-attach" title="Attach photo" aria-label="Attach photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 12.5 7.2-7.2a4 4 0 0 1 5.6 5.7l-9.2 9.2a6 6 0 0 1-8.5-8.5l9-9"/></svg></label>
+    <button type="button" onclick="openChatGift()" title="Send a Gift" aria-label="Send a Gift" class="jabzy-chat-gift-btn" style="width:40px;height:40px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:19px;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18v11H3zM2 6h20v4H2zM12 6v15M12 6H7.5a2.5 2.5 0 1 1 2.2-3.7L12 6Zm0 0h4.5a2.5 2.5 0 1 0-2.2-3.7L12 6Z"/></svg></button>
 
-    <button type="button" id="jabzyVoiceRecordButton" aria-label="Send message or hold to record voice" onpointerdown="jabzyComposerPointerDown(event)" onpointerup="jabzyComposerPointerUp(event)" onpointercancel="cancelJabzyVoiceRecord(event)" onclick="jabzyComposerClick(event)" oncontextmenu="event.preventDefault()" style="width:42px;height:42px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:19px;touch-action:none;">🎙️</button>
+    <button type="button" id="jabzyVoiceRecordButton" aria-label="Send message or hold to record voice" onpointerdown="jabzyComposerPointerDown(event)" onpointerup="jabzyComposerPointerUp(event)" onpointercancel="cancelJabzyVoiceRecord(event)" onclick="jabzyComposerClick(event)" oncontextmenu="event.preventDefault()" class="jabzy-chat-send-btn" style="width:42px;height:42px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:19px;touch-action:none;">🎙️</button>
   </div>
 
   <p id="appStatus" style="padding:5px 12px;"></p>
@@ -7379,12 +7379,21 @@ if(m.message.startsWith("GIFT:")){
  const voiceDuration=Math.max(0,Number(voiceParts[1]||0));
  const voiceWrap=document.createElement("div");
  voiceWrap.style.display="flex";voiceWrap.style.alignItems="center";voiceWrap.style.gap="8px";voiceWrap.style.minWidth="190px";voiceWrap.style.maxWidth="230px";
- const voiceIcon=document.createElement("span");voiceIcon.textContent="🎙️";voiceIcon.style.fontSize="20px";
- const voiceAudio=document.createElement("audio");voiceAudio.controls=true;voiceAudio.preload="none";voiceAudio.style.width="190px";voiceAudio.style.maxWidth="100%";
- const voiceTime=document.createElement("small");voiceTime.textContent=Math.floor(voiceDuration/60)+":"+String(Math.floor(voiceDuration%60)).padStart(2,"0");voiceTime.style.color="#ded0ec";
- voiceWrap.append(voiceIcon,voiceAudio);row.appendChild(voiceWrap);row.appendChild(voiceTime);
+ const voiceAudio=document.createElement("audio");voiceAudio.preload="none";voiceAudio.style.display="none";
+ const play=document.createElement("button");play.type="button";play.className="jabzy-audio-play";play.textContent="▶";play.setAttribute("aria-label","Play voice message");
+ const visual=document.createElement("div");visual.className="jabzy-audio-track";
+ const bars=document.createElement("div");bars.className="jabzy-audio-bars";bars.setAttribute("aria-hidden","true");
+ for(let i=0;i<22;i++){const bar=document.createElement("i");bar.style.height=(7+((i*13)%17))+"px";bars.appendChild(bar);}
+ const progress=document.createElement("div");progress.className="jabzy-audio-progress";progress.appendChild(bars);
+ const time=document.createElement("small");time.className="jabzy-audio-time";time.textContent="0:00 / "+Math.floor(voiceDuration/60)+":"+String(Math.floor(voiceDuration%60)).padStart(2,"0");
+ visual.append(progress,time);voiceWrap.append(play,visual,voiceAudio);row.appendChild(voiceWrap);
  const {data:voiceData,error:voiceError}=await db.storage.from("chat-photos").createSignedUrl(voicePath,3600);
- if(voiceError){voiceTime.textContent="Voice message unavailable";}else{voiceAudio.src=voiceData.signedUrl;}
+ if(voiceError){time.textContent="Voice message unavailable";play.disabled=true;}else{
+  voiceAudio.src=voiceData.signedUrl;
+  play.addEventListener("click",async()=>{if(voiceAudio.paused){try{await voiceAudio.play();play.textContent="Ⅱ";}catch(e){appStatus("Voice play nahi ho paya.");}}else{voiceAudio.pause();play.textContent="▶";}});
+  voiceAudio.addEventListener("timeupdate",()=>{const pct=voiceAudio.duration?voiceAudio.currentTime/voiceAudio.duration*100:0;bars.style.setProperty("--audio-progress",pct+"%");const fmt=t=>Math.floor(t/60)+":"+String(Math.floor(t%60)).padStart(2,"0");time.textContent=fmt(voiceAudio.currentTime)+" / "+fmt(voiceAudio.duration||voiceDuration);});
+  voiceAudio.addEventListener("ended",()=>{play.textContent="▶";voiceAudio.currentTime=0;});
+ }
 }else if(m.message.startsWith("PHOTO:")){
 p.textContent+="📷 Photo";
 row.appendChild(p);
@@ -7410,8 +7419,25 @@ img.style.display="block";
 row.appendChild(img);
 }
 }else{
-p.textContent+=m.message;
-row.appendChild(p);
+ const rawText=String(m.message||"");
+ const urlMatch=rawText.match(/https?:\/\/[^\s<>"']+/i);
+ const cleanUrl=urlMatch?urlMatch[0].replace(/[),.!?]+$/,""):"";
+ const isDirectVideo=!!cleanUrl&&/\.(mp4|webm|mov)(\?|$)/i.test(cleanUrl);
+ if(cleanUrl && rawText.trim()===urlMatch[0]){
+  const preview=document.createElement("div");preview.className="jabzy-chat-link-preview";
+  if(isDirectVideo){
+   const video=document.createElement("video");video.src=cleanUrl;video.controls=true;video.playsInline=true;video.preload="metadata";preview.appendChild(video);
+   const label=document.createElement("div");label.className="jabzy-chat-link-label";label.textContent="Video · Tap to play";preview.appendChild(label);
+  }else{
+   const link=document.createElement("a");link.href=cleanUrl;link.target="_blank";link.rel="noopener noreferrer";link.className="jabzy-chat-link-anchor";
+   const domain=document.createElement("strong");try{domain.textContent=new URL(cleanUrl).hostname.replace(/^www\./,"");}catch(e){domain.textContent="Shared link";}
+   const detail=document.createElement("span");detail.textContent="Open shared link ↗";link.append(domain,detail);preview.appendChild(link);
+  }
+  row.appendChild(preview);
+ }else{
+  p.textContent+=rawText;
+  row.appendChild(p);
+ }
 }
 
 const messageTime=document.createElement("small");
@@ -13739,6 +13765,58 @@ body.light-theme #joinedRoomScreen>div:first-of-type button[onclick="openRoomInv
   border:1px solid #c45baf!important;
 }
 </style>
+
+<style id="jabzy-premium-chat-refresh">
+#chatWindow{background:var(--jabzy-chat-bg,#100b19)!important;color:var(--jabzy-chat-text,#f8f2ff)!important}
+#chatWindow .jabzy-chat-topbar{position:relative!important;top:auto!important;z-index:12;display:flex;align-items:center;gap:10px;flex-shrink:0;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:rgba(31,21,45,.82);border-bottom:1px solid rgba(198,151,225,.2);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 5px 22px rgba(0,0,0,.12)}
+#chatWindow #chatProfilePhoto{width:42px!important;height:42px!important;min-width:42px!important;border:2px solid #c77be8!important;box-shadow:0 0 0 3px rgba(199,123,232,.13)}
+#chatWindow #chatTitle{font-size:15px!important;font-weight:800!important;letter-spacing:.1px;color:inherit}
+#chatWindow #chatProfileInfo,#chatWindow #chatOnlineStatus,#chatWindow #typingStatus{font-size:11px!important;line-height:1.4}
+#chatWindow #chatOnlineStatus{color:#69dda7!important}
+#chatWindow .jabzy-chat-icon-btn{display:grid!important;place-items:center;width:34px!important;height:36px!important;min-width:34px;padding:0!important;margin:0!important;border:0!important;border-radius:11px!important;background:transparent!important;color:inherit!important;font-size:23px!important}
+#chatWindow .jabzy-chat-icon-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#chatWindow .jabzy-chat-more-btn{font-size:25px!important}
+#chatWindow #messages{background:transparent!important;padding:12px 12px 18px!important;scrollbar-width:thin;scrollbar-color:#76528d transparent}
+#chatWindow #messages>div[data-message-id]{max-width:min(82%,420px)!important;padding:10px 12px!important;border-radius:17px!important;line-height:1.45}
+#chatWindow #messages>div[data-message-id][data-own-message="true"]{border-bottom-right-radius:5px!important}
+#chatWindow #messages>div[data-message-id][data-own-message="false"]{border-bottom-left-radius:5px!important}
+#chatWindow #chatComposer{display:flex!important;align-items:center;gap:7px!important;position:relative!important;bottom:auto!important;flex-shrink:0;margin:8px 10px calc(9px + env(safe-area-inset-bottom))!important;padding:6px 8px!important;border:1px solid rgba(185,139,215,.3)!important;border-radius:28px!important;background:rgba(42,31,57,.94)!important;box-shadow:0 8px 25px rgba(0,0,0,.2)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#chatWindow #chatComposer #message{height:42px!important;min-height:42px!important;padding:10px 11px!important;border:0!important;border-radius:20px!important;background:transparent!important;color:#fff!important;font-size:15px!important;box-shadow:none!important}
+#chatWindow #chatComposer #message::placeholder{color:#bcaec9!important;opacity:1}
+#chatWindow .jabzy-chat-attach{display:grid;place-items:center;width:34px;height:38px;flex:0 0 34px;color:#c9b8d8;cursor:pointer}
+#chatWindow .jabzy-chat-attach svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#chatWindow .jabzy-chat-gift-btn{display:grid!important;place-items:center;width:36px!important;height:36px!important;flex:0 0 36px;padding:0!important;border-radius:50%!important}
+#chatWindow .jabzy-chat-gift-btn svg{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#chatWindow .jabzy-chat-send-btn{display:grid!important;place-items:center;width:40px!important;height:40px!important;flex:0 0 40px;padding:0!important;border:0!important;border-radius:50%!important;background:linear-gradient(135deg,#ff55a8,#9254e8)!important;box-shadow:0 4px 13px #a34de955!important}
+#chatWindow #appStatus{color:#cdb8df!important;font-size:11px}
+#chatWindow .jabzy-audio-play{width:36px!important;height:36px!important;min-width:36px;padding:0!important;margin:0!important;border-radius:50%!important;background:linear-gradient(135deg,#ff55a8,#9254e8)!important;color:#fff!important;font-size:14px!important}
+#chatWindow .jabzy-audio-track{display:flex;flex-direction:column;gap:4px;flex:1;min-width:125px}
+#chatWindow .jabzy-audio-bars{--audio-progress:0%;display:flex;align-items:center;gap:3px;height:25px;overflow:hidden}
+#chatWindow .jabzy-audio-bars i{display:block;flex:1;min-width:2px;max-width:5px;border-radius:5px;background:linear-gradient(to top,#c15cdb,#f17ebc);opacity:.42}
+#chatWindow .jabzy-audio-bars i:nth-child(-n+11){opacity:.9}
+#chatWindow .jabzy-audio-time{font-size:10px!important;color:#d5c7e1!important;line-height:1.2}
+#chatWindow .jabzy-chat-link-preview{width:min(260px,68vw);overflow:hidden;border:1px solid rgba(210,174,230,.25);border-radius:13px;background:rgba(10,7,18,.22)}
+#chatWindow .jabzy-chat-link-preview video{display:block;width:100%;max-height:190px;background:#09070e;object-fit:contain}
+#chatWindow .jabzy-chat-link-label{padding:8px 10px;font-size:11px;color:#e4d5ef}
+#chatWindow .jabzy-chat-link-anchor{display:flex;flex-direction:column;gap:5px;padding:12px;color:inherit;text-decoration:none;overflow-wrap:anywhere}
+#chatWindow .jabzy-chat-link-anchor strong{font-size:13px;color:#f3c9ff}
+#chatWindow .jabzy-chat-link-anchor span{font-size:11px;color:#d2c2df}
+body.light-theme #chatWindow{--jabzy-chat-bg:#f7f3fa;--jabzy-chat-text:#30233b;background:#f7f3fa!important;color:#30233b!important}
+body.light-theme #chatWindow .jabzy-chat-topbar{background:rgba(255,255,255,.88);border-color:#e5d9ec;box-shadow:0 5px 18px rgba(65,35,80,.06)}
+body.light-theme #chatWindow #chatTitle{color:#30233b!important}
+body.light-theme #chatWindow #chatProfileInfo,body.light-theme #chatWindow #typingStatus{color:#776482!important}
+body.light-theme #chatWindow #messages{background:#f7f3fa!important}
+body.light-theme #chatWindow #chatComposer{background:rgba(255,255,255,.96)!important;border-color:#dfd1e8!important;box-shadow:0 5px 18px rgba(65,35,80,.08)!important}
+body.light-theme #chatWindow #chatComposer #message{color:#30233b!important}
+body.light-theme #chatWindow #chatComposer #message::placeholder{color:#887994!important}
+body.light-theme #chatWindow .jabzy-chat-attach{color:#705b7e}
+body.light-theme #chatWindow .jabzy-chat-link-preview{background:#fff;border-color:#e2d7e9}
+body.light-theme #chatWindow .jabzy-chat-link-anchor strong{color:#713b91}
+body.light-theme #chatWindow .jabzy-chat-link-anchor span,body.light-theme #chatWindow .jabzy-chat-link-label{color:#6f5c7b}
+body.light-theme #chatWindow .jabzy-audio-time{color:#715f7d!important}
+@media(max-width:360px){#chatWindow .jabzy-chat-topbar{gap:6px;padding-left:8px;padding-right:8px}#chatWindow .jabzy-chat-icon-btn{width:30px!important;min-width:30px}#chatWindow #chatComposer{gap:4px!important;margin-left:7px!important;margin-right:7px!important}}
+</style>
+
 <script id="jabzy-whatsapp-slide-cancel">
 (function(){
  let startX=0,startY=0,pointer=null,tracking=false;
