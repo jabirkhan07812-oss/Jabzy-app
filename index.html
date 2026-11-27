@@ -9113,7 +9113,14 @@ async function joinLiveRoom(room){
 }
   
 
+let roomOpenPromise = null;
 async function openJoinedRoom(){
+  if(roomOpenPromise)return roomOpenPromise;
+  roomOpenPromise=openJoinedRoomInternal();
+  try{return await roomOpenPromise;}
+  finally{roomOpenPromise=null;}
+}
+async function openJoinedRoomInternal(){
   if(!currentJoinedRoom) return;
 
   document.getElementById("joinedRoomName").textContent =
@@ -9324,7 +9331,12 @@ async function toggleRoomMic(){
       return;
     }
     if(!roomLocalAudioTrack){
-      roomLocalAudioTrack=await AgoraRTC.createMicrophoneAudioTrack();
+      roomLocalAudioTrack=await AgoraRTC.createMicrophoneAudioTrack({
+        AEC:true,
+        ANS:true,
+        AGC:false,
+        encoderConfig:"speech_standard"
+      });
       await roomVoiceClient.publish(roomLocalAudioTrack);
     }else{
       await roomLocalAudioTrack.setEnabled(true);
