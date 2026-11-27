@@ -2222,19 +2222,46 @@ border-radius:12px;
   
   </div>
 
-<style>
-#publicProfileView.official-admin-profile{background:radial-gradient(circle at 50% 18%,#303b70 0,#202033 42%,#171727 100%)!important;color:#fff}
-#publicProfileView.official-admin-profile .admin-profile-hero{max-width:520px;margin:24px auto 0;padding:25px 16px 22px;border:1px solid rgba(105,177,255,.42);border-radius:26px;background:linear-gradient(145deg,rgba(55,69,116,.78),rgba(32,32,51,.92));box-shadow:0 12px 38px rgba(0,0,0,.28),0 0 25px rgba(55,145,255,.13)}
-#publicProfileView.official-admin-profile #publicPhoto{width:158px!important;height:158px!important;border:5px solid transparent;outline:3px solid #4ba5ff;box-shadow:0 0 0 7px rgba(255,72,168,.24),0 0 28px rgba(65,155,255,.38)}
-#publicProfileView.official-admin-profile #publicUsername{display:inline-block;color:#fff!important;font-size:27px;font-weight:850;margin:18px 0 7px;text-shadow:0 2px 12px rgba(0,0,0,.35)}
-#publicProfileView.official-admin-profile #publicAge{color:#c9d9ff!important;margin:13px 0 8px;font-size:14px}
-#publicProfileView.official-admin-profile #publicBio{color:#f2f4ff!important;margin:8px 0 0;font-size:15px}
-#publicProfileView.official-admin-profile .profile-stats{max-width:520px;margin:18px auto 0;padding:15px;border:1px solid rgba(111,164,255,.25);border-radius:18px;background:rgba(255,255,255,.07);color:#fff}
-#publicProfileView.official-admin-profile .profile-stats strong{color:#fff}
-#publicProfileView.official-admin-profile .admin-verified-tick{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:5px;border-radius:50%;background:#168cff;color:#fff;font-size:14px;font-weight:900;vertical-align:middle;box-shadow:0 0 12px rgba(22,140,255,.55)}
-#publicProfileView.official-admin-profile #officialAdminBadge{margin:8px auto 0;padding:7px 13px;border:1px solid rgba(255,220,130,.65);box-shadow:0 3px 14px rgba(255,196,72,.13)}
-#publicProfileView.official-admin-profile .admin-profile-topline{display:none;color:#9ccaff;font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:13px}
-#publicProfileView.official-admin-profile #publicFollowBtn,#publicProfileView.official-admin-profile #publicFriendBtn,#publicProfileView.official-admin-profile #publicMessageBtn{box-shadow:0 5px 18px rgba(0,0,0,.2)}
+<style id="jabzy-public-profile-premium">
+#publicProfileView{padding:0 0 28px!important;background:linear-gradient(160deg,#100b19,#1c102b 58%,#100b19)!important;color:#f8f3ff}
+#publicProfileView .public-profile-topbar{height:54px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:0 15px;background:rgba(19,13,29,.94);backdrop-filter:blur(16px);border-bottom:1px solid #ffffff12}
+#publicProfileView .public-profile-topbar .jabzy-back-button{position:static!important;width:34px!important;height:34px!important;margin:0!important;border-radius:50%!important;background:#ffffff10!important;color:inherit!important}
+#publicProfileView .public-profile-topbar strong{flex:1;min-width:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#publicProfileView .public-profile-menu-wrap{position:relative}
+#publicProfileView .public-profile-menu-trigger{width:36px!important;height:36px!important;margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;color:inherit!important;font-size:23px!important}
+#publicProfileView .public-profile-menu{display:none;position:absolute;right:0;top:42px;z-index:10;min-width:160px;padding:6px;border:1px solid #654978;border-radius:13px;background:#241832;box-shadow:0 10px 30px #0007}
+#publicProfileView .public-profile-menu.open{display:block}
+#publicProfileView .public-profile-menu button{width:100%!important;margin:0!important;padding:11px!important;text-align:left;border:0!important;border-radius:8px!important;background:transparent!important;color:#f8efff!important;font-size:13px!important}
+#publicProfileView .admin-profile-hero{margin:0!important;padding:22px 18px 10px!important;border:0!important;border-radius:0!important;background:radial-gradient(ellipse at 50% 0,rgba(151,78,190,.2),transparent 65%)!important;box-shadow:none!important;text-align:center}
+#publicProfileView #publicPhoto{width:96px!important;height:96px!important;object-fit:cover;border-radius:50%;border:3px solid transparent;outline:2px solid #a75cda;box-shadow:0 0 0 5px #a75cda20}
+#publicProfileView #publicUsername{display:inline-block;margin:13px 0 4px!important;font-size:22px!important;font-weight:850;color:#fff!important}
+#publicProfileView #adminVerifiedTick{width:19px;height:19px;margin-left:4px;border-radius:50%;background:#168cff;color:white;font-size:12px;vertical-align:middle}
+#publicProfileView #officialAdminBadge{margin:5px auto 0!important;padding:4px 9px!important}
+#publicProfileView #publicAge{margin:7px 0 3px!important;color:#bba9ca!important;font-size:12px}
+#publicProfileView #publicBio{margin:5px auto 0!important;max-width:420px;color:#e0d3eb!important;font-size:13px;line-height:1.45;white-space:pre-wrap}
+#publicProfileView .profile-stats{display:flex;justify-content:space-around;gap:0;margin:14px 0 12px!important;padding:12px 5px!important;border:0!important;border-top:1px solid #ffffff17!important;border-bottom:1px solid #ffffff17!important;border-radius:0!important;background:transparent!important;color:#cbb8df}
+#publicProfileView .profile-stats>div{flex:1;text-align:center;font-size:11px}
+#publicProfileView .profile-stats strong{display:block;margin-bottom:3px;font-size:18px;color:#fff}
+#publicProfileView .public-profile-actions{display:flex;gap:9px;padding:0 15px 15px}
+#publicProfileView .public-profile-actions button{height:40px!important;flex:1;margin:0!important;padding:8px!important;border:1px solid #704b87!important;border-radius:11px!important;background:#30213f!important;color:#fff!important;font-size:12px!important;font-weight:800}
+#publicProfileView .public-profile-actions #publicMessageBtn{border:0!important;background:linear-gradient(110deg,#783ac0,#c04b9a)!important}
+#publicProfileView #publicFriendBtn,#publicProfileView #publicBlockBtn,#publicProfileView #publicReportBtn{display:none!important}
+#publicProfileView .public-profile-posts-title{margin:7px 0 0;padding:12px 15px 9px;font-size:13px;font-weight:800}
+#publicProfileView .jabzy-profile-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:2px!important;margin:0!important;padding:2px 0 0!important;border:0!important;border-radius:0!important;background:transparent!important}
+#publicProfileView .jabzy-profile-grid-item{border-radius:0!important}
+body.light-theme #publicProfileView{background:linear-gradient(160deg,#fff,#f5eff9)!important;color:#30233b!important}
+body.light-theme #publicProfileView .public-profile-topbar{background:rgba(255,255,255,.94);border-color:#e9deef}
+body.light-theme #publicProfileView .public-profile-topbar .jabzy-back-button{background:#f0e7f5!important;color:#57366d!important}
+body.light-theme #publicProfileView .public-profile-menu{background:#fff;border-color:#e4d5ed;box-shadow:0 10px 28px #43205222}
+body.light-theme #publicProfileView .public-profile-menu button{color:#49325b!important}
+body.light-theme #publicProfileView .admin-profile-hero{background:radial-gradient(ellipse at 50% 0,#f0e3fa,transparent 70%)!important}
+body.light-theme #publicProfileView #publicUsername{color:#30233b!important}
+body.light-theme #publicProfileView #publicAge{color:#786785!important}
+body.light-theme #publicProfileView #publicBio{color:#594866!important}
+body.light-theme #publicProfileView .profile-stats{border-color:#e8ddec!important;color:#786785}
+body.light-theme #publicProfileView .profile-stats strong{color:#30233b}
+body.light-theme #publicProfileView .public-profile-actions button{background:#f0e8f5!important;color:#55376a!important;border-color:#ddcce7!important}
+body.light-theme #publicProfileView .public-profile-actions #publicMessageBtn{background:linear-gradient(110deg,#783ac0,#c04b9a)!important;color:#fff!important}
 </style>
 <div id="publicProfileView" style="
 display:none;
@@ -2247,11 +2274,18 @@ padding:20px 16px 30px;
 box-sizing:border-box;
 ">
 
-  <button type="button"
-  onclick="closePublicProfile()"
-  class="jabzy-back-button" aria-label="Back" title="Back">
-  ✕
-  </button>
+  <div class="public-profile-topbar">
+    <button type="button" onclick="closePublicProfile()" class="jabzy-back-button" aria-label="Back">‹</button>
+    <strong id="publicProfileTopName">Profile</strong>
+    <div class="public-profile-menu-wrap">
+      <button type="button" class="public-profile-menu-trigger" aria-label="More options" onclick="document.getElementById('publicProfileMenu').classList.toggle('open')">⋮</button>
+      <div id="publicProfileMenu" class="public-profile-menu">
+        <button type="button" onclick="document.getElementById('publicProfileMenu').classList.remove('open');document.getElementById('publicFriendBtn').click()">Add Friend / Unfriend</button>
+        <button type="button" onclick="document.getElementById('publicProfileMenu').classList.remove('open');document.getElementById('publicBlockBtn').click()">Block</button>
+        <button type="button" onclick="document.getElementById('publicProfileMenu').classList.remove('open');document.getElementById('publicReportBtn').click()">Report</button>
+      </div>
+    </div>
+  </div>
 
   <div class="admin-profile-hero" style="text-align:center;margin-top:25px">
 
@@ -2268,18 +2302,19 @@ box-sizing:border-box;
 
   </div>
 
-  <h3 style="margin:18px 0 8px;font-size:15px;">Posts</h3>
+  <h3 class="public-profile-posts-title">Posts</h3>
   <div id="publicProfilePosts" class="jabzy-profile-grid">
     <div class="jabzy-profile-empty">Loading posts...</div>
   </div>
 
   <div class="profile-stats">
-  <div role="button" tabindex="0" onclick="openFollowList(window.currentPublicProfileId,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(window.currentPublicProfileId,'followers')}" style="cursor:pointer;">👥 Followers <strong id="publicFollowers">0</strong></div>
-  <div id="publicFollowingStat" style="cursor:default;">➕ Following <strong id="publicFollowing">0</strong></div>
+  <div><strong id="publicPostCount">0</strong>Posts</div>
+  <div role="button" tabindex="0" onclick="openFollowList(window.currentPublicProfileId,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(window.currentPublicProfileId,'followers')}" style="cursor:pointer;"><strong id="publicFollowers">0</strong>Followers</div>
+  <div id="publicFollowingStat" style="cursor:default;"><strong id="publicFollowing">0</strong>Following</div>
   </div>
 
   
-<div style="display:flex;gap:8px;margin-top:20px">
+<div class="public-profile-actions">
   <button id="publicFollowBtn" type="button" style="flex:1">➕ Follow</button>
   <button id="publicFriendBtn" type="button" style="flex:1">👥 Add Friend</button>
   <button id="publicMessageBtn" type="button" style="flex:1">💬 Message</button>
@@ -5305,6 +5340,8 @@ async function openPublicProfile(userId){
   }
 
   document.getElementById("publicUsername").innerText=p.username||"User";
+  document.getElementById("publicProfileTopName").innerText=p.username||"Profile";
+  document.getElementById("publicProfileMenu").classList.remove("open");
   const officialAdminBadge=document.getElementById("officialAdminBadge");
   const adminVerifiedTick=document.getElementById("adminVerifiedTick");
   const publicProfileView=document.getElementById("publicProfileView");
@@ -5320,6 +5357,8 @@ async function openPublicProfile(userId){
   document.getElementById("publicBio").innerText=p.bio||"";
   window.currentPublicProfileId=userId;
   await loadPublicProfilePosts(userId);
+  const publicPostCount=document.getElementById("publicPostCount");
+  if(publicPostCount)publicPostCount.textContent=document.querySelectorAll("#publicProfilePosts .jabzy-profile-grid-item").length;
   const followingStat=document.getElementById("publicFollowingStat");
   if(userId===me.id){
     followingStat.style.cursor="pointer";
