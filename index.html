@@ -1632,33 +1632,30 @@ body.light-theme .jabzy-post-actions{border-top-color:rgba(120,105,130,.16)!impo
   <div id="storyEditorStage" style="position:absolute;inset:0;overflow:hidden;background:#090711;">
     <img id="storyPreviewImage" alt="Story preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center;transition:filter .18s,transform .18s;">
     <video id="storyPreviewVideo" playsinline style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center;transition:filter .18s,transform .18s;"></video>
-    <div id="storyEditorEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#e8d8f5;background:linear-gradient(145deg,#171020,#090711);">
-      <div><div style="font-size:48px;margin-bottom:12px;">＋</div><b style="font-size:17px;">Choose a photo or video</b><p style="font-size:12px;opacity:.75;">Your media will open full screen here</p><button type="button" onclick="document.getElementById('storyMediaFile').click()" style="margin:10px auto 0;padding:11px 20px;border-radius:24px;background:linear-gradient(90deg,#a855f7,#ec4899);color:white;">Open Gallery</button></div>
-    </div>
+    <div id="storyEditorEmpty" style="display:none;"></div>
     <div id="storyEditorTextOverlay" contenteditable="true" spellcheck="false" data-placeholder="Type your text..." style="display:none;position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:10;min-width:110px;max-width:78%;text-align:center;color:#fff;font-size:30px;font-weight:800;text-shadow:0 2px 8px #000;pointer-events:auto;touch-action:none;white-space:pre-wrap;overflow-wrap:anywhere;outline:none;border-bottom:1px solid #ffffffaa;padding:4px 8px;"></div>
     <div id="storyEditorStickerOverlay" style="position:absolute;inset:0;z-index:9;pointer-events:none;"></div><div id="jabzyStickerDeleteZone" style="display:none;position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;padding:13px 25px;border-radius:30px;background:#e11d48;color:white;font-size:15px;font-weight:800;box-shadow:0 4px 22px #0009;pointer-events:none;">🗑️ Delete</div>
-    <div style="position:absolute;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:linear-gradient(#0009,transparent);">
-      <button type="button" onclick="closeStoryUpload()" aria-label="Close editor" style="width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#0007;border:1px solid #ffffff55;color:white;font-size:19px;">✕</button>
-      <b id="storyEditorTitle" style="font-size:15px;text-shadow:0 1px 5px #000;">Edit Story</b>
-      <span id="storyEditorGallerySpacer" style="width:58px;"></span>
+    <div id="storyEditorTopGradient" style="position:absolute;top:0;left:0;right:0;height:112px;z-index:6;display:flex;align-items:flex-start;justify-content:flex-start;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:linear-gradient(#0009,transparent);pointer-events:none;">
+      <button type="button" onclick="closeStoryUpload()" aria-label="Close editor" style="pointer-events:auto;width:38px;height:38px;margin:0;padding:0;border-radius:50%;background:#0007;border:1px solid #ffffff55;color:white;font-size:19px;">✕</button>
     </div>
-    <div id="storyEditorToolbar" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-43%);z-index:7;flex-direction:column;gap:9px;align-items:center;max-height:64vh;overflow-y:auto;padding:5px 2px;scrollbar-width:none;">
-      <button type="button" onclick="openStoryEditorTool('filters')" title="Filters" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">◐<small style="display:block;font-size:8px;">Filter</small></button>
-      <button type="button" onclick="openStoryEditorTool('adjust')" title="Adjust" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">☷<small style="display:block;font-size:8px;">Adjust</small></button>
-      <button type="button" onclick="openStoryEditorTool('text')" title="Text" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:18px;font-weight:800;">Aa<small style="display:block;font-size:8px;">Text</small></button>
-      <button type="button" onclick="openStoryEditorTool('stickers')" title="Stickers" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">☺<small style="display:block;font-size:8px;">Sticker</small></button>
-      <button type="button" onclick="openStoryEditorTool('crop')" title="Crop" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">▣<small style="display:block;font-size:8px;">Crop</small></button>
-      <button type="button" onclick="rotateJabzyStoryPreview()" title="Rotate" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">↻<small style="display:block;font-size:8px;">Rotate</small></button>
-      <button type="button" onclick="openStoryEditorTool('effects')" title="Effects" style="width:43px;height:43px;margin:0;padding:0;border-radius:50%;background:#0008;border:1px solid #ffffff66;color:white;font-size:19px;">✧<small style="display:block;font-size:8px;">Effects</small></button>
+    <div id="storyEditorToolbar" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:7;flex-direction:column;gap:12px;align-items:center;padding:5px 2px;">
+      <button type="button" onclick="openStoryEditorTool('stickers')" aria-label="Stickers" title="Stickers" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:20px;">☺</button>
+      <button type="button" onclick="openStoryEditorTool('text')" aria-label="Text" title="Text" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:18px;font-weight:800;">Aa</button>
+      <button type="button" onclick="openStoryEditorTool('filters')" aria-label="Filters" title="Filters" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:19px;">◐</button>
+      <button type="button" onclick="openStoryEditorTool('effects')" aria-label="Effects" title="Effects" style="width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:#0009;border:1px solid #ffffff55;color:white;font-size:20px;">✧</button>
     </div>
     <div id="storyEditorPanel" style="display:none;position:absolute;left:10px;right:62px;bottom:88px;z-index:8;max-height:34vh;overflow-y:auto;padding:12px;border-radius:18px;background:#160f20eF;border:1px solid #ffffff35;box-shadow:0 8px 28px #0008;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><b id="storyEditorPanelTitle" style="font-size:14px;">Filters</b><button type="button" onclick="closeStoryEditorTool()" style="width:28px;height:28px;margin:0;padding:0;border-radius:50%;background:#ffffff20;color:white;">✕</button></div>
       <div id="storyEditorPanelContent"></div>
     </div>
-    <div style="position:absolute;left:12px;right:62px;bottom:-8px;z-index:6;padding:12px 0 calc(6px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000b);">
+    <div id="storyEditorBottomBar" style="position:absolute;left:12px;right:12px;bottom:0;z-index:11;padding:34px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000c 38%,#000e);">
       <input id="storyMediaFile" type="file" accept="image/*,video/*" onchange="previewJabzyStoryMedia(event)" style="display:none;">
       <input id="storyCaption" type="text" maxlength="180" placeholder="Add a caption..." style="display:none!important;">
-      <div style="display:flex;align-items:center;gap:8px;"><p id="storyUploadStatus" style="flex:1;min-width:0;font-size:11px;color:white;margin:0;text-shadow:0 1px 4px #000;"></p><button id="storyUploadBtn" type="button" onclick="uploadJabzyStory()" style="width:auto;flex:0 0 auto;margin:0;padding:11px 18px;border-radius:24px;background:linear-gradient(90deg,#a855f7,#ec4899);color:white;font-size:13px;font-weight:800;">Share Story ➤</button></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <button type="button" onclick="document.getElementById('storyMediaFile').click()" style="width:auto;min-width:88px;margin:0;padding:9px 15px;border-radius:22px;background:#0008;border:1px solid #ffffff55;color:#fff;font-size:12px;font-weight:700;">▧ Gallery</button>
+        <p id="storyUploadStatus" style="display:none;flex:1;min-width:0;font-size:11px;color:white;margin:0;text-shadow:0 1px 4px #000;"></p>
+        <button id="storyUploadBtn" type="button" onclick="uploadJabzyStory()" style="width:auto;min-width:116px;flex:0 0 auto;margin:0;padding:11px 20px;border-radius:24px;background:linear-gradient(110deg,#2878ed,#6755e8);color:white;font-size:13px;font-weight:800;box-shadow:0 5px 18px #245bd966;">Share Story ➤</button>
+      </div>
     </div>
   </div>
 </div>
@@ -11113,8 +11110,10 @@ function openStoryUpload(){
   const video=document.getElementById("storyPreviewVideo");
   const empty=document.getElementById("storyEditorEmpty");
   if(input)input.value="";
+  const modal=document.getElementById("storyUploadModal");if(modal)modal.style.display="none";
   const tools=document.getElementById("storyEditorToolbar");if(tools)tools.style.display="none";
   const stickerSheet=document.getElementById("jabzyStickerPickerScreen");if(stickerSheet)stickerSheet.style.display="none";
+  const panel=document.getElementById("storyEditorPanel");if(panel)panel.style.display="none";
   window.jabzySelectedStoryOriginalFile=null;
   if(img){img.removeAttribute("src");img.style.display="none";}
   if(video){video.pause();video.removeAttribute("src");video.load();video.style.display="none";}
@@ -11122,8 +11121,7 @@ function openStoryUpload(){
   if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
   const status=document.getElementById("storyUploadStatus");if(status)status.textContent="";
   setupJabzyStorySwipeActions();
-  document.getElementById("storyUploadModal").style.display="block";
-  document.body.style.overflow="hidden";
+  if(input)input.click();
 }
 function closeStoryUpload(){
   const modal=document.getElementById("storyUploadModal");modal.style.display="none";
@@ -11155,8 +11153,9 @@ function previewJabzyStoryMedia(event){
   img.style.display="none";video.style.display="none";img.removeAttribute("src");video.pause();video.removeAttribute("src");video.load();
   if(jabzyStoryEditorObjectUrl){URL.revokeObjectURL(jabzyStoryEditorObjectUrl);jabzyStoryEditorObjectUrl=null;}
   resetJabzyStoryEditor();
-  if(!file){empty.style.display="flex";const tools=document.getElementById("storyEditorToolbar");if(tools)tools.style.display="none";return;}
-  if(!file.type.startsWith("image/") && !file.type.startsWith("video/")){empty.style.display="flex";const tools=document.getElementById("storyEditorToolbar");if(tools)tools.style.display="none";return;}
+  if(!file)return;
+  if(!file.type.startsWith("image/") && !file.type.startsWith("video/"))return;
+  const modal=document.getElementById("storyUploadModal");if(modal)modal.style.display="block";document.body.style.overflow="hidden";
   jabzyStoryEditorObjectUrl=URL.createObjectURL(file);empty.style.display="none";const tools=document.getElementById("storyEditorToolbar");if(tools)tools.style.display="flex";
   if(file.type.startsWith("image/")){img.src=jabzyStoryEditorObjectUrl;img.style.display="block";}
   else{video.src=jabzyStoryEditorObjectUrl;video.style.display="block";video.controls=true;video.playsInline=true;video.play().catch(()=>{});}
@@ -11257,7 +11256,7 @@ function openStoryEditorTool(tool){
     requestAnimationFrame(()=>{content.scrollLeft=0;});
     return;
   }
-  panel.style.cssText="display:block!important;position:absolute;left:8px;right:62px;bottom:calc(88px + env(safe-area-inset-bottom));width:auto;max-width:calc(100% - 70px);max-height:30vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:10px;border-radius:14px;background:rgba(22,15,32,.94);border:1px solid #ffffff25;box-shadow:0 5px 18px #0005;transform:none;";
+  panel.style.cssText="display:block!important;position:absolute;left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom));width:auto;max-width:none;height:auto;max-height:42vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:14px 14px calc(14px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:rgba(22,15,32,.96);border:1px solid #ffffff25;border-bottom:0;box-shadow:0 5px 24px #0006;transform:none;";
   const close=document.querySelector('#storyEditorPanel button[onclick="closeStoryEditorTool()"]');if(close)close.style.display="";
   content.style.display="";content.style.flexDirection="";content.style.flexWrap="";content.style.alignItems="";content.style.gap="";content.style.overflowX="";content.style.overflowY="";content.style.padding="";
   const addButton=(label,action,active=false)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.style.cssText="width:auto;min-width:62px;margin:3px;padding:8px 10px;border-radius:18px;background:"+(active?"linear-gradient(90deg,#a855f7,#ec4899)":"#34263f")+";color:white;border:1px solid #ffffff30;font-size:11px;";b.onclick=action;content.appendChild(b);};
@@ -13804,6 +13803,24 @@ body.light-theme #joinedRoomScreen>div:first-of-type button[onclick="openRoomInv
   -webkit-text-fill-color:#fff!important;
   border:1px solid #c45baf!important;
 }
+</style>
+<style id="jabzy-story-editor-theme-fix">
+#storyUploadModal{background:#090711!important;color:#fff!important}
+#storyEditorStage{background:#090711!important}
+#storyPreviewImage,#storyPreviewVideo{object-fit:cover!important}
+#storyEditorBottomBar button,#storyEditorToolbar button{touch-action:manipulation}
+#storyEditorPanel{z-index:29!important}
+#jabzyStickerPickerScreen{z-index:30!important}
+body.light-theme #storyUploadModal,body.light-theme #storyEditorStage{background:#fff!important;color:#30233b!important}
+body.light-theme #storyEditorEmpty{background:linear-gradient(145deg,#fff,#f3eafa)!important;color:#493653!important}
+body.light-theme #storyEditorPanel{background:rgba(255,255,255,.97)!important;color:#30233b!important;border-color:#e2d5ea!important;box-shadow:0 5px 24px rgba(60,35,75,.16)!important}
+body.light-theme #storyEditorPanel b,body.light-theme #storyEditorPanel label,body.light-theme #storyEditorPanel span{color:#493653}
+body.light-theme #jabzyStickerPickerScreen{background:rgba(255,255,255,.97)!important;color:#30233b!important;border-color:#e2d5ea!important;box-shadow:0 -10px 32px rgba(60,35,75,.14)!important}
+body.light-theme #jabzyStickerBack{background:#f1eaf5!important;border-color:#dfd1e8!important;color:#493653!important}
+body.light-theme #jabzyStickerGrid button{background:#f5eff8!important;border-color:#e6d9ed!important}
+body.light-theme #jabzyStickerDone{color:#fff!important}
+body.light-theme #jabzyStickerRemove{background:#f1eaf5!important;border-color:#dfd1e8!important;color:#493653!important}
+@media(max-width:380px){#storyEditorToolbar{right:7px!important;gap:9px!important}#storyEditorToolbar button{width:38px!important;height:38px!important}#storyEditorBottomBar{left:9px!important;right:9px!important}}
 </style>
 
 <style id="jabzy-premium-chat-refresh">
