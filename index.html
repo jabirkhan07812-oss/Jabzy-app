@@ -10931,8 +10931,9 @@ async function openCommunityGroup(group){
   const settingsButton=document.getElementById("openedCommunityGroupSettingsButton");if(settingsButton)settingsButton.style.display=(group.created_by===me.id||member?.role==="admin")?"grid":"none";
   const subtitle=document.getElementById("openedCommunityGroupInfo");
   subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+(group.members_visibility==="private"?"Members private":(communityGroupMembersCache.length||1)+" Member")+" ›";
-  subtitle.style.cssText="font-size:11px;color:var(--jabzy-muted,#aaa);cursor:pointer;";
-  subtitle.onclick=(event)=>{event.stopPropagation();openCommunityGroupMembers();};
+  const canViewGroupMembers=group.created_by===me.id||member?.role==="admin";
+  subtitle.style.cssText="font-size:11px;color:var(--jabzy-muted,#aaa);cursor:"+(canViewGroupMembers?"pointer":"default")+";";
+  subtitle.onclick=canViewGroupMembers?(event)=>{event.stopPropagation();openCommunityGroupMembers();}:null;
   document.getElementById("communityGroupMembers").style.display="none";
   const input=document.getElementById("communityGroupChatInput");
   const canPost=group.created_by===me.id||member?.role==="admin"||(member?.can_post===true&&group.post_access_mode!=="admins");
