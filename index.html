@@ -9231,6 +9231,7 @@ let roomSpeakerOn = true;
 let roomVoiceClient = null;
 let roomLocalAudioTrack = null;
 let roomRemoteUsers = new Map();
+let roomRemoteAudioStarting = new Set();
 let roomStatusCheckTimer = null;
 
 async function stopRoomVoice(){
@@ -9241,8 +9242,10 @@ async function stopRoomVoice(){
       try{await roomVoiceClient.leave();}catch(e){}
     }
   }finally{
-    if(roomLocalAudioTrack){try{roomLocalAudioTrack.stop();roomLocalAudioTrack.close();}catch(e){}roomLocalAudioTrack=null;}
+    roomRemoteUsers.forEach(user=>{try{user.audioTrack?.stop();}catch(e){}});
     roomRemoteUsers.clear();
+    roomRemoteAudioStarting.clear();
+    if(roomLocalAudioTrack){try{roomLocalAudioTrack.stop();roomLocalAudioTrack.close();}catch(e){}roomLocalAudioTrack=null;}
     roomVoiceClient=null;
     roomMicOn=false;
   }
@@ -9259,20 +9262,33 @@ async function startRoomVoice(){
     const tokenData=await getAgoraToken(roomId);
     if(currentJoinedRoom?.id!==roomId)return;
     roomVoiceClient=AgoraRTC.createClient({mode:"rtc",codec:"vp8"});
+    const activeRoomVoiceClient=roomVoiceClient;
     roomVoiceClient.on("user-published",async(user,mediaType)=>{
+      if(mediaType!=="audio"||roomRemoteUsers.has(user.uid)||roomRemoteAudioStarting.has(user.uid))return;
+      roomRemoteAudioStarting.add(user.uid);
       try{
-        await roomVoiceClient.subscribe(user,mediaType);
-        if(mediaType==="audio"&&user.audioTrack){
+        await activeRoomVoiceClient.subscribe(user,mediaType);
+        if(roomVoiceClient!==activeRoomVoiceClient||!currentJoinedRoom||currentJoinedRoom.id!==roomId)return;
+        if(user.audioTrack&&!roomRemoteUsers.has(user.uid)){
           roomRemoteUsers.set(user.uid,user);
           user.audioTrack.setVolume(roomSpeakerOn?100:0);
           user.audioTrack.play();
         }
       }catch(error){console.error("Agora remote audio subscribe error:",error);}
+      finally{roomRemoteAudioStarting.delete(user.uid);}
     });
     roomVoiceClient.on("user-unpublished",(user,mediaType)=>{
-      if(mediaType==="audio")roomRemoteUsers.delete(user.uid);
+      if(mediaType==="audio"){
+        try{user.audioTrack?.stop();}catch(e){}
+        roomRemoteUsers.delete(user.uid);
+        roomRemoteAudioStarting.delete(user.uid);
+      }
     });
-    roomVoiceClient.on("user-left",user=>roomRemoteUsers.delete(user.uid));
+    roomVoiceClient.on("user-left",user=>{
+      try{user.audioTrack?.stop();}catch(e){}
+      roomRemoteUsers.delete(user.uid);
+      roomRemoteAudioStarting.delete(user.uid);
+    });
     await roomVoiceClient.join(tokenData.appId,tokenData.channel,tokenData.token,tokenData.uid);
     const watchedRoomId=roomId;
     roomStatusCheckTimer=setInterval(()=>{
