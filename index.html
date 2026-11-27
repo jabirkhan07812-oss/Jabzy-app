@@ -5254,15 +5254,17 @@ async function openFollowList(userId,type){
   modal.style.display="block";
 
   try{
-    const column=type==="followers"?"following_id":"follower_id";
-    const {data:rows,error}=await db.from("follows")
-      .select(type==="followers"?"follower_id":"following_id")
-      .eq(column,userId)
-      .limit(200);
-
-    if(error) throw error;
-
-    const ids=(rows||[]).map(row=>type==="followers"?row.follower_id:row.following_id).filter(Boolean);
+    let rows=[];
+    if(type==="followers"){
+      const {data,error}=await db.rpc("get_public_followers",{p_user_id:userId});
+      if(error)throw error;
+      rows=data||[];
+    }else{
+      const {data,error}=await db.from("follows").select("following_id").eq("follower_id",userId).limit(200);
+      if(error)throw error;
+      rows=data||[];
+    }
+    const ids=rows.map(row=>type==="followers"?row.follower_id:row.following_id).filter(Boolean);
     if(!ids.length){
       content.textContent="Abhi koi "+(type==="followers"?"follower":"following")+" nahi hai.";
       return;
@@ -5435,13 +5437,10 @@ async function openPublicProfile(userId){
     followingStat.removeAttribute("tabindex");
   }
 
-  const [followers,following]=await Promise.all([
-    db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",userId),
-    db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",userId)
-  ]);
-
-  document.getElementById("publicFollowers").innerText=followers.count||0;
-  document.getElementById("publicFollowing").innerText=following.count||0;
+  const {data:followStats,error:followStatsError}=await db.rpc("get_public_follow_stats",{p_user_id:userId});
+  if(followStatsError)console.warn("Public follow stats:",followStatsError.message);
+  document.getElementById("publicFollowers").innerText=followStats?.followers||0;
+  document.getElementById("publicFollowing").innerText=followStats?.following||0;
 
   const followBtn=document.getElementById("publicFollowBtn");
   const friendBtn=document.getElementById("publicFriendBtn");
