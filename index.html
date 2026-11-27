@@ -2435,7 +2435,7 @@ box-sizing:border-box;
   <div id="roomsScreen" class="app-screen"
 style="display:none;padding:15px 12px 100px;">
 
-  <h2>👑 JABZY ROOMS</h2>
+  <div id="jabzyRoomsHeader"><h2>👑 JABZY ROOMS</h2><button id="jabzyHeaderCreateRoomButton" type="button" onclick="createLiveRoom()"><span aria-hidden="true">＋</span> Create Room</button></div>
     <!-- JABZY ROOMS AD -->
 <div id="roomsAds" style="margin:12px 0;"></div>
 <!-- END ROOMS AD -->
@@ -2459,10 +2459,6 @@ style="display:none;padding:15px 12px 100px;">
     <button id="groupsRoomsTab" onclick="showRoomsSection('groups')"
       style="display:block!important;flex:1 1 0!important;width:25%!important;min-width:0!important;max-width:25%!important;margin:0!important;padding:9px 0!important;font-size:10px!important;border-radius:10px;background:#342044;white-space:nowrap!important;overflow:hidden;">
       <span class="jabzy-room-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"></path><circle cx="9" cy="7" r="3.5"></circle><path d="M17 11a3.5 3.5 0 1 0-1-6.8M18 14.5a4 4 0 0 1 4 4V20"></path></svg></span><span class="jabzy-room-nav-label">Groups</span>
-    </button>
-    <button id="createLiveRoomButton" onclick="createLiveRoom()"
-      style="display:block!important;flex:1 1 0!important;width:25%!important;min-width:0!important;max-width:25%!important;margin:0!important;padding:9px 0!important;font-size:10px!important;font-weight:800;border-radius:10px;background:linear-gradient(135deg,#ff55a8,#a45bea);color:#fff!important;line-height:1.3;text-align:center;white-space:nowrap!important;overflow:hidden;">
-      <span class="jabzy-room-create-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span><span class="jabzy-room-nav-label">Create Room</span>
     </button>
     <button id="privateRoomsTab" onclick="showRoomsSection('private')"
       style="display:block!important;flex:1 1 0!important;width:25%!important;min-width:0!important;max-width:25%!important;margin:0!important;padding:9px 0!important;font-size:10px!important;border-radius:10px;background:#342044;white-space:nowrap!important;overflow:hidden;">
@@ -10388,7 +10384,7 @@ async function loadActiveRooms(){
   }
 
   if(!data || data.length === 0){
-    box.innerHTML = '<div id="jabzyNoLiveRooms" style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b class="jabzy-empty-title">No live rooms yet</b><div class="jabzy-empty-description" style="font-size:12px;margin:6px 0 14px;">Be the first to start a room and invite friends.</div><button type="button" onclick="createLiveRoom()" class="jabzy-empty-create" style="width:auto;margin:0;padding:9px 18px;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff!important;">＋ Create Room</button></div>';
+    box.innerHTML = '<div id="jabzyNoLiveRooms" style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b class="jabzy-empty-title">No live rooms yet</b><div class="jabzy-empty-description" style="font-size:12px;margin:6px 0 14px;">Be the first to start a room and invite friends.</div></div>';
     return;
   }
 
@@ -10461,10 +10457,12 @@ function showRoomsSection(section){
     document.getElementById(sections[key]).style.display =
       key === section ? "block" : "none";
 
-    document.getElementById(tabs[key]).style.background =
-      key === section
-        ? "linear-gradient(90deg,#ff55a8,#a45bea)"
-        : "#342044";
+    const tab = document.getElementById(tabs[key]);
+    tab.classList.toggle("active", key === section);
+    tab.setAttribute("aria-pressed", key === section ? "true" : "false");
+    tab.style.background = key === section
+      ? "linear-gradient(90deg,#ff55a8,#a45bea)"
+      : "#342044";
   });
 
   if(section === "private"){
@@ -12924,6 +12922,26 @@ body.light-theme #roomsActionButtons #createLiveRoomButton{
  #roomsActionButtons button{gap:3px!important}
 }
 </style>
+
+<style id="jabzy-rooms-header-create-and-pill-tabs">
+#roomsScreen #jabzyRoomsHeader{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:2px 0 14px!important;min-width:0!important}
+#roomsScreen #jabzyRoomsHeader h2{flex:1 1 auto!important;min-width:0!important;margin:0!important;font-size:20px!important;line-height:1.2!important}
+#roomsScreen #jabzyHeaderCreateRoomButton{display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;gap:5px!important;width:auto!important;min-width:0!important;height:36px!important;min-height:36px!important;margin:0!important;padding:0 13px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:999px!important;background:linear-gradient(100deg,#ff4b9b,#8a2be2)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:11px!important;font-weight:850!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 4px 13px rgba(164,75,190,.25)!important}
+#roomsScreen #jabzyHeaderCreateRoomButton span{font-size:18px!important;line-height:1!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+#roomsScreen #roomsActionButtons{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:space-between!important;gap:9px!important;width:100%!important;margin:0 0 16px!important;padding:0 1px!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
+#roomsScreen #roomsActionButtons::-webkit-scrollbar{display:none!important}
+#roomsScreen #roomsActionButtons>button{display:inline-flex!important;flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;height:37px!important;min-height:37px!important;margin:0!important;padding:0 10px!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:6px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;background:rgba(255,255,255,.08)!important;color:#e9dff0!important;-webkit-text-fill-color:#e9dff0!important;box-shadow:none!important;white-space:nowrap!important;overflow:hidden!important;font-size:11px!important;font-weight:800!important;line-height:1!important}
+#roomsScreen #roomsActionButtons .jabzy-room-nav-icon{display:inline-flex!important;flex:0 0 16px!important;width:16px!important;height:16px!important;align-items:center!important;justify-content:center!important}
+#roomsScreen #roomsActionButtons .jabzy-room-nav-icon svg{display:block!important;width:16px!important;height:16px!important;stroke:currentColor!important}
+#roomsScreen #roomsActionButtons .jabzy-room-nav-label{display:inline-block!important;font-size:11px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important}
+#roomsScreen #roomsActionButtons>button.active{background:linear-gradient(90deg,#ff4b8b,#8a2be2)!important;border-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:0 3px 10px rgba(164,75,190,.22)!important}
+body.light-theme #roomsScreen #jabzyRoomsHeader h2{color:#39264a!important}
+body.light-theme #roomsScreen #roomsActionButtons>button{background:#fff!important;border:1px solid #dfd1e9!important;color:#56386a!important;-webkit-text-fill-color:#56386a!important}
+body.light-theme #roomsScreen #roomsActionButtons>button.active{background:linear-gradient(90deg,#d92f86,#8642c4)!important;border-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+body.light-theme #roomsScreen #jabzyHeaderCreateRoomButton{background:linear-gradient(100deg,#d92f86,#8642c4)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+@media(max-width:360px){#roomsScreen #jabzyRoomsHeader h2{font-size:18px!important}#roomsScreen #jabzyHeaderCreateRoomButton{height:34px!important;min-height:34px!important;padding:0 10px!important;font-size:10px!important}#roomsScreen #roomsActionButtons{gap:6px!important}#roomsScreen #roomsActionButtons>button{padding:0 7px!important}}
+</style>
+
 </body>
   </html>
   
