@@ -13339,6 +13339,27 @@ body.light-theme #jabzyCommunityGroupModal>div input:not([type=checkbox]),body.l
 @media(max-width:380px){#communityGroupOpenScreen.jabzy-community-group-screen{padding-left:9px!important;padding-right:9px!important}#communityGroupOpenScreen #communityGroupPostComposer{gap:6px;padding:6px}#communityGroupOpenScreen #communityGroupPostButton{padding:0 11px!important}}
 @media(max-height:560px){#communityGroupOpenScreen .jabzy-community-group-header{margin-bottom:5px!important;padding-bottom:7px!important}#communityGroupOpenScreen #communityGroupPostComposer{min-height:48px;margin-top:5px!important}#communityGroupOpenScreen #communityGroupChatComposer{margin-top:5px!important}}
 </style>
+
+<style id="jabzy-story-filter-strip-edge-fix">
+#storyEditorPanel:has([data-story-filter]),#storyEditorPanel:has([data-story-effect]){
+  left:8px!important;right:8px!important;width:auto!important;max-width:none!important;
+  padding:0 4px!important;box-sizing:border-box!important;overflow:hidden!important;
+}
+#storyEditorPanel:has([data-story-filter]) #storyEditorPanelContent,
+#storyEditorPanel:has([data-story-effect]) #storyEditorPanelContent{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  box-sizing:border-box!important;padding:0 8px!important;margin:0!important;
+  justify-content:flex-start!important;gap:0!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scroll-padding-left:8px!important;scroll-padding-right:8px!important;
+}
+#storyEditorPanel:has([data-story-filter]) #storyEditorPanelContent>button[data-story-filter],
+#storyEditorPanel:has([data-story-effect]) #storyEditorPanelContent>button[data-story-effect]{
+  display:flex!important;flex:0 0 66px!important;width:66px!important;min-width:66px!important;max-width:66px!important;
+  margin:0!important;box-sizing:border-box!important;
+}
+</style>
+
 </body>
   </html>
   
