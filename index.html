@@ -12464,7 +12464,7 @@ function showTab(tab,fromBack=false){
      console.log(name, screen);
     
     if(screen) {
-      screen.style.display=name===tab?"block":"none";
+      screen.style.display=name===tab?(name==="reels"?"flex":"block"):"none";
     }
   });
 
@@ -14788,7 +14788,7 @@ function jabzySetupReelAutoplay(){
 }
 async function recordJabzyReelView(reelId){
   if(!me||!reelId)return;
-  const {error}=await db.from("reel_views").upsert({reel_id:reelId,viewer_id:me.id,watch_seconds:0,last_viewed_at:new Date().toISOString()},{onConflict:"reel_id,viewer_id"});
+  const {error}=await db.from("reel_views").upsert({reel_id:reelId,viewer_id:me.id,watch_seconds:0,first_viewed_at:new Date().toISOString(),last_viewed_at:new Date().toISOString()},{onConflict:"reel_id,viewer_id"});
   if(error)console.warn("Reel view tracking:",error.message);
 }
 async function toggleJabzyReelLike(reelId,button){
