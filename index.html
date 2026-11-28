@@ -13692,40 +13692,36 @@ body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{backgroun
 body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233b!important;border-color:#dfd0e8!important;}
 </style>
 
+
 <style id="jabzy-global-skeleton-style">
-.jabzy-skeleton-wrap{display:flex;flex-direction:column;gap:13px;width:100%;padding:12px 4px;box-sizing:border-box}
-.jabzy-skeleton-row{display:flex;align-items:center;gap:12px;width:100%;min-width:0}
-.jabzy-skeleton-avatar,.jabzy-skeleton-line,.jabzy-skeleton-card,.jabzy-skeleton-tile{position:relative;overflow:hidden;background:#e4dcec}
-.jabzy-skeleton-avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%}
-.jabzy-skeleton-lines{display:flex;flex:1;min-width:0;flex-direction:column;gap:9px}
-.jabzy-skeleton-line{height:10px;border-radius:20px}
-.jabzy-skeleton-line.short{width:38%}.jabzy-skeleton-line.long{width:76%}
-.jabzy-skeleton-card{height:150px;width:100%;border-radius:15px}
-.jabzy-skeleton-tile{aspect-ratio:1;border-radius:9px}
-.jabzy-skeleton-avatar:after,.jabzy-skeleton-line:after,.jabzy-skeleton-card:after,.jabzy-skeleton-tile:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);animation:jabzySkeletonShimmer 1.25s infinite}
+.jabzy-loading-placeholder{position:relative!important;display:block!important;min-height:42px!important;overflow:hidden!important;border-radius:10px!important;background:#e9e1ef!important;color:transparent!important;font-size:0!important}
+.jabzy-loading-placeholder:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);animation:jabzySkeletonShimmer 1.2s infinite}
+body:not(.light-theme) .jabzy-loading-placeholder{background:#30263a!important}
+body:not(.light-theme) .jabzy-loading-placeholder:after{background:linear-gradient(90deg,transparent,rgba(190,145,220,.2),transparent)}
 @keyframes jabzySkeletonShimmer{100%{transform:translateX(100%)}}
-body:not(.light-theme) .jabzy-skeleton-avatar,body:not(.light-theme) .jabzy-skeleton-line,body:not(.light-theme) .jabzy-skeleton-card,body:not(.light-theme) .jabzy-skeleton-tile{background:#30263a}
-body:not(.light-theme) .jabzy-skeleton-avatar:after,body:not(.light-theme) .jabzy-skeleton-line:after,body:not(.light-theme) .jabzy-skeleton-card:after,body:not(.light-theme) .jabzy-skeleton-tile:after{background:linear-gradient(90deg,transparent,rgba(190,145,220,.16),transparent)}
-@media(prefers-reduced-motion:reduce){.jabzy-skeleton-avatar:after,.jabzy-skeleton-line:after,.jabzy-skeleton-card:after,.jabzy-skeleton-tile:after{animation:none}}
+@media(prefers-reduced-motion:reduce){.jabzy-loading-placeholder:after{animation:none}}
 </style>
 <script id="jabzy-global-skeleton-system">
 (function(){
  if(window.__jabzyGlobalSkeletonReady)return;window.__jabzyGlobalSkeletonReady=true;
- const make=(kind)=>{
-  const wrap=document.createElement("div");wrap.className="jabzy-skeleton-wrap";wrap.setAttribute("aria-label","Loading");
-  const screen=kind.closest("#homeScreen,#friendsScreen,#chatsScreen,#matchesScreen,#roomsScreen,#profileScreen,#discoverScreen,#reelsScreen,#notificationsScreen");
-  const id=screen?.id||"";
-  if(/home|discover|reels/i.test(id)){
-   for(let i=0;i<2;i++){const row=document.createElement("div");row.className="jabzy-skeleton-row";const av=document.createElement("div");av.className="jabzy-skeleton-avatar";row.append(av);const lines=document.createElement("div");lines.className="jabzy-skeleton-lines";for(let j=0;j<2;j++){const line=document.createElement("div");line.className="jabzy-skeleton-line "+(j?"long":"short");lines.append(line)}row.append(lines);wrap.append(row);const card=document.createElement("div");card.className="jabzy-skeleton-card";wrap.append(card)}
-  }else if(/profile/i.test(id)){
-   const av=document.createElement("div");av.className="jabzy-skeleton-avatar";av.style.cssText="width:86px;height:86px;align-self:center;flex-basis:86px";wrap.append(av);const row=document.createElement("div");row.className="jabzy-skeleton-row";for(let j=0;j<3;j++){const line=document.createElement("div");line.className="jabzy-skeleton-line";line.style.height="28px";row.append(line)}wrap.append(row);const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:repeat(3,1fr);gap:5px";for(let j=0;j<6;j++){const tile=document.createElement("div");tile.className="jabzy-skeleton-tile";grid.append(tile)}wrap.append(grid);
-  }else{
-   for(let i=0;i<3;i++){const row=document.createElement("div");row.className="jabzy-skeleton-row";const av=document.createElement("div");av.className="jabzy-skeleton-avatar";row.append(av);const lines=document.createElement("div");lines.className="jabzy-skeleton-lines";for(let j=0;j<2;j++){const line=document.createElement("div");line.className="jabzy-skeleton-line "+(j?"long":"short");lines.append(line)}row.append(lines);wrap.append(row)}
-  }
-  return wrap;
+ const isLoading=el=>/^(loading(?:\s+(?:profiles|posts|likes|notifications|friends|chats|rooms|messages|requests|users|saved posts))?\.{0,3}|please wait\.{0,3})$/i.test((el.textContent||"").trim());
+ const scan=root=>{
+  if(!root||root.nodeType!==1)return;
+  const nodes=[root,...root.querySelectorAll("*")];
+  nodes.forEach(el=>{
+   if(el.children.length)return;
+   if(isLoading(el)){el.classList.add("jabzy-loading-placeholder");el.setAttribute("aria-busy","true");}
+   else if(el.classList.contains("jabzy-loading-placeholder")){el.classList.remove("jabzy-loading-placeholder");el.removeAttribute("aria-busy");}
+  });
  };
- const scan=(root)=>{if(!root||root.nodeType!==1)return;const nodes=[root,...root.querySelectorAll("*")];for(const el of nodes){if(el.classList?.contains("jabzy-skeleton-wrap")||el.children.length)continue;const t=(el.textContent||"").trim();if(!/^loading(?:\s+(?:profiles|posts|likes|notifications|friends|chats|rooms|messages|requests|users|saved posts))?\.{0,3}$/i.test(t))continue;if(el.dataset.jabzySkeletonApplied==="true")continue;el.dataset.jabzySkeletonApplied="true";el.replaceWith(make(el));}};
- const start=()=>{scan(document.body);new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1)scan(n)}))).observe(document.body,{childList:true,subtree:true});};
+ const start=()=>{
+  scan(document.body);
+  new MutationObserver(records=>records.forEach(record=>{
+   if(record.type==="characterData"){const el=record.target.parentElement;if(el)scan(el);}
+   else record.addedNodes.forEach(node=>{if(node.nodeType===1)scan(node);else if(node.nodeType===3&&node.parentElement)scan(node.parentElement);});
+   if(record.target.nodeType===1)scan(record.target);
+  })).observe(document.body,{childList:true,subtree:true,characterData:true});
+ };
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 })();
 </script>
