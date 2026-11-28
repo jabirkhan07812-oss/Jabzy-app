@@ -4936,12 +4936,12 @@ async function setupJabzyGlobalDataRealtime(){
         if(selected&&jabzyElementVisible("chatWindow"))scheduleJabzyRealtimeRefresh("chat-clears",()=>loadMessages());
         break;
       case "saved_posts":
-        if(jabzyElementVisible("savedPostsScreen"))scheduleJabzyRealtimeRefresh("saved-posts",()=>openSavedPosts());
+        if(jabzyElementVisible("jabzySavedPostsOverlay"))scheduleJabzyRealtimeRefresh("saved-posts",()=>openSavedPosts());
         break;
       case "jabzy_ads":
         if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-ads",()=>loadJabzyAds("home"));
         if(jabzyElementVisible("roomsScreen"))scheduleJabzyRealtimeRefresh("room-ads",()=>loadJabzyAds("rooms"));
-        if(isAdmin&&jabzyElementVisible("adminAdsList"))scheduleJabzyRealtimeRefresh("admin-ads",()=>loadAdminAds());
+        if(isAdmin&&jabzyElementVisible("adminAdsManager"))scheduleJabzyRealtimeRefresh("admin-ads",()=>loadAdminAds());
         break;
       case "reports":
         if(isAdmin&&jabzyElementVisible("adminReports"))scheduleJabzyRealtimeRefresh("admin-reports",()=>loadAdminReports());
@@ -4961,7 +4961,7 @@ async function setupJabzyGlobalDataRealtime(){
         break;
       case "creator_applications":
       case "creators":
-        if(isAdmin&&jabzyElementVisible("adminCreators"))scheduleJabzyRealtimeRefresh("admin-creators",()=>showAdminSection("creators"));
+        if(isAdmin&&jabzyElementVisible("adminDashboard"))scheduleJabzyRealtimeRefresh("admin-creator-applications",()=>{if(jabzyElementVisible("adminSectionUsers"))loadAdminUsers();});
         break;
       case "posts":
       case "post_likes":
@@ -5009,6 +5009,17 @@ async function setupJabzyGlobalDataRealtime(){
   });
   channel.on("postgres_changes",{event:"*",schema:"public",table:"community_groups"},()=>{if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("groups-list",()=>loadCommunityGroups(),350);});
   channel.on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},()=>{if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("groups-members",()=>loadCommunityGroups(),350);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"likes"},()=>{
+    if(jabzyElementVisible("matchesScreen")||jabzyElementVisible("discoverScreen")){scheduleJabzyRealtimeRefresh("likes-received",()=>loadLikesReceived(),350);scheduleJabzyRealtimeRefresh("matches",()=>loadMatches(),450);}
+  });
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"follows"},()=>{
+    if(jabzyElementVisible("profileScreen"))scheduleJabzyRealtimeRefresh("profile-follows",()=>loadProfile(),350);
+    if(jabzyElementVisible("friendsScreen"))scheduleJabzyRealtimeRefresh("friends-follows",()=>loadMyFriends(true),350);
+  });
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"chat_gifts"},()=>{
+    if(selected&&jabzyElementVisible("chatWindow"))scheduleJabzyRealtimeRefresh("chat-gifts",()=>loadMessages(),350);
+    if(jabzyElementVisible("chatsScreen"))scheduleJabzyRealtimeRefresh("chat-list-gifts",()=>loadChatList(),450);
+  });
   channel.on("postgres_changes",{event:"*",schema:"public",table:"posts"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-feed",()=>loadHomePosts(),300);});
   channel.on("postgres_changes",{event:"*",schema:"public",table:"stories"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("stories",()=>loadJabzyStories(),300);});
   channel.on("postgres_changes",{event:"*",schema:"public",table:"story_views"},payload=>{
