@@ -2752,7 +2752,7 @@ box-sizing:border-box;
   <div id="roomsScreen" class="app-screen"
 style="display:none;padding:15px 12px 100px;">
 
-  <div id="jabzyRoomsHeader"><h2><svg class="jabzy-rooms-heading-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m10 9 5 3-5 3z"></path></svg><span id="jabzyRoomsHeadingText">JABZY ROOMS</span></h2><button id="jabzyHeaderCreateRoomButton" type="button" onclick="createLiveRoom()"><span aria-hidden="true">＋</span> Create Room</button></div>
+  <div id="jabzyRoomsHeader"><h2><svg class="jabzy-rooms-heading-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5a6.5 6.5 0 0 0 13 0M12 17v4m-4 0h8"></path></svg><span id="jabzyRoomsHeadingText">JABZY ROOMS</span></h2><button id="jabzyHeaderCreateRoomButton" type="button" onclick="createLiveRoom()"><span aria-hidden="true">＋</span> Create Room</button></div>
     <!-- JABZY ROOMS AD -->
 <div id="roomsAds" style="margin:12px 0;"></div>
 <!-- END ROOMS AD -->
@@ -2784,6 +2784,7 @@ style="display:none;padding:15px 12px 100px;">
   </div>
 
   <div id="liveRoomsSection">
+    <div id="liveRoomCategoryFilters" class="jabzy-live-room-filters" aria-label="Filter live rooms"><button type="button" class="active" data-room-filter="All" onclick="filterLiveRooms('All')">All</button><button type="button" data-room-filter="Music" onclick="filterLiveRooms('Music')">Music</button><button type="button" data-room-filter="Gaming" onclick="filterLiveRooms('Gaming')">Gaming</button><button type="button" data-room-filter="Chill" onclick="filterLiveRooms('Chill')">Chill</button><button type="button" data-room-filter="Cricket" onclick="filterLiveRooms('Cricket')">Cricket</button></div>
     <h3>🔥 Live Rooms</h3>
     <div id="activeRoomsList">No live rooms yet.</div>
   </div>
@@ -2962,6 +2963,9 @@ overflow-y:auto;
     <button type="button" onclick="openRoomGift()" title="Send a Room Gift" aria-label="Send a Room Gift" style="width:42px;min-width:42px;height:42px;margin:0;padding:0;border-radius:50%;background:linear-gradient(135deg,#8d55df,#e04e9b);font-size:20px;">🎁</button>
     <button type="button" onclick="sendRoomChatMessage()" aria-label="Send message" style="width:42px;min-width:42px;height:42px;margin:0;padding:0;border-radius:50%;">➤</button>
   </div>
+
+  <div class="jabzy-room-reaction-bar" aria-label="Room reactions"><button type="button" onclick="sendRoomReaction('❤️')">❤️</button><button type="button" onclick="sendRoomReaction('😂')">😂</button><button type="button" onclick="sendRoomReaction('🔥')">🔥</button><button type="button" onclick="sendRoomReaction('👏')">👏</button><button type="button" onclick="document.getElementById('roomChatMessages')?.scrollIntoView({behavior:'smooth',block:'end'})">💬 Chat</button></div>
+  <div id="roomReactionFloat" aria-live="polite"></div>
 
   <!-- ROOM CONTROLS -->
   <div style="
@@ -9279,11 +9283,21 @@ async function createLiveRoom(){
     <label>Category</label>
     <select id="newRoomCategory"
       style="width:100%;padding:12px;margin:8px 0 15px;">
+      <option value="Music">🎵 Music</option>
       <option value="Gaming">🎮 Gaming</option>
-      <option value="Social">💬 Social</option>
+      <option value="Chill">☕ Chill</option>
+      <option value="Cricket">🏏 Cricket</option>
+      <option value="Memes">😂 Memes</option>
     </select>
 
-    <label>Room Type</label>
+    <label>Choose Room Mode</label>
+    <div class="jabzy-room-mode-grid">
+      <button type="button" class="jabzy-room-mode-card selected" data-room-mode="audio"><span>🎙️</span><b>Voice & Chill</b><small>Live audio hangout</small></button>
+      <button type="button" class="jabzy-room-mode-card coming-soon" disabled><span>🎬</span><b>Watch Party / Music</b><small>Coming soon</small></button>
+      <button type="button" class="jabzy-room-mode-card coming-soon" disabled><span>🎮</span><b>Game Room</b><small>Coming soon</small></button>
+    </div>
+
+    <label>Room Privacy</label>
     <select id="newRoomVisibility"
       style="width:100%;padding:12px;margin:8px 0 15px;">
       <option value="public">🌍 Public</option>
@@ -9432,6 +9446,17 @@ async function createLiveRoom(){
   };
   }
   
+
+function sendRoomReaction(emoji){
+  const layer=document.getElementById("roomReactionFloat");
+  if(!layer)return;
+  const bubble=document.createElement("span");
+  bubble.className="jabzy-room-float-reaction";
+  bubble.textContent=emoji;
+  bubble.style.left=(18+Math.random()*64)+"%";
+  layer.appendChild(bubble);
+  setTimeout(()=>bubble.remove(),1800);
+}
 
 async function endLiveRoom(roomId){
   if(!confirm("Kya aap is Room ko end karna chahte hain?")) return;
@@ -10903,77 +10928,77 @@ async function acceptPrivateRoomInvite(roomId){
   }
   
 
-async function loadActiveRooms(){
-  const box = document.getElementById("activeRoomsList");
-  box.innerText = "Loading rooms...";
-
-  const {data, error} = await db
-    .from("live_rooms")
-    .select("id,name,category,room_type,visibility,status,created_at,created_by")
-    .eq("status", "active")
-     .eq("visibility", "public")
-    .order("created_at", {ascending:false});
-
-  if(error){
-    box.innerText = error.message;
-    return;
-  }
-
-  if(!data || data.length === 0){
-    box.innerHTML = '<div id="jabzyNoLiveRooms" style="padding:26px 16px;text-align:center;border:1px dashed rgba(180,130,210,.35);border-radius:16px;background:rgba(150,90,190,.06);"><div style="font-size:30px;margin-bottom:8px;">🎙️</div><b class="jabzy-empty-title">No live rooms yet</b><div class="jabzy-empty-description" style="font-size:12px;margin:6px 0 14px;">Be the first to start a room and invite friends.</div></div>';
-    return;
-  }
-
-  const roomIds = data.map(room => room.id);
-  const {data:roomMembers, error:roomMembersError} = await db
-    .from("live_room_members")
-    .select("room_id,user_id")
-    .in("room_id", roomIds);
-
-  if(roomMembersError){
-    box.innerText = roomMembersError.message;
-    return;
-  }
-
-  const roomMemberCounts = {};
-  (roomMembers || []).forEach(member => {
-    roomMemberCounts[member.room_id] =
-      (roomMemberCounts[member.room_id] || 0) + 1;
+let liveRoomFilter="All";
+function filterLiveRooms(category){
+  liveRoomFilter=category||"All";
+  document.querySelectorAll("#liveRoomCategoryFilters button").forEach(button=>{
+    button.classList.toggle("active",button.dataset.roomFilter===liveRoomFilter);
   });
-
-  box.innerHTML = "";
-
- 
-data.forEach(room => {
-  const card = document.createElement("div");
-  card.style.cssText =
-    "background:#241632;padding:12px;margin:10px 0;border-radius:12px;cursor:pointer;";
-
-  card.onclick = () => joinLiveRoom(room);
-
-  const title = document.createElement("b");
-  title.textContent = room.name;
-
-  const info = document.createElement("p");
-  info.textContent =
-    room.category + " • " + room.room_type + " • " + room.visibility +
-    " • " + (roomMemberCounts[room.id] || 0) + " Members";
-
-  card.append(title, info);
-
-  if(room.created_by === me.id){
-    const endBtn = document.createElement("button");
-    endBtn.textContent = "End Room";
-    endBtn.onclick = (event) => {
-      event.stopPropagation();
-      endLiveRoom(room.id);
-    };
-    card.appendChild(endBtn);
+  document.querySelectorAll("#activeRoomsList .jabzy-live-room-card").forEach(card=>{
+    card.style.display=liveRoomFilter==="All"||card.dataset.category===liveRoomFilter?"block":"none";
+  });
+}
+async function loadActiveRooms(){
+  const box=document.getElementById("activeRoomsList");
+  if(!box)return;
+  box.innerHTML='<div class="jabzy-live-room-loading">Loading live rooms…</div>';
+  const {data,error}=await db.from("live_rooms")
+    .select("id,name,category,room_type,visibility,status,created_at,created_by")
+    .eq("status","active").eq("visibility","public")
+    .order("created_at",{ascending:false});
+  if(error){box.textContent=error.message;return;}
+  if(!data||!data.length){
+    box.innerHTML='<div id="jabzyNoLiveRooms"><div class="jabzy-no-room-icon">🎙️</div><b class="jabzy-empty-title">No live rooms yet</b><div class="jabzy-empty-description">Be the first to start a room and invite friends.</div></div>';
+    return;
   }
-
-  box.appendChild(card);
-});
-
+  const roomIds=data.map(room=>room.id);
+  const {data:members,error:membersError}=await db.from("live_room_members").select("room_id,user_id").in("room_id",roomIds);
+  if(membersError){box.textContent=membersError.message;return;}
+  const counts={},membersByRoom={};
+  (members||[]).forEach(member=>{
+    counts[member.room_id]=(counts[member.room_id]||0)+1;
+    (membersByRoom[member.room_id]||(membersByRoom[member.room_id]=[])).push(member.user_id);
+  });
+  const profileIds=[...new Set(data.map(room=>room.created_by).concat((members||[]).map(member=>member.user_id)).filter(Boolean))];
+  let profileMap={};
+  if(profileIds.length){
+    const {data:profiles}=await db.from("profiles").select("id,username,photo_url").in("id",profileIds);
+    (profiles||[]).forEach(profile=>profileMap[profile.id]=profile);
+  }
+  box.replaceChildren();
+  data.forEach(room=>{
+    const card=document.createElement("article");
+    card.className="jabzy-live-room-card";
+    card.dataset.category=room.category||"";
+    card.onclick=()=>joinLiveRoom(room);
+    const top=document.createElement("div");top.className="jabzy-live-room-card-top";
+    const live=document.createElement("span");live.className="jabzy-live-pill";live.textContent="● LIVE";
+    const tag=document.createElement("span");tag.className="jabzy-live-category";tag.textContent=room.category||"Chill";
+    top.append(live,tag);
+    const title=document.createElement("h4");title.textContent=room.name||"JABZY Room";
+    const host=document.createElement("p");host.className="jabzy-live-host";
+    const hostProfile=profileMap[room.created_by];
+    host.textContent="Hosted by "+(hostProfile?.username||"JABZY Member");
+    const people=document.createElement("div");people.className="jabzy-live-room-people";
+    (membersByRoom[room.id]||[]).slice(0,3).forEach(userId=>{
+      const profile=profileMap[userId],avatar=document.createElement("span");avatar.className="jabzy-live-avatar";
+      if(profile?.photo_url){const img=document.createElement("img");img.src=profile.photo_url;img.alt="";img.onerror=()=>{img.remove();avatar.textContent=(profile?.username||"J").slice(0,1).toUpperCase();};avatar.appendChild(img);}
+      else avatar.textContent=(profile?.username||"J").slice(0,1).toUpperCase();
+      people.appendChild(avatar);
+    });
+    const count=document.createElement("span");count.className="jabzy-live-count";
+    const total=counts[room.id]||0;count.textContent=total>3?"+"+(total-3)+" others":total+" Listening";
+    people.appendChild(count);
+    const join=document.createElement("button");join.type="button";join.className="jabzy-live-join";join.textContent="Join Room";
+    join.onclick=event=>{event.stopPropagation();joinLiveRoom(room);};
+    card.append(top,title,host,people,join);
+    if(room.created_by===me.id){
+      const end=document.createElement("button");end.type="button";end.className="jabzy-live-end";end.textContent="End Room";
+      end.onclick=event=>{event.stopPropagation();endLiveRoom(room.id);};card.appendChild(end);
+    }
+    box.appendChild(card);
+  });
+  filterLiveRooms(liveRoomFilter);
 }
     
 function showRoomsSection(section){
@@ -13954,6 +13979,72 @@ body:not(.light-theme) .jabzy-loading-placeholder:after{background:linear-gradie
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 })();
 </script>
+
+<style id="jabzy-rooms-premium-upgrade">
+#roomsScreen{background:radial-gradient(ellipse at 50% 0%,#382052 0%,#171020 48%,#100b19 100%);color:#fff}
+#roomsScreen #jabzyRoomsHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 15px}
+#roomsScreen #jabzyRoomsHeader h2{margin:0;display:flex;align-items:center;gap:9px;font-size:20px;font-weight:900;letter-spacing:.5px;color:#fff}
+#roomsScreen #jabzyRoomsHeader .jabzy-rooms-heading-icon{width:24px;height:24px;stroke:#d98aff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#roomsScreen #jabzyHeaderCreateRoomButton{width:auto;flex:0 0 auto;margin:0;padding:10px 13px;border-radius:13px;background:linear-gradient(110deg,#ff55a8,#9657e8);font-size:12px;white-space:nowrap}
+.jabzy-live-room-filters{display:flex;gap:8px;overflow-x:auto;padding:3px 1px 10px;scrollbar-width:none}
+.jabzy-live-room-filters::-webkit-scrollbar{display:none}
+.jabzy-live-room-filters button{width:auto;flex:0 0 auto;margin:0;padding:8px 15px;border:1px solid #604272;border-radius:99px;background:#241832;color:#d9c9e8;font-size:11px;font-weight:800}
+.jabzy-live-room-filters button.active{background:linear-gradient(110deg,#ff55a8,#9657e8);border-color:transparent;color:#fff}
+#liveRoomsSection>h3{margin:8px 0 12px;color:#ff8bc4;font-size:18px}
+.jabzy-live-room-card{margin:11px 0;padding:15px;border:1px solid #67427f;border-radius:19px;background:linear-gradient(145deg,#2b1b3c,#171020);box-shadow:0 9px 24px #0005;cursor:pointer}
+.jabzy-live-room-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.jabzy-live-pill{color:#ff719e;font-size:10px;font-weight:900;letter-spacing:.7px}
+.jabzy-live-category{padding:5px 10px;border:1px solid #79509a;border-radius:99px;background:#39234e;color:#e6caff;font-size:10px;font-weight:800}
+.jabzy-live-room-card h4{margin:12px 0 4px;color:#fff;font-size:17px}
+.jabzy-live-host{margin:0 0 12px;color:#c8b5d8;font-size:11px}
+.jabzy-live-room-people{display:flex;align-items:center;gap:7px;margin:4px 0 13px}
+.jabzy-live-avatar{width:31px;height:31px;display:grid;place-items:center;overflow:hidden;border:2px solid #b86be2;border-radius:50%;background:#513267;color:#fff;font-size:11px;font-weight:900}
+.jabzy-live-avatar img{width:100%;height:100%;object-fit:cover}
+.jabzy-live-count{color:#cbb9d8;font-size:11px}
+.jabzy-live-join{width:100%;margin:0;padding:11px;border-radius:12px;background:linear-gradient(100deg,#a43bd1,#e4489b);color:#fff;font-size:12px;font-weight:900}
+.jabzy-live-end{width:100%;margin:7px 0 0;padding:8px;border-radius:10px;background:#5a263d;color:#ffd9e6;font-size:11px}
+#jabzyNoLiveRooms{padding:28px 16px;text-align:center;border:1px dashed #73518a;border-radius:18px;background:#21152c}
+#jabzyNoLiveRooms .jabzy-no-room-icon{font-size:34px;margin-bottom:8px}
+#jabzyNoLiveRooms .jabzy-empty-title{display:block;color:#fff;font-weight:900}
+#jabzyNoLiveRooms .jabzy-empty-description{margin-top:7px;color:#c6b4d4;font-size:12px}
+.jabzy-room-mode-grid{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 14px}
+.jabzy-room-mode-card{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;align-items:center;column-gap:9px;width:100%;margin:0;padding:11px;border:1px solid #65427d;border-radius:13px;background:#30203f;color:#fff;text-align:left}
+.jabzy-room-mode-card>span{grid-row:1/3;font-size:23px}
+.jabzy-room-mode-card b{font-size:12px}
+.jabzy-room-mode-card small{margin-top:3px;color:#c7b5d4;font-size:10px}
+.jabzy-room-mode-card.selected{border-color:#df78ff;background:linear-gradient(110deg,#62327e,#44234f);box-shadow:0 0 14px #bb68e833}
+.jabzy-room-mode-card.coming-soon{opacity:.58;cursor:not-allowed}
+.jabzy-room-reaction-bar{display:flex;align-items:center;justify-content:space-around;gap:6px;margin:14px 0 4px;padding:9px;border:1px solid #63417b;border-radius:16px;background:#241832}
+.jabzy-room-reaction-bar button{width:auto;min-width:38px;margin:0;padding:9px 10px;border-radius:12px;background:#382449;color:#fff;font-size:18px}
+.jabzy-room-reaction-bar button:last-child{font-size:11px;font-weight:800}
+#roomReactionFloat{position:fixed;inset:0;z-index:10020;overflow:hidden;pointer-events:none}
+.jabzy-room-float-reaction{position:absolute;bottom:18%;font-size:30px;animation:jabzyRoomReactionRise 1.8s ease-out forwards}
+@keyframes jabzyRoomReactionRise{0%{transform:translateY(0) scale(.7);opacity:0}15%{opacity:1}100%{transform:translateY(-65vh) scale(1.5);opacity:0}}
+#joinedRoomScreen #roomSpeakers{border-radius:22px}
+#joinedRoomScreen #roomOwnerSeat,.room-stage-seat{box-shadow:0 0 15px #a64be966}
+#joinedRoomScreen #roomMemberSeats{grid-template-columns:repeat(3,minmax(58px,70px))}
+body.light-theme #roomsScreen{background:linear-gradient(160deg,#fff,#f3eafa)!important;color:#30233b!important}
+body.light-theme #roomsScreen #jabzyRoomsHeader h2,body.light-theme #liveRoomsSection>h3{color:#493653!important}
+body.light-theme #roomsScreen #jabzyRoomsHeader .jabzy-rooms-heading-icon{stroke:#9a4cbd}
+body.light-theme .jabzy-live-room-filters button{background:#fff;color:#665273;border-color:#e1d5e8}
+body.light-theme .jabzy-live-room-filters button.active{background:linear-gradient(110deg,#d92f86,#8642c4);color:#fff}
+body.light-theme .jabzy-live-room-card{background:linear-gradient(145deg,#fff,#f5eef9);border-color:#e2d3eb;box-shadow:0 6px 18px #59346a12}
+body.light-theme .jabzy-live-room-card h4{color:#30233b}
+body.light-theme .jabzy-live-host,body.light-theme .jabzy-live-count{color:#74617f}
+body.light-theme .jabzy-live-category{background:#f1e7f8;color:#74428e;border-color:#dfc8ed}
+body.light-theme .jabzy-live-avatar{background:#eadcf3;color:#59346a;border-color:#b77bd3}
+body.light-theme #jabzyNoLiveRooms{background:#fff;border-color:#dfcce9}
+body.light-theme #jabzyNoLiveRooms .jabzy-empty-title{color:#30233b}
+body.light-theme #jabzyNoLiveRooms .jabzy-empty-description{color:#786585}
+body.light-theme #createLiveRoomCard{background:#fff!important;color:#30233b!important;border:1px solid #e2d3eb}
+body.light-theme #createLiveRoomCard h3,body.light-theme #createLiveRoomCard label{color:#493653!important}
+body.light-theme .jabzy-room-mode-card{background:#f5eff8;border-color:#e2d3eb;color:#30233b}
+body.light-theme .jabzy-room-mode-card small{color:#766282}
+body.light-theme .jabzy-room-mode-card.selected{background:linear-gradient(110deg,#f6e6f3,#eee5fb);border-color:#b46acb}
+body.light-theme .jabzy-room-reaction-bar{background:#fff;border-color:#e2d3eb}
+body.light-theme .jabzy-room-reaction-bar button{background:#f2e9f7;color:#56366b}
+@media(max-width:360px){.jabzy-live-room-card{padding:12px}.jabzy-live-room-card h4{font-size:15px}.jabzy-room-reaction-bar{gap:3px;padding:7px}.jabzy-room-reaction-bar button{min-width:32px;padding:8px 6px}}
+</style>
 </body>
   </html>
   
