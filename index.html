@@ -1479,6 +1479,31 @@ body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{backgroun
 body.light-theme #communityGroupOpenScreen #communityGroupPostInput{display:none!important;color:#30233b!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#f1eaf5!important;color:#493458!important}
 body.light-theme #communityGroupPostMediaPreview{color:#665273!important}
+
+/* JABZY GROUP POST COMPOSER — PREMIUM MEDIA SHARE */
+#communityGroupOpenScreen #communityGroupPostComposer{gap:10px!important;padding:13px!important;border:1px solid rgba(190,140,220,.28)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(115,65,150,.20),rgba(45,30,65,.16))!important;box-shadow:0 8px 22px rgba(0,0,0,.12),inset 0 1px rgba(255,255,255,.05)!important}
+#communityGroupOpenScreen .jabzy-group-post-heading{display:flex;align-items:center;gap:9px;min-width:0}
+#communityGroupOpenScreen .jabzy-group-post-heading-icon{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-size:17px;box-shadow:0 4px 12px rgba(165,75,190,.25)}
+#communityGroupOpenScreen .jabzy-group-post-heading>span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#communityGroupOpenScreen .jabzy-group-post-heading strong{font-size:12px;font-weight:850;color:#f7eaff;letter-spacing:.15px}
+#communityGroupOpenScreen .jabzy-group-post-heading small{font-size:10px;line-height:1.35;color:#bba9cb}
+#communityGroupOpenScreen .jabzy-group-post-media-tag{padding:4px 7px;border:1px solid rgba(198,145,230,.25);border-radius:7px;background:rgba(170,105,205,.12);color:#d9b8f2;font-size:8px;font-weight:900;letter-spacing:1px}
+#communityGroupOpenScreen .jabzy-group-post-controls{display:flex;align-items:center;gap:8px;width:100%}
+#communityGroupOpenScreen #communityGroupPostMediaButton{display:flex!important;align-items:center;justify-content:center;gap:6px;width:auto!important;min-width:0;height:39px!important;min-height:39px!important;flex:1!important;margin:0!important;padding:0 10px!important;border:1px solid rgba(180,140,205,.28)!important;border-radius:11px!important;background:rgba(150,105,180,.15)!important;color:#f0e3fa!important;font-size:17px!important;font-weight:800!important}
+#communityGroupOpenScreen #communityGroupPostMediaButton span{font-size:11px;font-weight:750}
+#communityGroupOpenScreen #communityGroupPostButton{display:flex!important;align-items:center;justify-content:center;gap:8px;width:auto!important;min-width:112px;height:39px!important;min-height:39px!important;flex:0 0 auto!important;margin:0!important;padding:0 14px!important;border:0!important;border-radius:11px!important;background:linear-gradient(110deg,#ff55a8,#9657e8)!important;color:#fff!important;font-size:11px!important;font-weight:850!important;box-shadow:0 5px 14px rgba(160,70,190,.24)!important}
+#communityGroupOpenScreen #communityGroupPostButton:disabled,#communityGroupOpenScreen #communityGroupPostMediaButton:disabled{opacity:.55!important}
+#communityGroupOpenScreen .jabzy-group-post-hint{padding-left:2px;color:#aa98b9;font-size:9px;letter-spacing:.15px}
+#communityGroupOpenScreen #communityGroupPostMediaPreview{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 10px;border:1px solid rgba(180,140,205,.2);border-radius:10px;background:rgba(20,12,30,.24);font-size:11px!important;color:#e3d2f0!important}
+#communityGroupOpenScreen #communityGroupPostMediaPreview button{width:auto!important;min-height:25px!important;margin:0!important;padding:2px 8px!important;border-radius:7px!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{border-color:#e4d5ec!important;background:linear-gradient(145deg,#fff,#f5eff9)!important;box-shadow:0 5px 18px rgba(70,35,90,.07)!important}
+body.light-theme #communityGroupOpenScreen .jabzy-group-post-heading strong{color:#39264a!important}
+body.light-theme #communityGroupOpenScreen .jabzy-group-post-heading small{color:#806d8c!important}
+body.light-theme #communityGroupOpenScreen .jabzy-group-post-media-tag{background:#f5eafa!important;border-color:#e5d5ee!important;color:#80529a!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#f1eaf5!important;border-color:#e3d5eb!important;color:#624575!important}
+body.light-theme #communityGroupOpenScreen .jabzy-group-post-hint{color:#897995!important}
+body.light-theme #communityGroupOpenScreen #communityGroupPostMediaPreview{background:#f8f3fa!important;border-color:#e7dced!important;color:#5e486d!important}
+@media(max-width:360px){#communityGroupOpenScreen #communityGroupPostComposer{padding:10px!important}#communityGroupOpenScreen .jabzy-group-post-heading small{font-size:9px}#communityGroupOpenScreen #communityGroupPostButton{min-width:98px;padding:0 10px!important;font-size:10px!important}}
 </style>
 <style id="jabzy-post-action-polish">
 .jabzy-post-actions{display:flex!important;align-items:center!important;gap:clamp(14px,4vw,20px)!important;border-top:1px solid rgba(161,161,170,.13)!important}
@@ -2686,15 +2711,15 @@ style="display:none;padding:15px 12px 100px;">
     <div id="communityGroupMembers" style="display:none!important;"></div>
     <div id="communityGroupPosts" style="display:none;"></div>
     <div id="communityGroupChatMessages" class="jabzy-community-group-timeline" style="flex:1 1 0;min-height:0;height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 8px 16px;border-radius:14px;background:#21152f;">Loading chat...</div>
-    <div id="communityGroupPostComposer" class="jabzy-community-group-post-composer" style="display:flex;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:7px;margin:9px 0 0;padding:9px;border-radius:16px;border:1px solid rgba(180,140,205,.22);background:rgba(130,90,160,.12);">
+    <div id="communityGroupPostComposer" class="jabzy-community-group-post-composer" style="display:flex;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:9px;margin:10px 0 0;padding:12px;border-radius:18px;border:1px solid rgba(180,140,205,.25);background:linear-gradient(145deg,rgba(130,90,160,.18),rgba(70,45,95,.10));">
+      <div class="jabzy-group-post-heading"><span class="jabzy-group-post-heading-icon">✦</span><span><strong>Create a Group Post</strong><small>Share photos, videos or documents with members</small></span><span class="jabzy-group-post-media-tag">MEDIA</span></div>
       <div id="communityGroupPostMediaPreview" style="display:none;font-size:11px;color:#cdb9dc;"></div>
-      <div style="display:flex;align-items:center;gap:8px;width:100%;">
-        <span aria-hidden="true" style="width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-weight:800;">J</span>
-        <span style="flex:1;min-width:0;font-size:12px;color:var(--jabzy-muted,#aaa);">Photo, video ya file share karein</span>
-        <button id="communityGroupPostMediaButton" type="button" onclick="document.getElementById('communityGroupPostFile').click()" aria-label="Attach photo, video or file" title="Attach photo, video or file" style="width:38px;height:36px;min-height:36px;flex:0 0 38px;margin:0;padding:0;border-radius:11px;background:rgba(160,110,190,.2);color:inherit;font-size:18px;">＋</button>
+      <div class="jabzy-group-post-controls">
+        <button id="communityGroupPostMediaButton" type="button" onclick="document.getElementById('communityGroupPostFile').click()" aria-label="Attach photo, video or file" title="Attach photo, video or file">＋ <span>Add media</span></button>
         <input id="communityGroupPostFile" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" style="display:none" onchange="previewCommunityGroupPostFile(event)">
-        <button id="communityGroupPostButton" onclick="sendCommunityGroupPost()" style="width:auto;flex:0 0 auto;height:34px;min-height:34px;margin:0;padding:0 14px;border-radius:18px;background:linear-gradient(135deg,#ff55a8,#a45bea);font-size:12px;">Post</button>
+        <button id="communityGroupPostButton" onclick="sendCommunityGroupPost()">Share Post <span aria-hidden="true">➤</span></button>
       </div>
+      <div class="jabzy-group-post-hint">Photo · Video · PDF · Documents · Max 50 MB</div>
     </div>
     <div id="communityGroupChatComposer" class="jabzy-community-group-chat-composer" style="display:flex;flex:0 0 auto;gap:8px;margin:8px 0 0;padding:0 0 2px;align-items:center;min-height:46px;box-sizing:border-box;">
       <input id="communityGroupChatInput" type="text" placeholder="Type a message..." style="flex:1;min-width:0;height:42px;box-sizing:border-box;background:#160f20;color:#fff;border:1px solid #65477c;border-radius:22px;padding:0 15px;font-size:14px;">
