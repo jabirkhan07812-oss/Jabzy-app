@@ -1740,6 +1740,24 @@ body.light-theme #matchesScreen .jabzy-friends-note{color:#786b82}
 .jabzy-reel-share-actions small{font-size:10px;font-weight:650;white-space:nowrap}
 @media(max-width:360px){.jabzy-reel-share-panel{padding-left:12px;padding-right:12px}.jabzy-reel-share-grid{gap:12px 4px}.jabzy-reel-share-actions{gap:10px}}
 </style>
+<style id="jabzy-reels-skeleton">
+.jabzy-reel-skeleton-card{width:100%;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;position:relative;overflow:hidden;scroll-snap-align:start;scroll-snap-stop:always;background:#0b0910}
+.jabzy-reel-skeleton-card span,.jabzy-reel-skeleton-actions i{position:absolute;display:block;overflow:hidden;background:#28232f;border-radius:9px}
+.jabzy-reel-skeleton-video{inset:0!important;width:100%;height:100%;border-radius:0!important;background:linear-gradient(145deg,#15121b,#211a29 48%,#100e15)!important}
+.jabzy-reel-skeleton-card span:after,.jabzy-reel-skeleton-actions i:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);animation:jabzySkeletonShimmer 1.25s infinite}
+.jabzy-reel-skeleton-top{top:calc(18px + env(safe-area-inset-top));left:18px;width:75px;height:18px}
+.jabzy-reel-skeleton-avatar{left:15px;bottom:calc(94px + env(safe-area-inset-bottom));width:34px;height:34px;border-radius:50%!important}
+.jabzy-reel-skeleton-user{left:58px;bottom:calc(105px + env(safe-area-inset-bottom));width:105px;height:12px}
+.jabzy-reel-skeleton-caption{left:15px;bottom:calc(67px + env(safe-area-inset-bottom));width:58%;height:10px}
+.jabzy-reel-skeleton-audio{left:15px;bottom:calc(43px + env(safe-area-inset-bottom));width:43%;height:8px}
+.jabzy-reel-skeleton-actions{position:absolute;right:17px;bottom:calc(75px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:19px}
+.jabzy-reel-skeleton-actions i{position:relative;width:27px;height:27px;border-radius:50%;background:#39323f}
+body.light-theme .jabzy-reel-skeleton-card{background:#f5f3f7}
+body.light-theme .jabzy-reel-skeleton-video{background:linear-gradient(145deg,#f0edf3,#e6e1eb 48%,#f6f4f8)!important}
+body.light-theme .jabzy-reel-skeleton-card span:not(.jabzy-reel-skeleton-video),body.light-theme .jabzy-reel-skeleton-actions i{background:#ded9e5}
+body.light-theme .jabzy-reel-skeleton-card span:after,body.light-theme .jabzy-reel-skeleton-actions i:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)}
+@media(prefers-reduced-motion:reduce){.jabzy-reel-skeleton-card span:after,.jabzy-reel-skeleton-actions i:after{animation:none}}
+</style>
 </head>
 <body>
   
@@ -14744,7 +14762,10 @@ async function loadJabzyReels(force=false){
   const feed=document.getElementById("jabzyReelsFeed");
   if(!feed||jabzyReelsLoading)return;
   jabzyReelsLoading=true;
-  if(!force)feed.innerHTML='<div class="jabzy-reels-empty">Loading Reels…</div>';
+  if(!feed.children.length){
+    feed.setAttribute("aria-busy","true");
+    feed.innerHTML=Array.from({length:2},()=>'<article class="jabzy-reel-skeleton-card" aria-hidden="true"><span class="jabzy-reel-skeleton-video"></span><span class="jabzy-reel-skeleton-top"></span><span class="jabzy-reel-skeleton-avatar"></span><span class="jabzy-reel-skeleton-user"></span><span class="jabzy-reel-skeleton-caption"></span><span class="jabzy-reel-skeleton-audio"></span><span class="jabzy-reel-skeleton-actions"><i></i><i></i><i></i><i></i></span></article>').join("");
+  }
   try{
     const {data,error}=await db.from("reels").select("id,user_id,caption,media_url,thumbnail_url,duration_seconds,created_at,location,tagged_user_ids,audience").eq("status","published").order("created_at",{ascending:false}).limit(40);
     if(error)throw error;
@@ -14802,7 +14823,7 @@ async function loadJabzyReels(force=false){
   }catch(error){
     console.error("JABZY Reels load failed:",error);
     feed.innerHTML='<div class="jabzy-reels-empty">Reels load nahi ho paayi. <button type="button" onclick="loadJabzyReels(true)">Try Again</button></div>';
-  }finally{jabzyReelsLoading=false;}
+  }finally{jabzyReelsLoading=false;feed.removeAttribute("aria-busy");}
 }
 function jabzySetupReelAutoplay(){
   const feed=document.getElementById("jabzyReelsFeed");if(!feed)return;
