@@ -2326,6 +2326,23 @@ body.light-theme #publicProfileView .profile-stats{border-color:#e8ddec!importan
 body.light-theme #publicProfileView .profile-stats strong{color:#30233b}
 body.light-theme #publicProfileView .public-profile-actions button{background:#f0e8f5!important;color:#55376a!important;border-color:#ddcce7!important}
 body.light-theme #publicProfileView .public-profile-actions #publicMessageBtn{background:linear-gradient(110deg,#783ac0,#c04b9a)!important;color:#fff!important}
+
+/* JABZY PUBLIC PROFILE — COMPACT PREMIUM STATS & ACTIONS */
+#publicProfileView .admin-profile-hero{margin-top:0!important;padding-top:12px!important;}
+#publicProfileView .profile-stats{display:flex!important;justify-content:space-around!important;align-items:center!important;gap:0!important;margin:8px 12px 9px!important;padding:8px 2px!important;border-top:1px solid #ffffff12!important;border-bottom:1px solid #ffffff12!important;}
+#publicProfileView .profile-stats>div{flex:1!important;text-align:center!important;font-size:10px!important;line-height:1.25!important;color:#cbb8df!important;}
+#publicProfileView .profile-stats strong{display:block!important;margin:0 0 2px!important;font-size:15px!important;font-weight:800!important;line-height:1.15!important;color:#fff!important;}
+#publicProfileView .public-profile-actions{display:flex!important;justify-content:center!important;gap:8px!important;padding:0 14px 10px!important;}
+#publicProfileView .public-profile-actions button{height:34px!important;min-height:34px!important;max-width:190px!important;margin:0!important;padding:6px 12px!important;border:1px solid #8153a0!important;border-radius:9px!important;font-size:11px!important;font-weight:750!important;letter-spacing:.1px!important;box-shadow:0 3px 10px #0002!important;}
+#publicProfileView .public-profile-actions #publicFollowBtn{background:linear-gradient(110deg,#7138a1,#a33e86)!important;}
+#publicProfileView .public-profile-actions #publicMessageBtn{background:#30213f!important;border:1px solid #634779!important;}
+#publicProfileView .public-profile-posts-title{margin:0!important;padding:9px 15px 8px!important;border-top:1px solid #ffffff12!important;font-size:12px!important;}
+body.light-theme #publicProfileView .profile-stats{border-color:#e8ddec!important;}
+body.light-theme #publicProfileView .profile-stats>div{color:#766481!important;}
+body.light-theme #publicProfileView .profile-stats strong{color:#30233b!important;}
+body.light-theme #publicProfileView .public-profile-actions #publicMessageBtn{background:#f0e7f5!important;border-color:#ddcce8!important;color:#57366d!important;}
+body.light-theme #publicProfileView .public-profile-posts-title{border-color:#e8ddec!important;color:#493653!important;}
+@media(max-width:360px){#publicProfileView .profile-stats{margin-left:8px!important;margin-right:8px!important;}#publicProfileView .profile-stats strong{font-size:14px!important;}#publicProfileView .public-profile-actions{gap:6px!important;}#publicProfileView .public-profile-actions button{max-width:none!important;padding:6px 8px!important;font-size:10px!important;}}
 </style>
 <div id="publicProfileView" style="
 display:none;
@@ -2366,23 +2383,22 @@ box-sizing:border-box;
 
   </div>
 
-  <h3 class="public-profile-posts-title">Posts</h3>
-  <div id="publicProfilePosts" class="jabzy-profile-grid">
-    <div class="jabzy-profile-empty">Loading posts...</div>
-  </div>
-
   <div class="profile-stats">
   <div><strong id="publicPostCount">0</strong>Posts</div>
   <div role="button" tabindex="0" onclick="openFollowList(window.currentPublicProfileId,'followers')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFollowList(window.currentPublicProfileId,'followers')}" style="cursor:pointer;"><strong id="publicFollowers">0</strong>Followers</div>
   <div id="publicFollowingStat" style="cursor:default;"><strong id="publicFollowing">0</strong>Following</div>
   </div>
 
-  
 <div class="public-profile-actions">
   <button id="publicFollowBtn" type="button" style="flex:1">➕ Follow</button>
   <button id="publicFriendBtn" type="button" style="flex:1">👥 Add Friend</button>
   <button id="publicMessageBtn" type="button" style="flex:1">💬 Message</button>
 </div>
+
+  <h3 class="public-profile-posts-title">Posts</h3>
+  <div id="publicProfilePosts" class="jabzy-profile-grid">
+    <div class="jabzy-profile-empty">Loading posts...</div>
+  </div>
 
 <div style="display:flex;gap:10px;margin-top:12px">
   <button id="publicBlockBtn" type="button" style="flex:1">🚫 Block</button>
