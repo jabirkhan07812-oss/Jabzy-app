@@ -3101,7 +3101,7 @@ box-sizing:border-box;
 <div id="reelsScreen" class="app-screen" style="display:none">
   <div class="jabzy-reels-header">
     <div><div class="jabzy-reels-kicker">JABZY VIDEO</div><h2>Reels</h2></div>
-    <button type="button" id="jabzyReelUploadOpen" onclick="openJabzyReelUpload()">＋ Create</button>
+    <button type="button" id="jabzyReelUploadOpen" onclick="openJabzyReelUpload()" aria-label="Create Reel" title="Create Reel"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><circle cx="12" cy="12.5" r="3.5"></circle><path d="M8 6l1.5-2h5L16 6"></path></svg></button>
   </div>
   <div id="jabzyReelsFeed" class="jabzy-reels-feed"><div class="jabzy-reels-empty">Loading Reels…</div></div>
 </div>
@@ -14748,7 +14748,7 @@ async function loadJabzyReels(force=false){
     (comments||[]).forEach(x=>commentCounts[x.reel_id]=(commentCounts[x.reel_id]||0)+1);
     jabzyReelsCache=rows;
     feed.replaceChildren();
-    if(!rows.length){const empty=document.createElement("div");empty.className="jabzy-reels-empty";empty.innerHTML="<b>Abhi koi Reel nahi hai</b><span>Apni pehli video share karein aur JABZY community se connect karein.</span><button type='button' onclick='openJabzyReelUpload()'>＋ Create Reel</button>";feed.appendChild(empty);return;}
+    if(!rows.length){const empty=document.createElement("div");empty.className="jabzy-reels-empty";empty.innerHTML="<div class='jabzy-reels-empty-icon' aria-hidden='true'>🎬</div><b>No Reels yet</b><span>Be the first to share a Reel with the JABZY community.</span><button type='button' onclick='openJabzyReelUpload()'>＋ Create Reel</button>";feed.appendChild(empty);return;}
     rows.forEach(reel=>{
       const card=document.createElement("article");card.className="jabzy-reel-card";card.dataset.reelId=reel.id;
       const video=document.createElement("video");video.className="jabzy-reel-video";video.src=reel.media_url;video.poster=reel.thumbnail_url||"";video.playsInline=true;video.loop=true;video.muted=true;video.preload="metadata";video.setAttribute("playsinline","");
@@ -14939,7 +14939,7 @@ body.light-theme .jabzy-message-request-skeleton>*:after{background:linear-gradi
 .jabzy-reels-header{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:#1b1228;border-bottom:1px solid #3d2851;flex:0 0 auto}
 .jabzy-reels-kicker{font-size:9px;letter-spacing:2px;color:#d18aff;font-weight:800}
 .jabzy-reels-header h2{font-size:21px;margin:2px 0 0;color:inherit}
-#jabzyReelUploadOpen,.jabzy-reels-empty button{border:0;border-radius:20px;padding:9px 15px;background:linear-gradient(100deg,#e34b9d,#8c55e8);color:#fff;font-weight:800;font-size:12px}
+#jabzyReelUploadOpen{width:38px;height:38px;min-width:38px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:linear-gradient(100deg,#e34b9d,#8c55e8);color:#fff;box-shadow:0 4px 14px rgba(196,72,185,.28)}#jabzyReelUploadOpen svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.jabzy-reels-empty button{border:0;border-radius:20px;padding:9px 15px;background:linear-gradient(100deg,#e34b9d,#8c55e8);color:#fff;font-weight:800;font-size:12px}
 .jabzy-reels-feed{flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;background:#08060c}
 .jabzy-reel-card{height:100%;min-height:calc(100dvh - 135px);position:relative;overflow:hidden;scroll-snap-align:start;background:#15101c}
 .jabzy-reel-video{width:100%;height:100%;position:absolute;inset:0;object-fit:contain;background:#08060c}
@@ -14953,7 +14953,7 @@ body.light-theme .jabzy-message-request-skeleton>*:after{background:linear-gradi
 .jabzy-reel-action small{font-size:10px;font-weight:800}
 .jabzy-reel-action.liked span{color:#ff4d91}
 .jabzy-reels-empty{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:28px;text-align:center;color:#e9dff2;font-size:13px}
-.jabzy-reels-empty b{font-size:18px}.jabzy-reels-empty span{max-width:260px;color:#bfaecb;line-height:1.5}
+.jabzy-reels-empty b{font-size:18px}.jabzy-reels-empty span{max-width:260px;color:#bfaecb;line-height:1.5}.jabzy-reels-empty-icon{width:66px;height:66px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#35204d,#21152f);border:1px solid #694582;font-size:31px;box-shadow:0 10px 28px rgba(160,75,205,.18)}
 .jabzy-reel-modal{position:fixed;inset:0;z-index:2147482500;background:rgba(5,3,10,.82);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
 .jabzy-reel-modal-card{width:100%;max-width:430px;max-height:90dvh;overflow:auto;border-radius:19px;padding:17px;background:#241632;border:1px solid #694582;color:#fff;box-sizing:border-box}
 .jabzy-reel-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;font-size:17px}
@@ -14970,7 +14970,7 @@ body.light-theme .jabzy-reels-kicker{color:#8c45ad}
 body.light-theme .jabzy-reels-feed{background:#eee8f3}
 body.light-theme .jabzy-reel-card{background:#e7deed}
 body.light-theme .jabzy-reels-empty{color:#382748}
-body.light-theme .jabzy-reels-empty span{color:#6f5c7c}
+body.light-theme .jabzy-reels-empty span{color:#6f5c7c}body.light-theme .jabzy-reels-empty-icon{background:linear-gradient(145deg,#f2e5fa,#e8d8f2);border-color:#dcc4e9}
 body.light-theme .jabzy-reel-modal-card{background:#fff;border-color:#dfcce9;color:#30213b}
 body.light-theme .jabzy-reel-modal-head button{background:#eee4f4;color:#3d2851}
 body.light-theme .jabzy-reel-modal-card input[type=file],body.light-theme .jabzy-reel-modal-card textarea{background:#faf7fc;color:#30213b;border-color:#d9c7e4}
