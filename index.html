@@ -2490,36 +2490,7 @@ box-sizing:border-box;
 <div id="likesReceived">Loading likes...</div>
 </div>
 
-<div id="friendsScreen" class="app-screen" style="display:none">
-
-  <h2 style="font-size:21px;margin-bottom:5px;">👥 Friends</h2>
-  <p style="font-size:12px;color:#aaa;margin:0 0 16px;">Discover new people on JABZY ❤️</p>
-
-  <div style="display:flex;gap:7px;margin-bottom:18px;">
-    <button id="friendsRequestsTab" onclick="showFriendsSection('requests')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;font-size:11px;font-weight:800;">
-      Requests
-    </button>
-
-    <button id="friendsListTab" onclick="showFriendsSection('friends')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:#342044;color:white;font-size:11px;font-weight:800;">
-      Friends
-    </button>
-
-    <button id="findFriendsTab" onclick="showFriendsSection('discover')" style="flex:1;min-width:0;padding:9px 3px;margin:0;border:0;border-radius:20px;background:#342044;color:white;font-size:11px;font-weight:800;">
-      Find Friends
-    </button>
-  </div>
-
-  <div id="friendRequestsPanel">
-    <div id="friendRequestsList">Loading...</div>
-  </div>
-
-  <div id="myFriendsPanel" style="display:none;">
-    <div id="myFriendsCount">0 Friends</div>
-    <div id="myFriendsList">Loading your friends...</div>
-  </div>
-
-</div>
-  
+<div id="friendsScreen" class="app-screen" style="display:none"></div>
 <div id="matchesScreen" class="app-screen" style="display:none">
 <div id="matches">Loading connections...</div>
 <div id="chatList" style="display:none;padding:0 14px;margin-top:-8px;">
@@ -2534,7 +2505,13 @@ box-sizing:border-box;
   <div id="chatListItems">Loading chats...</div>
 
   <div id="messageRequestsSection" style="display:none;">
+    <div id="requestTypeTabs" class="jabzy-request-type-tabs"><button id="messageRequestTypeTab" class="active" onclick="showRequestSubsection('messages')">Message Requests</button><button id="friendRequestTypeTab" onclick="showRequestSubsection('friends')">Friend Requests</button></div>
     <div id="messageRequestsList">Loading requests...</div>
+    <div id="friendRequestsPanel" style="display:none"><div id="friendRequestsList">Loading...</div></div>
+  </div>
+  <div id="friendsChatSection" style="display:none">
+    <div class="jabzy-friends-inner-tabs"><button id="friendsListTab" class="active" onclick="showFriendsSection('friends')">Friends List</button><button id="findFriendsTab" onclick="showFriendsSection('discover')">Find Friends</button></div>
+    <div id="myFriendsPanel"><div id="myFriendsCount">0 Friends</div><div id="myFriendsList">Loading your friends...</div></div>
   </div>
 </div>
 
@@ -5433,31 +5410,22 @@ async function loadMyFriends(silent=false){
 }
 
   function showFriendsSection(section){
-  const requests=document.getElementById("friendRequestsPanel");
-  const friends=document.getElementById("myFriendsPanel");
-
-  const tabs={
-    requests:document.getElementById("friendsRequestsTab"),
-    friends:document.getElementById("friendsListTab"),
-    discover:document.getElementById("findFriendsTab")
-  };
-
-  requests.style.display=section==="requests"?"block":"none";
-  friends.style.display=section==="friends"?"block":"none";
-
-  Object.keys(tabs).forEach(key=>{
-    tabs[key].style.background=key===section
-      ?"linear-gradient(90deg,#ff55a8,#a45bea)"
-      :"#342044";
-  });
-
-  if(section==="requests") loadFriendRequests();
-  if(section==="friends"){
-    const friendsList=document.getElementById("myFriendsList");
-    if(!friendsList || friendsList.dataset.loaded!=="true") loadMyFriends();
-  }
-  if(section==="discover") showTab("discover");
-  }
+  if(section==="discover"){showTab("discover");return;}
+  const list=document.getElementById("myFriendsList");
+  const findTab=document.getElementById("findFriendsTab");
+  const listTab=document.getElementById("friendsListTab");
+  if(listTab)listTab.classList.add("active");
+  if(findTab)findTab.classList.remove("active");
+  if(!list||list.dataset.loaded!=="true")loadMyFriends();
+}
+function showRequestSubsection(section){
+  const messages=document.getElementById("messageRequestsList"),friends=document.getElementById("friendRequestsPanel");
+  const mt=document.getElementById("messageRequestTypeTab"),ft=document.getElementById("friendRequestTypeTab");
+  if(!messages||!friends||!mt||!ft)return;
+  messages.style.display=section==="messages"?"block":"none";friends.style.display=section==="friends"?"block":"none";
+  mt.classList.toggle("active",section==="messages");ft.classList.toggle("active",section==="friends");
+  if(section==="messages")loadMessageRequests();if(section==="friends")loadFriendRequests();
+}
 
 let followListTargetId = null;
 
@@ -6378,24 +6346,12 @@ button.textContent="✓ Following";
 
   
 function showChatSection(section){
-  const chats=document.getElementById("chatListItems");
-  const requests=document.getElementById("messageRequestsSection");
-  const friends=document.getElementById("friendsScreen");
-  const messagesTab=document.getElementById("messagesTab");
-  const requestsTab=document.getElementById("messageRequestsTab");
-  const friendsTab=document.getElementById("friendsChatTab");
-  if(!chats||!requests||!messagesTab||!requestsTab||!friends||!friendsTab)return;
-  chats.style.display=section==="messages"?"block":"none";
-  requests.style.display=section==="requests"?"block":"none";
-  friends.style.display=section==="friends"?"block":"none";
-  [messagesTab,requestsTab,friendsTab].forEach((tab,index)=>{
-    const active=["messages","requests","friends"][index]===section;
-    tab.classList.toggle("active",active);
-    tab.setAttribute("aria-selected",String(active));
-  });
-  if(section==="messages")loadChatList();
-  if(section==="requests")loadMessageRequests();
-  if(section==="friends")showFriendsSection("requests");
+  const chats=document.getElementById("chatListItems"),requests=document.getElementById("messageRequestsSection"),friends=document.getElementById("friendsChatSection");
+  const tabs=[document.getElementById("messagesTab"),document.getElementById("messageRequestsTab"),document.getElementById("friendsChatTab")];
+  if(!chats||!requests||!friends||tabs.some(tab=>!tab))return;
+  chats.style.display=section==="messages"?"block":"none";requests.style.display=section==="requests"?"block":"none";friends.style.display=section==="friends"?"block":"none";
+  ["messages","requests","friends"].forEach((name,i)=>{tabs[i].classList.toggle("active",name===section);tabs[i].setAttribute("aria-selected",String(name===section));});
+  if(section==="messages")loadChatList();if(section==="requests")showRequestSubsection("messages");if(section==="friends")showFriendsSection("friends");
 }
 
 
