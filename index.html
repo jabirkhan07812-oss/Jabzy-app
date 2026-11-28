@@ -1528,6 +1528,21 @@ body.light-theme #communityGroupOpenScreen{background:#faf7fc!important;color:#3
 body.light-theme #communityGroupOpenScreen .jabzy-community-group-timeline{background:#f5eff9!important}
 body.light-theme #communityGroupOpenScreen .jgc-post-card{background:#fff!important;color:#30233b!important;border-color:#e8dced!important;box-shadow:0 3px 12px rgba(70,35,90,.06)!important}
 body.light-theme #communityGroupOpenScreen .jgc-chat-bubble{background:#f0e8f5!important;color:#30233b!important}
+
+#communityGroupOpenScreen .jgc-chat-bubble{width:100%!important;max-width:100%!important;background:transparent!important;box-shadow:none!important}
+#communityGroupOpenScreen .jgc-bubble-content{overflow-wrap:anywhere}
+#communityGroupOpenScreen .jgc-mine .jgc-bubble-content{background:linear-gradient(135deg,#7139a5,#8548bd)!important}
+#communityGroupOpenScreen .jgc-theirs .jgc-bubble-content{background:#302d37!important}
+#communityGroupOpenScreen .jgc-grouped-message{margin-top:1px!important;margin-bottom:1px!important}
+#communityGroupOpenScreen #communityGroupPostComposer{position:relative!important;flex:0 0 auto!important;margin-bottom:env(safe-area-inset-bottom)!important;padding:7px!important;border-radius:22px!important}
+#communityGroupOpenScreen .jabzy-group-post-controls{align-items:center!important}
+#communityGroupOpenScreen #communityGroupPostMediaButton{font-size:0!important}
+#communityGroupOpenScreen #communityGroupPostMediaButton:before{content:"📎";font-size:19px!important}
+#communityGroupOpenScreen #communityGroupChatInput{flex:1 1 auto!important;min-width:0!important}
+body.light-theme #communityGroupOpenScreen .jgc-theirs .jgc-bubble-content{background:#eee9f2!important;color:#30233b!important}
+body.light-theme #communityGroupOpenScreen .jgc-mine .jgc-bubble-content{background:linear-gradient(135deg,#7139a5,#8548bd)!important;color:#fff!important}
+body.light-theme #communityGroupOpenScreen .jgc-bubble-content small{color:#756b80!important}
+
 body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233b!important;border-color:#dfd0e8!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostMediaButton{background:#f0e7f5!important;color:#694780!important}
 body.light-theme #communityGroupOpenScreen #communityGroupPostMediaPreview{background:#f4edf8!important;color:#5b4569!important}
@@ -10842,6 +10857,7 @@ function closeCommunityGroup(){
   if(communityGroupRealtimeChannel){db.removeChannel(communityGroupRealtimeChannel);communityGroupRealtimeChannel=null;}
   const screen=document.getElementById("communityGroupOpenScreen");
   if(screen)screen.style.display="none";
+  document.querySelectorAll(".bottom-nav").forEach(nav=>{if(nav.dataset.groupPrevDisplay!==undefined){nav.style.display=nav.dataset.groupPrevDisplay;delete nav.dataset.groupPrevDisplay;}});
   currentOpenedCommunityGroup=null;
 }
 function showCommunityGroupModal(title,contentNode){
@@ -11017,6 +11033,7 @@ async function openCommunityGroup(group){
   input.setAttribute("aria-label",input.placeholder);
   const sendButton=document.getElementById("communityGroupSendButton");if(sendButton)sendButton.disabled=!canChat;
   const screen=document.getElementById("communityGroupOpenScreen");
+  document.querySelectorAll(".bottom-nav").forEach(nav=>{if(nav.dataset.groupPrevDisplay===undefined)nav.dataset.groupPrevDisplay=getComputedStyle(nav).display;nav.style.display="none";});
   screen.style.display="flex";
   await loadOpenedCommunityGroup();
   if(communityGroupRealtimeChannel)await db.removeChannel(communityGroupRealtimeChannel);
@@ -11174,26 +11191,43 @@ async function loadOpenedCommunityGroup(){
     const author=authorMap.get(item.user_id)||{},isOwner=item.user_id===group.created_by,isMine=item.user_id===me.id,isPost=item._kind==="post";
     const grouped=!isPost&&previousWasMessage&&previousMessageUserId===item.user_id;
     const line=document.createElement("div");line.className="jgc-message "+(isMine?"jgc-mine":"jgc-theirs")+(isPost?" jgc-post-card":" jgc-chat-bubble")+(grouped?" jgc-grouped-message":"");
-    line.style.cssText=isPost?"align-self:stretch;width:100%;max-width:100%;box-sizing:border-box;padding:11px 12px;margin:9px 0;border-radius:14px;background:#211a30;color:#fff;border:1px solid rgba(180,140,205,.17);box-shadow:0 3px 12px rgba(0,0,0,.10);":"align-self:"+(isMine?"flex-end":"flex-start")+";width:fit-content;max-width:80%;box-sizing:border-box;padding:8px 11px;margin:"+(grouped?"2px":"7px")+" 0;border-radius:15px;background:"+(isMine?"linear-gradient(135deg,#7139a5,#8548bd)":"#30263a")+";color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.10);";
-    if(!grouped){
+    line.style.cssText=isPost?"align-self:stretch;width:100%;max-width:100%;box-sizing:border-box;padding:11px 12px;margin:9px 0;border-radius:14px;background:#211a30;color:#fff;border:1px solid rgba(180,140,205,.17);box-shadow:0 3px 12px rgba(0,0,0,.10);":"display:flex;align-items:flex-end;align-self:"+(isMine?"flex-end":"flex-start")+";gap:5px;width:100%;max-width:100%;box-sizing:border-box;justify-content:"+(isMine?"flex-end":"flex-start")+";margin:"+(grouped?"1px":"5px")+" 0;";
+    let bubble=line;
+    if(!isPost){
+      if(!isMine&&!grouped){
+        const avatar=document.createElement("span");avatar.style.cssText="width:27px;height:27px;flex:0 0 27px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-size:10px;font-weight:800;margin-bottom:2px;";
+        if(author.photo_url){const img=document.createElement("img");img.src=author.photo_url;img.alt="";img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent=(author.username||"J").slice(0,1).toUpperCase();
+        line.appendChild(avatar);
+      }
+      bubble=document.createElement("div");bubble.className="jgc-bubble-content";
+      bubble.style.cssText="width:fit-content;max-width:min(80%,340px);min-width:0;box-sizing:border-box;padding:8px 11px;border-radius:15px;background:"+(isMine?"linear-gradient(135deg,#7139a5,#8548bd)":"#302d37")+";color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.10);";
+      if(!isMine&&!grouped){
+        const head=document.createElement("div");head.style.cssText="display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:4px;";
+        const authorName=document.createElement(canOpenAuthorProfile?"button":"span");authorName.textContent=author.username?"@"+author.username:(isMine?"You":"JABZY member");
+        authorName.style.cssText="display:block;min-width:0;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;padding:0;border:0;background:transparent;color:#e8baff;font-size:11px;font-weight:800;text-align:left;"+(canOpenAuthorProfile?"cursor:pointer;":"");
+        if(canOpenAuthorProfile&&item.user_id){authorName.type="button";authorName.onclick=(event)=>{event.stopPropagation();openPublicProfile(item.user_id);};}
+        head.appendChild(authorName);
+        const badge=document.createElement("span");badge.textContent=isOwner?"OWNER":"MEMBER";badge.style.cssText="display:inline-flex;align-items:center;flex:0 0 auto;white-space:nowrap;padding:2px 6px;border-radius:6px;background:"+(isOwner?"linear-gradient(110deg,#f4b94f,#d88a27)":"rgba(165,125,190,.18)")+";color:"+(isOwner?"#281707":"#d8c2e8")+";font-size:8px;font-weight:900;letter-spacing:.3px;";head.appendChild(badge);bubble.appendChild(head);
+      }
+      const body=document.createElement("span");body.textContent=item._text;body.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.45;vertical-align:baseline;";
+      if(item._text)bubble.appendChild(body);
+      const meta=document.createElement("small");meta.textContent=new Date(item.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+(isMine?"  ✓✓":"");meta.style.cssText="display:inline-block;margin-left:9px;white-space:nowrap;vertical-align:baseline;color:"+(isMine?"#d9c8f1":"#bcb5c6")+";font-size:9px;opacity:.9;";
+      bubble.appendChild(meta);line.appendChild(bubble);
+    }else{
       const head=document.createElement("div");head.style.cssText="display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:7px;";
       const avatar=document.createElement("span");avatar.style.cssText="width:27px;height:27px;flex:0 0 27px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#ff55a8,#7651e8);color:#fff;font-size:10px;font-weight:800;";
-      if(author.photo_url){const img=document.createElement("img");img.src=author.photo_url;img.alt="";img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent=(author.username||"J").slice(0,1).toUpperCase();
-      head.appendChild(avatar);
-      const authorName=document.createElement(canOpenAuthorProfile?"button":"span");authorName.textContent=author.username?"@"+author.username:(isMine?"You":"JABZY member");
-      authorName.style.cssText="display:block;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;padding:0;border:0;background:transparent;color:"+(isPost?"#E9B8FF":"#F1D9FF")+";font-size:11px;font-weight:800;text-align:left;"+(canOpenAuthorProfile?"cursor:pointer;":"");
-      if(canOpenAuthorProfile&&item.user_id){authorName.type="button";authorName.onclick=(event)=>{event.stopPropagation();openPublicProfile(item.user_id);};}
-      head.appendChild(authorName);
-      const badge=document.createElement("span");badge.textContent=isOwner?"OWNER":"MEMBER";badge.style.cssText="display:inline-flex;align-items:center;flex:0 0 auto;flex-shrink:0;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;padding:3px 7px;border-radius:6px;background:"+(isOwner?"linear-gradient(110deg,#f4b94f,#d88a27)":"rgba(165,125,190,.18)")+";color:"+(isOwner?"#281707":"#d8c2e8")+";font-size:8px;font-weight:900;letter-spacing:.35px;";head.appendChild(badge);
-      const time=document.createElement("small");time.textContent=new Date(item.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});time.style.cssText="margin-left:auto;white-space:nowrap;flex:0 0 auto;color:"+(isPost?"#c6b4d4":"#e4d5ef")+";font-size:9px;opacity:.8;";head.appendChild(time);line.appendChild(head);
+      if(author.photo_url){const img=document.createElement("img");img.src=author.photo_url;img.alt="";img.style.cssText="width:100%;height:100%;object-fit:cover;";avatar.appendChild(img);}else avatar.textContent=(author.username||"J").slice(0,1).toUpperCase();head.appendChild(avatar);
+      const authorName=document.createElement(canOpenAuthorProfile?"button":"span");authorName.textContent=author.username?"@"+author.username:(isMine?"You":"JABZY member");authorName.style.cssText="display:block;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;padding:0;border:0;background:transparent;color:#E9B8FF;font-size:11px;font-weight:800;text-align:left;"+(canOpenAuthorProfile?"cursor:pointer;":"");if(canOpenAuthorProfile&&item.user_id){authorName.type="button";authorName.onclick=(event)=>{event.stopPropagation();openPublicProfile(item.user_id);};}head.appendChild(authorName);
+      const badge=document.createElement("span");badge.textContent=isOwner?"OWNER":"MEMBER";badge.style.cssText="display:inline-flex;align-items:center;flex:0 0 auto;white-space:nowrap;padding:3px 7px;border-radius:6px;background:"+(isOwner?"linear-gradient(110deg,#f4b94f,#d88a27)":"rgba(165,125,190,.18)")+";color:"+(isOwner?"#281707":"#d8c2e8")+";font-size:8px;font-weight:900;";head.appendChild(badge);
+      const time=document.createElement("small");time.textContent=new Date(item.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});time.style.cssText="margin-left:auto;white-space:nowrap;color:#c6b4d4;font-size:9px;opacity:.8;";head.appendChild(time);line.appendChild(head);
+      const body=document.createElement("div");body.textContent=item._text;body.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.45;";if(item._text)line.appendChild(body);
     }
-    const body=document.createElement("div");body.textContent=item._text;body.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.45;";if(item._text)line.appendChild(body);
     if(item.photo_url){
       const {data:signed}=await db.storage.from("community-group-media").createSignedUrl(item.photo_url,3600);
       if(signed?.signedUrl){
-        if(item.media_type==="image"){const media=document.createElement("img");media.src=signed.signedUrl;media.alt=item.media_name||"Group photo";media.loading="lazy";media.style.cssText="display:block;width:100%;max-height:340px;object-fit:cover;border-radius:11px;margin-top:8px;";line.appendChild(media);}
-        else if(item.media_type==="video"){const media=document.createElement("video");media.src=signed.signedUrl;media.controls=true;media.playsInline=true;media.style.cssText="display:block;width:100%;max-height:340px;border-radius:11px;margin-top:8px;";line.appendChild(media);}
-        else{const link=document.createElement("a");link.href=signed.signedUrl;link.target="_blank";link.rel="noopener";link.textContent="📎 "+(item.media_name||"Download file");link.style.cssText="display:block;margin-top:8px;color:#f4b6dd;overflow-wrap:anywhere;";line.appendChild(link);}
+        if(item.media_type==="image"){const media=document.createElement("img");media.src=signed.signedUrl;media.alt=item.media_name||"Group photo";media.loading="lazy";media.style.cssText="display:block;width:100%;max-height:340px;object-fit:cover;border-radius:11px;margin-top:8px;";(isPost?line:bubble).appendChild(media);}
+        else if(item.media_type==="video"){const media=document.createElement("video");media.src=signed.signedUrl;media.controls=true;media.playsInline=true;media.style.cssText="display:block;width:100%;max-height:340px;border-radius:11px;margin-top:8px;";(isPost?line:bubble).appendChild(media);}
+        else{const link=document.createElement("a");link.href=signed.signedUrl;link.target="_blank";link.rel="noopener";link.textContent="📎 "+(item.media_name||"Download file");link.style.cssText="display:block;margin-top:8px;color:#f4b6dd;overflow-wrap:anywhere;";(isPost?line:bubble).appendChild(link);}
       }
     }
     timeline.appendChild(line);
