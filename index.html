@@ -14889,11 +14889,16 @@ async function jabzySendReelToSelected(){
   const state=jabzyReelShareState;if(state.busy||!me||!state.reel||!state.selected.size)return;
   const overlay=document.getElementById("jabzyReelShareSheet"),send=overlay?.querySelector(".jabzy-reel-share-send");state.busy=true;if(send){send.disabled=true;send.textContent="Sending…";}
   const message=jabzyReelShareText(state.reel),ids=[...state.selected];let sent=0;const failures=[];
-  for(const id of ids){const {error}=await db.from("messages").insert({sender_id:me.id,receiver_id:id,message,reply_to:null});if(error)failures.push(error.message);else sent++;}
+  const failedIds=[];
+  for(const id of ids){const {error}=await db.from("messages").insert({sender_id:me.id,receiver_id:id,message,reply_to:null});if(error){failures.push(error.message);failedIds.push(id);}else sent++;}
   state.busy=false;
-  if(send)send.disabled=false;
   if(sent&& !failures.length){appStatus(sent===1?"Reel sent to friend.":"Reel sent to "+sent+" friends.");jabzyCloseReelShare();}
-  else{if(send){send.textContent="Retry sending";send.style.display="flex";}appStatus((sent?sent+" sent. ":"")+"Could not send to "+failures.length+" friend(s). "+(failures[0]||""));}
+  else{
+    state.selected=new Set(failedIds);
+    if(send)send.disabled=false;
+    jabzyRenderReelShareFriends();
+    appStatus((sent?sent+" sent successfully. ":"")+"Could not send to "+failures.length+" friend(s). "+(failures[0]||""));
+  }
 }
 async function jabzyLoadReelShareFriends(){
   const overlay=document.getElementById("jabzyReelShareSheet"),grid=overlay?.querySelector(".jabzy-reel-share-grid");if(!overlay||!me||!grid)return;
@@ -14936,7 +14941,7 @@ function shareJabzyReel(reel){
   overlay.querySelector(".jabzy-reel-share-search").addEventListener("input",jabzyRenderReelShareFriends);
   overlay.querySelector(".jabzy-reel-share-send").onclick=jabzySendReelToSelected;
   overlay.querySelector(".jabzy-reel-share-group").onclick=()=>appStatus("Group chat sharing abhi available nahi hai. Aap multiple friends select karke ek saath Send kar sakte hain.");
-  overlay.querySelector('[data-action="story"]').onclick=()=>{jabzyCloseReelShare();openStoryUpload();};
+  overlay.querySelector('[data-action="story"]').onclick=()=>appStatus("Reel ko Story par directly share karna abhi connect nahi hai.");
   overlay.querySelector('[data-action="copy"]').onclick=jabzyCopyReelLink;
   overlay.querySelector('[data-action="whatsapp"]').onclick=()=>{const text=jabzyReelShareText(jabzyReelShareState.reel);window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener");};
   overlay.querySelector('[data-action="native"]').onclick=jabzyNativeShareReel;
