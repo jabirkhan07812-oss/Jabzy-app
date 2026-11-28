@@ -2523,16 +2523,11 @@ box-sizing:border-box;
 <div id="matchesScreen" class="app-screen" style="display:none">
 <div id="matches">Loading connections...</div>
 <div id="chatList" style="display:none;padding:0 14px;margin-top:-8px;">
-  <h2 style="margin:0 0 12px;">💬 Chats</h2>
+  <h2 class="jabzy-chats-heading">Chats</h2>
 
-  <div style="display:flex;gap:8px;margin-bottom:15px;">
-    <button id="messagesTab" onclick="showChatSection('messages')" style="flex:1;background:linear-gradient(90deg,#ff55a8,#a45bea);color:white;border:0;border-radius:20px;padding:10px;">
-      Messages
-    </button>
-
-    <button id="messageRequestsTab" onclick="showChatSection('requests')" style="flex:1;background:#342044;color:white;border:0;border-radius:20px;padding:10px;">
-      Requests
-    </button>
+  <div id="jabzyChatTabs" role="tablist" aria-label="Chat sections">
+    <button id="messagesTab" class="active" role="tab" aria-selected="true" onclick="showChatSection('messages')">Messages</button>
+    <button id="messageRequestsTab" role="tab" aria-selected="false" onclick="showChatSection('requests')">Requests <span id="messageRequestsCount" class="jabzy-request-count" hidden>0</span></button>
   </div>
 
   <div id="chatListItems">Loading chats...</div>
@@ -6239,6 +6234,16 @@ function showChatSection(section){
   const requests=document.getElementById("messageRequestsSection");
   const messagesTab=document.getElementById("messagesTab");
   const requestsTab=document.getElementById("messageRequestsTab");
+  if(!chats||!requests||!messagesTab||!requestsTab)return;
+  chats.style.display=section==="messages"?"block":"none";
+  requests.style.display=section==="requests"?"block":"none";
+  messagesTab.classList.toggle("active",section==="messages");
+  requestsTab.classList.toggle("active",section==="requests");
+  messagesTab.setAttribute("aria-selected",String(section==="messages"));
+  requestsTab.setAttribute("aria-selected",String(section==="requests"));
+  if(section==="messages")loadChatList();
+  if(section==="requests")loadMessageRequests();
+}
 
   if(!chats || !requests || !messagesTab || !requestsTab) return;
 
@@ -6457,50 +6462,59 @@ await loadMessageRequests();
 }
 
 async function loadMessageRequests(){
-const box=document.getElementById("messageRequestsList");
-if(!me||!box)return;
-
-const {data:requests,error}=await db.from("message_requests")
-.select("id,sender_id,message,created_at")
-.eq("receiver_id",me.id)
-.eq("status","pending")
-.order("created_at",{ascending:false});
-
-if(error){box.innerText=error.message;return}
-box.innerHTML="";
-
-if(!requests||!requests.length){
-box.innerText="No message requests ❤️";
-return;
-}
-
-for(const r of requests){
-const {data:p}=await db.from("profiles")
-.select("username").eq("id",r.sender_id).maybeSingle();
-
-const item=document.createElement("div");
-item.style.padding="12px";
-item.style.margin="8px 0";
-item.style.background="#292940";
-item.style.borderRadius="12px";
-
-const name=document.createElement("b");
-name.textContent=p?.username||"User";
-
-const msg=document.createElement("p");
-msg.textContent=r.message;
-
-const accept=document.createElement("button");
-accept.textContent="Accept ❤️";
-accept.onclick=()=>respondMessageRequest(r.id,"accepted",r.sender_id,p?.username||"User");
-
-const reject=document.createElement("button");
-reject.textContent="Reject";
-reject.onclick=()=>respondMessageRequest(r.id,"rejected");
-
-item.append(name,msg,accept,reject);
-box.appendChild(item);
-}
+ const box=document.getElementById("messageRequestsList");
+ if(!me||!box)return;
+ box.innerHTML=Array.from({length:2},()=>'<article class="jabzy-message-request-skeleton"><span></span><div><i></i><i></i></div><b></b></article>').join("");
+ box.setAttribute("aria-busy","true");
+ try{
+  const {data:requests,error}=await db.from("message_requests")
+   .select("id,sender_id,message,created_at")
+   .eq("receiver_id",me.id).eq("status","pending")
+   .order("created_at",{ascending:false});
+  if(error)throw error;
+  const count=document.getElementById("messageRequestsCount");
+  if(count){count.textContent=String(requests?.length||0);count.hidden=!requests?.length;}
+  box.replaceChildren();
+  if(!requests||!requests.length){
+   const empty=document.createElement("div");
+   empty.className="jabzy-message-requests-empty";
+   empty.innerHTML='<span>✉</span><strong>No message requests</strong><small>New message requests will appear here.</small>';
+   box.appendChild(empty);box.removeAttribute("aria-busy");return;
+  }
+  const ids=[...new Set(requests.map(item=>item.sender_id).filter(Boolean))];
+  const {data:profiles,error:profileError}=await db.from("profiles").select("id,username,photo_url").in("id",ids);
+  if(profileError)throw profileError;
+  const profileMap=new Map((profiles||[]).map(profile=>[profile.id,profile]));
+  requests.forEach(request=>{
+   const person=profileMap.get(request.sender_id)||{};
+   const item=document.createElement("article");item.className="jabzy-message-request-card";
+   const header=document.createElement("div");header.className="jabzy-message-request-header";
+   const avatar=document.createElement("button");avatar.type="button";avatar.className="jabzy-message-request-avatar";avatar.setAttribute("aria-label","Open "+(person.username||"user")+" profile");
+   if(person.photo_url){const photo=document.createElement("img");photo.src=person.photo_url;photo.alt="";avatar.appendChild(photo);}
+   else avatar.textContent=(person.username||"J").trim().charAt(0).toUpperCase();
+   avatar.onclick=()=>openPublicProfile(request.sender_id);
+   const details=document.createElement("div");details.className="jabzy-message-request-details";
+   const name=document.createElement("button");name.type="button";name.className="jabzy-message-request-name";name.textContent=person.username||"JABZY User";name.onclick=()=>openPublicProfile(request.sender_id);
+   const preview=document.createElement("p");preview.className="jabzy-message-request-preview";preview.textContent=request.message||"Wants to start a conversation";
+   details.append(name,preview);
+   const time=document.createElement("time");time.className="jabzy-message-request-time";
+   const created=new Date(request.created_at);const mins=Math.max(0,Math.floor((Date.now()-created.getTime())/60000));
+   time.textContent=!request.created_at?"":mins<1?"now":mins<60?mins+"m ago":mins<1440?Math.floor(mins/60)+"h ago":Math.floor(mins/1440)+"d ago";
+   if(request.created_at)time.dateTime=created.toISOString();
+   header.append(avatar,details,time);
+   const actions=document.createElement("div");actions.className="jabzy-message-request-actions";
+   const reject=document.createElement("button");reject.type="button";reject.className="jabzy-message-request-decline";reject.textContent="Decline";
+   reject.onclick=async()=>{reject.disabled=true;accept.disabled=true;await respondMessageRequest(request.id,"rejected");};
+   const accept=document.createElement("button");accept.type="button";accept.className="jabzy-message-request-accept";accept.textContent="✓ Accept Request";
+   accept.onclick=async()=>{reject.disabled=true;accept.disabled=true;await respondMessageRequest(request.id,"accepted",request.sender_id,person.username||"User");};
+   actions.append(reject,accept);item.append(header,actions);box.appendChild(item);
+  });
+  box.removeAttribute("aria-busy");
+ }catch(error){
+  console.error("Message requests load:",error);
+  box.textContent=error.message||"Message requests load nahi ho sake.";
+  box.removeAttribute("aria-busy");
+ }
 }
 
 async function respondMessageRequest(id,status,userId,name){
@@ -14375,4 +14389,52 @@ body.light-theme #communityGroupsList .jabzy-group-skeleton-card span:after,body
 body.light-theme #friendsScreen .jabzy-friend-request-skeleton{background:linear-gradient(135deg,#fff,#fbf8ff);border-color:#eadcf3}
 body.light-theme #friendsScreen .jabzy-friend-request-skeleton-avatar,body.light-theme #friendsScreen .jabzy-friend-request-skeleton-info i,body.light-theme #friendsScreen .jabzy-friend-request-skeleton-actions i{background:#e9e1ef}
 body.light-theme #friendsScreen .jabzy-friend-request-skeleton span:after,body.light-theme #friendsScreen .jabzy-friend-request-skeleton i:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent)}
+</style>
+
+<style id="jabzy-message-requests-premium-ui">
+#matchesScreen #chatList>h2.jabzy-chats-heading{margin:0 0 14px!important;font-size:25px!important;font-weight:900!important;letter-spacing:-.5px;color:#fff!important}
+#jabzyChatTabs{display:flex;align-items:center;gap:4px;margin:0 0 15px;padding:4px;border:1px solid rgba(180,145,210,.2);border-radius:999px;background:#21182d}
+#jabzyChatTabs button{display:flex;align-items:center;justify-content:center;gap:7px;flex:1;min-width:0;min-height:40px;margin:0;padding:8px 12px;border:0;border-radius:999px;background:transparent;color:#c9bdd4;font-size:13px;font-weight:750;box-shadow:none}
+#jabzyChatTabs button.active{background:linear-gradient(110deg,#a447d5,#e34d9c);color:#fff;box-shadow:0 3px 10px rgba(164,71,213,.22)}
+.jabzy-request-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#fff;color:#a13bba;font-size:10px;font-weight:900}
+.jabzy-message-request-card{display:flex;flex-direction:column;gap:14px;margin:9px 0;padding:14px;border:1px solid #383044;border-radius:17px;background:#1d1926;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.16)}
+.jabzy-message-request-header{display:flex;align-items:center;gap:11px;min-width:0}
+.jabzy-message-request-avatar{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;margin:0;padding:0;overflow:hidden;border:0;border-radius:50%;background:linear-gradient(135deg,#a447d5,#e34d9c);color:#fff;font-size:18px;font-weight:850}
+.jabzy-message-request-avatar img{width:100%;height:100%;object-fit:cover}
+.jabzy-message-request-details{flex:1;min-width:0}
+.jabzy-message-request-name{display:block;max-width:100%;margin:0;padding:0;overflow:hidden;border:0;background:transparent;color:#fff;text-align:left;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:850}
+.jabzy-message-request-preview{margin:4px 0 0;overflow:hidden;color:#c4bdcc;font-size:11px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}
+.jabzy-message-request-time{flex:0 0 auto;align-self:flex-start;color:#a99eaf;font-size:10px;white-space:nowrap}
+.jabzy-message-request-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.jabzy-message-request-actions button{min-height:40px;margin:0;padding:9px 8px;border-radius:11px;font-size:12px;font-weight:800}
+.jabzy-message-request-decline{border:1px solid #51485b!important;background:transparent!important;color:#d5cbdc!important}
+.jabzy-message-request-accept{border:0!important;background:linear-gradient(110deg,#a447d5,#e34d9c)!important;color:#fff!important}
+.jabzy-message-request-actions button:disabled{opacity:.55}
+.jabzy-message-requests-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:38px 16px;border:1px dashed #51445d;border-radius:16px;color:#fff;text-align:center}
+.jabzy-message-requests-empty>span{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:#382747;color:#e5a6f3;font-size:25px}
+.jabzy-message-requests-empty small{color:#b8adbf;font-size:11px}
+.jabzy-message-request-skeleton{display:flex;align-items:center;gap:11px;margin:9px 0;padding:14px;border-radius:17px;background:#1d1926}
+.jabzy-message-request-skeleton>span{width:46px;height:46px;flex:0 0 46px;border-radius:50%;background:#393044}
+.jabzy-message-request-skeleton>div{display:flex;flex:1;flex-direction:column;gap:8px}
+.jabzy-message-request-skeleton i,.jabzy-message-request-skeleton>b{height:9px;border-radius:8px;background:#393044}
+.jabzy-message-request-skeleton i+ i{width:65%;height:7px}
+.jabzy-message-request-skeleton>b{width:36px}
+.jabzy-message-request-skeleton>*{position:relative;overflow:hidden}
+.jabzy-message-request-skeleton>*:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,#ffffff25,transparent);animation:jabzySkeletonShimmer 1.2s infinite}
+body.light-theme #matchesScreen #chatList>h2.jabzy-chats-heading{color:#30213d!important}
+body.light-theme #jabzyChatTabs{background:#f0eaf5;border-color:#e3d7eb}
+body.light-theme #jabzyChatTabs button{color:#6c5c77}
+body.light-theme #jabzyChatTabs button.active{color:#fff}
+body.light-theme .jabzy-message-request-card{background:#fff;border-color:#e5e7eb;color:#30213d;box-shadow:0 5px 16px rgba(50,25,70,.07)}
+body.light-theme .jabzy-message-request-name{color:#30213d}
+body.light-theme .jabzy-message-request-preview{color:#6b7280}
+body.light-theme .jabzy-message-request-time{color:#8b8492}
+body.light-theme .jabzy-message-request-decline{background:#f3f4f6!important;border-color:#e5e7eb!important;color:#4b5563!important}
+body.light-theme .jabzy-message-requests-empty{color:#30213d;border-color:#e2d5e9}
+body.light-theme .jabzy-message-requests-empty>span{background:#f1e8f7;color:#9b45c7}
+body.light-theme .jabzy-message-requests-empty small{color:#786b82}
+body.light-theme .jabzy-message-request-skeleton{background:#fff}
+body.light-theme .jabzy-message-request-skeleton>span,body.light-theme .jabzy-message-request-skeleton i,body.light-theme .jabzy-message-request-skeleton>b{background:#e9e1ef}
+body.light-theme .jabzy-message-request-skeleton>*:after{background:linear-gradient(90deg,transparent,#ffffffd9,transparent)}
+@media(max-width:360px){.jabzy-message-request-card{padding:12px}.jabzy-message-request-actions button{font-size:11px}}
 </style>
