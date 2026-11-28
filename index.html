@@ -4090,6 +4090,7 @@ await initJabzyFirstTimeGuide();
 Promise.resolve().then(async()=>{
   await registerJabzyServiceWorker();
   await setupJabzyRealtimeNotifications();
+  await setupJabzyGlobalDataRealtime();
   await setupVoiceCallListener();
   await setupFriendsRealtime();
   await restoreJoinedRoom();
@@ -4891,6 +4892,141 @@ async function setupJabzyRealtimeNotifications(){
     .subscribe(status=>{
       if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("JABZY notification realtime:",status);
     });
+}
+
+let jabzyGlobalDataChannel=null;
+let jabzyGlobalDataUserId=null;
+const jabzyRealtimeRefreshTimers=new Map();
+function scheduleJabzyRealtimeRefresh(key,callback,delay=180){
+  const old=jabzyRealtimeRefreshTimers.get(key);if(old)clearTimeout(old);
+  jabzyRealtimeRefreshTimers.set(key,setTimeout(()=>{jabzyRealtimeRefreshTimers.delete(key);try{callback();}catch(error){console.warn("JABZY realtime refresh:",key,error);}},delay));
+}
+function jabzyElementVisible(id){
+  const el=document.getElementById(id);return !!(el&&el.getClientRects().length&&getComputedStyle(el).display!=="none"&&getComputedStyle(el).visibility!=="hidden");
+}
+async function setupJabzyGlobalDataRealtime(){
+  if(!me||!db)return;
+  if(jabzyGlobalDataChannel&&jabzyGlobalDataUserId===me.id)return;
+  if(jabzyGlobalDataChannel){try{await db.removeChannel(jabzyGlobalDataChannel);}catch(error){}jabzyGlobalDataChannel=null;}
+  jabzyGlobalDataUserId=me.id;
+  const channel=db.channel("jabzy-global-data-"+me.id);
+  const listen=(table,event="*")=>channel.on("postgres_changes",{event,schema:"public",table},payload=>{
+    const isAdmin=me?.email==="jabirkhanmewati01@gmail.com";
+    switch(table){
+      case "banned_users":
+        if(payload.eventType==="INSERT"&&(payload.new?.user_id===me?.id)){
+          db.auth.signOut().finally(()=>{me=null;document.getElementById("app")?.classList.add("hidden");document.getElementById("login")?.classList.remove("hidden");const s=document.getElementById("status");if(s)s.textContent="Your account has been banned. Reason: "+(payload.new?.reason||"Reason not provided");});
+        }
+        break;
+      case "user_coins":
+      case "coin_transactions":
+      case "daily_reward_claims":
+        if(jabzyElementVisible("dailyRewardsScreen"))scheduleJabzyRealtimeRefresh("wallet",()=>loadDailyRewardsWallet());
+        break;
+      case "user_settings":
+        scheduleJabzyRealtimeRefresh("settings",()=>loadJabzyUserSettings(true));
+        break;
+      case "user_interests":
+        jabzyMyInterestSet=null;
+        if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-interests",()=>loadHomePosts(),350);
+        break;
+      case "user_chat_clears":
+      case "user_chat_clears_per_chat":
+        scheduleJabzyRealtimeRefresh("chat-list-clears",()=>loadChatList());
+        if(selected&&jabzyElementVisible("chatWindow"))scheduleJabzyRealtimeRefresh("chat-clears",()=>loadMessages());
+        break;
+      case "saved_posts":
+        if(jabzyElementVisible("savedPostsScreen"))scheduleJabzyRealtimeRefresh("saved-posts",()=>openSavedPosts());
+        break;
+      case "jabzy_ads":
+        if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-ads",()=>loadJabzyAds("home"));
+        if(jabzyElementVisible("roomsScreen"))scheduleJabzyRealtimeRefresh("room-ads",()=>loadJabzyAds("rooms"));
+        if(isAdmin&&jabzyElementVisible("adminAdsList"))scheduleJabzyRealtimeRefresh("admin-ads",()=>loadAdminAds());
+        break;
+      case "reports":
+        if(isAdmin&&jabzyElementVisible("adminReports"))scheduleJabzyRealtimeRefresh("admin-reports",()=>loadAdminReports());
+        break;
+      case "user_warnings":
+        if(payload.eventType==="INSERT"&&payload.new?.user_id===me?.id){
+          loadNotificationCount();
+          jabzyShowDedupedAlert("warning:"+payload.new.id,"JABZY Safety Alert",payload.new.reason||"You have received an account warning.","jabzy-warning-"+payload.new.id);
+        }
+        break;
+      case "community_group_invites":
+        if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("group-invites",()=>loadCommunityGroups(),350);
+        break;
+      case "community_groups":
+      case "community_group_members":
+        if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("groups-list",()=>loadCommunityGroups(),350);
+        break;
+      case "creator_applications":
+      case "creators":
+        if(isAdmin&&jabzyElementVisible("adminCreators"))scheduleJabzyRealtimeRefresh("admin-creators",()=>showAdminSection("creators"));
+        break;
+      case "posts":
+      case "post_likes":
+      case "post_comments":
+        if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-feed",()=>loadHomePosts(),300);
+        break;
+      case "stories":
+        if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("stories",()=>loadJabzyStories(),300);
+        break;
+      case "story_views":
+        if(activeJabzyStory&&payload.new?.story_id===activeJabzyStory.id){
+          if(activeJabzyStoryOwner&&jabzyElementVisible("storyOwnerPanel"))scheduleJabzyRealtimeRefresh("story-owner-views",()=>openStoryOwnerPanel(document.querySelector("#storyOwnerPanel [data-active='true']")?.dataset.mode||"viewers",false));
+          else scheduleJabzyRealtimeRefresh("story-like",()=>refreshStoryLikeButton());
+        }
+        break;
+      case "story_comments":
+        if(activeJabzyStory&&payload.new?.story_id===activeJabzyStory.id&&activeJabzyStoryOwner&&jabzyElementVisible("storyOwnerPanel"))scheduleJabzyRealtimeRefresh("story-owner-comments",()=>openStoryOwnerPanel("comments",false));
+        break;
+      case "reels":
+      case "reel_likes":
+      case "reel_comments":
+      case "reel_views":
+        document.dispatchEvent(new CustomEvent("jabzy-realtime-update",{detail:{table,payload}}));
+        break;
+      case "user_private":
+        if(payload.new?.user_id===me?.id&&jabzyElementVisible("profileScreen"))scheduleJabzyRealtimeRefresh("private-profile",()=>loadProfile());
+        break;
+      default:
+        break;
+    }
+  });
+  ["banned_users","coin_transactions","daily_reward_claims","jabzy_ads","reel_views","reports","saved_posts","user_warnings","creator_applications","creators"].forEach(table=>listen(table));
+  ["user_coins","user_settings","user_interests","user_chat_clears","user_chat_clears_per_chat","user_private"].forEach(table=>channel.on("postgres_changes",{event:"*",schema:"public",table,filter:"user_id=eq."+me.id},payload=>{
+    const isAdmin=me?.email==="jabirkhanmewati01@gmail.com";
+    switch(table){
+      case "user_coins":if(jabzyElementVisible("dailyRewardsScreen"))scheduleJabzyRealtimeRefresh("wallet",()=>loadDailyRewardsWallet());break;
+      case "user_settings":scheduleJabzyRealtimeRefresh("settings",()=>loadJabzyUserSettings(true));break;
+      case "user_interests":jabzyMyInterestSet=null;if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-interests",()=>loadHomePosts(),350);break;
+      case "user_chat_clears":case "user_chat_clears_per_chat":scheduleJabzyRealtimeRefresh("chat-list-clears",()=>loadChatList());if(selected&&jabzyElementVisible("chatWindow"))scheduleJabzyRealtimeRefresh("chat-clears",()=>loadMessages());break;
+      case "user_private":if(jabzyElementVisible("profileScreen"))scheduleJabzyRealtimeRefresh("private-profile",()=>loadProfile());break;
+    }
+  }));
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"community_group_invites"},payload=>{
+    if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("group-invites",()=>loadCommunityGroups(),350);
+  });
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"community_groups"},()=>{if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("groups-list",()=>loadCommunityGroups(),350);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},()=>{if(jabzyElementVisible("communityGroupsSection"))scheduleJabzyRealtimeRefresh("groups-members",()=>loadCommunityGroups(),350);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"posts"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-feed",()=>loadHomePosts(),300);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"stories"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("stories",()=>loadJabzyStories(),300);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"story_views"},payload=>{
+    if(activeJabzyStory&&(payload.new?.story_id===activeJabzyStory.id||payload.old?.story_id===activeJabzyStory.id)){
+      if(activeJabzyStoryOwner&&jabzyElementVisible("storyOwnerPanel"))scheduleJabzyRealtimeRefresh("story-owner-views",()=>openStoryOwnerPanel("viewers",false));
+      else scheduleJabzyRealtimeRefresh("story-like",()=>refreshStoryLikeButton());
+    }
+  });
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"story_comments"},payload=>{
+    if(activeJabzyStory&&(payload.new?.story_id===activeJabzyStory.id||payload.old?.story_id===activeJabzyStory.id)&&activeJabzyStoryOwner&&jabzyElementVisible("storyOwnerPanel"))scheduleJabzyRealtimeRefresh("story-owner-comments",()=>openStoryOwnerPanel("comments",false));
+  });
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"post_likes"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-likes",()=>loadHomePosts(),350);});
+  channel.on("postgres_changes",{event:"*",schema:"public",table:"post_comments"},()=>{if(jabzyElementVisible("homeScreen"))scheduleJabzyRealtimeRefresh("home-comments",()=>loadHomePosts(),350);});
+  jabzyGlobalDataChannel=channel;
+  channel.subscribe(status=>{
+    if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("JABZY global data realtime:",status);
+    else if(status==="SUBSCRIBED")console.info("JABZY global data realtime connected");
+  });
 }
 
 function jabzyShowDedupedAlert(key,title,body,tag){
