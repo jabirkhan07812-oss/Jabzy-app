@@ -11096,11 +11096,21 @@ async function loadOpenedCommunityGroup(){
   else{const counts=Array.isArray(membersRes.data)?membersRes.data[0]:membersRes.data;const total=Number(counts?.total_members||0),online=Number(counts?.online_members||0);communityGroupMembersCache=Array.from({length:total},(_,i)=>i);memberBox.textContent="👥 "+total+" Members · 🟢 "+online+" Online";memberBox.onclick=()=>{if(group.created_by===me.id||group.membership?.role==="admin")openCommunityGroupMembers();};memberBox.style.cursor=(group.created_by===me.id||group.membership?.role==="admin")?"pointer":"default";memberBox.style.display="none";const subtitle=document.getElementById("openedCommunityGroupInfo");if(subtitle)subtitle.textContent=(group.visibility==="private"?"🔒 Private":"🌍 Public")+" · "+total+" Members · 🟢 "+online+" Online ›";}
   if(postsRes.error||messagesRes.error){timeline.textContent="Group chat load error: "+(postsRes.error?.message||messagesRes.error?.message);return;}
   const items=[...(postsRes.data||[]).map(x=>({...x,_kind:"post",_text:x.content||""})),...(messagesRes.data||[]).map(x=>({...x,_kind:"message",_text:x.message||""}))].sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
+  const authorIds=[...new Set(items.map(x=>x.user_id).filter(Boolean))];
+  const {data:authorProfiles}=authorIds.length?await db.from("profiles").select("id,username").in("id",authorIds):{data:[]};
+  const authorMap=new Map((authorProfiles||[]).map(p=>[p.id,p]));
+  const canOpenAuthorProfile=group.created_by===me.id||group.membership?.role==="admin";
   const nearBottom=timeline.scrollHeight-timeline.scrollTop-timeline.clientHeight<120;
   timeline.replaceChildren();
   if(!items.length){const empty=document.createElement("div");empty.textContent="Abhi group chat khaali hai.";empty.style.cssText="padding:14px;text-align:center;opacity:.7;";timeline.appendChild(empty);}
   items.forEach(async item=>{
     const line=document.createElement("div");line.className="jgc-message "+(item.user_id===me.id?"jgc-mine":"jgc-theirs");line.style.cssText="max-width:88%;width:fit-content;padding:10px 13px;margin:8px 0;border-radius:15px;background:"+(item._kind==="post"?"#1E1B2E":item.user_id===me.id?"linear-gradient(135deg,#7C3AED,#9333EA)":"#202536")+";color:#FFFFFF;"+(item.user_id===me.id?"margin-left:auto;":"margin-right:auto;")+";box-shadow:0 3px 12px rgba(0,0,0,.12);"+(item._kind==="post"?"border-left:3px solid #EC4899;border-radius:5px 15px 15px 5px;":"");
+    const author=authorMap.get(item.user_id)||{};
+    const authorName=document.createElement(canOpenAuthorProfile?"button":"span");
+    authorName.textContent=author.username?"@"+author.username:(item.user_id===me.id?"You":"JABZY member");
+    authorName.style.cssText="display:block;width:max-content;max-width:100%;margin:0 0 6px;padding:0;border:0;background:transparent;color:#E9B8FF;font-size:11px;font-weight:800;text-align:left;overflow-wrap:anywhere;"+(canOpenAuthorProfile?"cursor:pointer;text-decoration:underline;text-underline-offset:2px;":"");
+    if(canOpenAuthorProfile&&item.user_id){authorName.type="button";authorName.onclick=(event)=>{event.stopPropagation();openPublicProfile(item.user_id);};}
+    line.appendChild(authorName);
     if(item._kind==="post"){const tag=document.createElement("small");tag.textContent="📢 GROUP POST";tag.style.cssText="display:inline-flex;width:max-content;padding:3px 7px;border-radius:6px;background:rgba(236,72,153,.14);color:#F0ABFC;font-size:9px;font-weight:800;letter-spacing:.05em;margin-bottom:7px";line.appendChild(tag);}
     const body=document.createElement("div");body.textContent=item._text;body.style.whiteSpace="pre-wrap";line.appendChild(body);
     if(item.photo_url){
