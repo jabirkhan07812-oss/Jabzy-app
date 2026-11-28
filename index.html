@@ -6245,22 +6245,6 @@ function showChatSection(section){
   if(section==="requests")loadMessageRequests();
 }
 
-  if(!chats || !requests || !messagesTab || !requestsTab) return;
-
-  chats.style.display=section==="messages"?"block":"none";
-  requests.style.display=section==="requests"?"block":"none";
-
-  messagesTab.style.background=section==="messages"
-    ?"linear-gradient(90deg,#ff55a8,#a45bea)"
-    :"#342044";
-
-  requestsTab.style.background=section==="requests"
-    ?"linear-gradient(90deg,#ff55a8,#a45bea)"
-    :"#342044";
-
-  if(section==="messages") loadChatList();
-  if(section==="requests") loadMessageRequests();
-}
 
   async function clearAllChatsForMe(){
   const confirmed=confirm(
