@@ -13681,13 +13681,15 @@ body.light-theme #jabzyCommunityGroupModal>div input:not([type=checkbox]),body.l
 
 
 <style id="jabzy-group-chat-composer-visibility-fix">
-#communityGroupOpenScreen{z-index:2147482000!important;display:none;flex-direction:column!important;}
-#communityGroupOpenScreen #communityGroupChatMessages{flex:1 1 0!important;min-height:0!important;height:0!important;overflow-y:auto!important;}
-#communityGroupOpenScreen #communityGroupPostComposer{display:flex;flex:0 0 auto!important;flex-direction:column!important;align-items:stretch!important;position:relative!important;z-index:2!important;margin:7px 0 0!important;padding:7px!important;}
+#communityGroupOpenScreen{z-index:2147483647!important;display:none;flex-direction:column!important;padding-bottom:calc(76px + env(safe-area-inset-bottom))!important;}
+#communityGroupOpenScreen #communityGroupChatMessages{flex:1 1 0!important;min-height:0!important;height:0!important;overflow-y:auto!important;padding-bottom:18px!important;}
+#communityGroupOpenScreen #communityGroupPostComposer{display:flex;flex:0 0 auto!important;flex-direction:column!important;align-items:stretch!important;position:fixed!important;left:8px!important;right:8px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;width:auto!important;z-index:2147483647!important;margin:0!important;padding:8px!important;box-sizing:border-box!important;background:var(--jabzy-panel,#21152f)!important;border:1px solid rgba(180,140,205,.35)!important;box-shadow:0 -5px 22px rgba(0,0,0,.28)!important;}
 #communityGroupOpenScreen .jabzy-group-post-controls{display:flex!important;align-items:center!important;gap:7px!important;width:100%!important;}
 #communityGroupOpenScreen #communityGroupChatInput{display:block!important;visibility:visible!important;opacity:1!important;flex:1 1 auto!important;width:0!important;min-width:0!important;height:42px!important;margin:0!important;padding:0 13px!important;}
 #communityGroupOpenScreen #communityGroupSendButton{display:grid!important;place-items:center!important;visibility:visible!important;opacity:1!important;margin:0!important;}
 #communityGroupOpenScreen #communityGroupPostMediaButton{display:grid!important;place-items:center!important;margin:0!important;}
+#communityGroupOpenScreen .jabzy-community-group-timeline{padding-bottom:100px!important;}
+body.light-theme #communityGroupOpenScreen #communityGroupPostComposer{background:#fff!important;border-color:#e3d5eb!important;box-shadow:0 -5px 22px rgba(70,35,90,.12)!important;}
 body.light-theme #communityGroupOpenScreen #communityGroupChatInput{background:#fff!important;color:#30233b!important;border-color:#dfd0e8!important;}
 </style>
 
