@@ -9266,14 +9266,17 @@ async function createLiveRoom(){
   overlay.id="createLiveRoomOverlay";
   overlay.style.cssText =
     "position:fixed;inset:0;z-index:10010;" +
-    "background:#100b1c;display:flex;" +
-    "align-items:center;justify-content:center;padding:20px;";
+    "background:#100b1c;display:flex;flex-direction:column;" +
+    "align-items:center;justify-content:flex-start;" +
+    "overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;" +
+    "box-sizing:border-box;padding:calc(16px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom));";
 
   const box = document.createElement("div");
   box.id="createLiveRoomCard";
   box.style.cssText =
     "width:100%;max-width:400px;background:#241632;" +
-    "padding:20px;border-radius:16px;color:white;box-sizing:border-box;";
+    "padding:20px;border-radius:16px;color:white;box-sizing:border-box;" +
+    "flex-shrink:0;margin:auto 0;";
 
   box.innerHTML = `
     <h3>Create JABZY Room 🎙️</h3>
@@ -12509,6 +12512,9 @@ function handleJabzyAndroidBack(){
     const el=document.getElementById(id);
     return !!el && getComputedStyle(el).display!=="none";
   };
+  // Close the Create Room modal before navigating away from the current tab.
+  const createRoomOverlay=document.getElementById("createLiveRoomOverlay");
+  if(createRoomOverlay){jabzyBackPressAt=0;createRoomOverlay.remove();return true;}
   // Close the most recently opened app overlay/sub-screen before changing tabs.
   if(visible("jabzySearchScreen")){ jabzyBackPressAt=0; closeJabzySearch(); return true; }
   if(visible("dailyRewardsScreen")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
