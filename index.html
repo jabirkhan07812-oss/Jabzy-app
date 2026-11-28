@@ -1624,7 +1624,23 @@ body.light-theme #communityGroupOpenScreen #communityGroupPostInput{color:#30233
 #communityGroupOpenScreen #communityGroupSendButton:disabled{display:none!important}
 body.light-theme #communityGroupOpenScreen #communityGroupChatInput:disabled::placeholder{color:#796887!important;opacity:1!important}
 </style>
-</head>
+<style id="jabzy-request-filter-polish">
+#requestTypeTabs{display:flex!important;align-items:center;justify-content:flex-start;gap:8px;padding:0!important;margin:12px 0 16px!important;border:0!important;border-radius:0!important;background:transparent!important}
+#requestTypeTabs button{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;flex:0 1 auto!important;width:auto!important;min-height:34px!important;padding:8px 13px!important;margin:0!important;border:1px solid #e5e7eb!important;border-radius:20px!important;background:#f3f4f6!important;color:#4b4652!important;font-size:12px!important;font-weight:700!important;box-shadow:none!important;white-space:nowrap}
+#requestTypeTabs button.active{border-color:transparent!important;background:linear-gradient(110deg,#a447d5,#e34d9c)!important;color:#fff!important}
+#requestTypeTabs button span{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:rgba(0,0,0,.08);font-size:10px}
+#requestTypeTabs button.active span{background:rgba(255,255,255,.22);color:#fff}
+.jabzy-message-requests-empty{border:1px solid #e5e7eb!important;background:#fafafc!important;color:#30233b!important;min-height:155px;justify-content:center}
+.jabzy-message-requests-empty>span{background:#f0e7fc!important;color:#8848d4!important}
+.jabzy-message-requests-empty small{color:#777482!important}
+.jabzy-friend-empty{border:1px solid #e5e7eb!important;background:#fafafc!important;color:#30233b!important;opacity:1!important}
+.jabzy-friend-empty span{color:#777482!important}
+.bottom-nav .nav-label{text-transform:capitalize!important}
+body.dark-theme #requestTypeTabs button,body.dark #requestTypeTabs button{background:#30283b!important;border-color:#493b55!important;color:#e5ddeb!important}
+body.dark-theme #requestTypeTabs button.active,body.dark #requestTypeTabs button.active{background:linear-gradient(110deg,#a447d5,#e34d9c)!important;color:#fff!important;border-color:transparent!important}
+body.dark-theme .jabzy-message-requests-empty,body.dark .jabzy-friend-empty{background:#211a2b!important;border-color:#493b55!important;color:#fff!important}
+body.dark-theme .jabzy-message-requests-empty small,body.dark .jabzy-friend-empty span{color:#c8bdcf!important}
+</style></head>
 <body>
   
   
@@ -2505,7 +2521,7 @@ box-sizing:border-box;
   <div id="chatListItems">Loading chats...</div>
 
   <div id="messageRequestsSection" style="display:none;">
-    <div id="requestTypeTabs" class="jabzy-request-type-tabs"><button id="messageRequestTypeTab" class="active" onclick="showRequestSubsection('messages')">Message Requests</button><button id="friendRequestTypeTab" onclick="showRequestSubsection('friends')">Friend Requests</button></div>
+    <div id="requestTypeTabs" class="jabzy-request-type-tabs" role="tablist" aria-label="Request filters"><button id="messageRequestTypeTab" class="active" role="tab" aria-selected="true" onclick="showRequestSubsection('messages')">Message Requests <span id="messageRequestSubCount">0</span></button><button id="friendRequestTypeTab" role="tab" aria-selected="false" onclick="showRequestSubsection('friends')">Friend Requests <span id="friendRequestSubCount">0</span></button></div>
     <div id="messageRequestsList">Loading requests...</div>
     <div id="friendRequestsPanel" style="display:none"><div id="friendRequestsList">Loading...</div></div>
   </div>
@@ -5203,11 +5219,13 @@ async function loadFriendRequests(){
     if(error)throw error;
     const tab=document.getElementById("friendsRequestsTab");
     if(tab)tab.textContent=requests&&requests.length?"Requests ("+requests.length+")":"Requests";
+    const friendSubCount=document.getElementById("friendRequestSubCount");
+    if(friendSubCount)friendSubCount.textContent=String(requests?.length||0);
     box.replaceChildren();
     if(!requests||requests.length===0){
       const empty=document.createElement("div");
       empty.className="jabzy-friend-empty";
-      empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span><button type="button" onclick="openJabzyDiscover()" style="width:auto;margin:8px 0 0;padding:10px 18px;border:0;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;font-weight:800;">Discover People</button>';
+      empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span><button type="button" onclick="openJabzyDiscover()" style="width:auto;margin:8px 0 0;padding:9px 16px;border:0;border-radius:20px;background:linear-gradient(110deg,#a447d5,#e34d9c);color:#fff;font-size:12px;font-weight:750;">Find People</button>';
       box.appendChild(empty);
       box.removeAttribute("aria-busy");
       return;
@@ -6567,6 +6585,8 @@ async function loadMessageRequests(){
   if(error)throw error;
   const count=document.getElementById("messageRequestsCount");
   if(count){count.textContent=String(requests?.length||0);count.hidden=!requests?.length;}
+  const subCount=document.getElementById("messageRequestSubCount");
+  if(subCount)subCount.textContent=String(requests?.length||0);
   box.replaceChildren();
   if(!requests||!requests.length){
    const empty=document.createElement("div");
