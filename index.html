@@ -14812,11 +14812,17 @@ async function loadJabzyReels(force=false){
       if(reel.location){const loc=document.createElement("div");loc.className="jabzy-reel-location";loc.textContent="⌖ "+reel.location;info.appendChild(loc);}
       const audio=document.createElement("div");audio.className="jabzy-reel-audio";audio.textContent="♫ Original audio • "+(profile.username||"JABZY Member");info.appendChild(audio);
       const actions=document.createElement("div");actions.className="jabzy-reel-actions";
-      const like=document.createElement("button");like.type="button";like.className="jabzy-reel-action"+(liked.has(reel.id)?" liked":"");like.innerHTML="<span>♥</span><small>"+(likeCounts[reel.id]||0)+"</small>";like.setAttribute("aria-label","Like Reel");like.onclick=()=>toggleJabzyReelLike(reel.id,like);
-      const comment=document.createElement("button");comment.type="button";comment.className="jabzy-reel-action";comment.innerHTML="<span>💬</span><small>"+(commentCounts[reel.id]||0)+"</small>";comment.setAttribute("aria-label","Comment on Reel");comment.onclick=()=>openJabzyReelComments(reel.id);
-      const share=document.createElement("button");share.type="button";share.className="jabzy-reel-action";share.innerHTML="<span>↗</span><small>Share</small>";share.onclick=()=>shareJabzyReel(reel);
-      const more=document.createElement("button");more.type="button";more.className="jabzy-reel-action";more.innerHTML="<span>⋯</span><small>More</small>";more.onclick=()=>{const choice=prompt("Reel options: type report to report this Reel, or cancel to close.","");if(choice&&choice.trim().toLowerCase()==="report")appStatus("Report feature is not connected yet.");};
-      actions.append(like,comment,share,more);
+      const iconSvg=(name)=>({heart:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.1-8.8 11-8.8 11s-8.8-5.9-8.8-11A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z"/></svg>',comment:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.8A8.5 8.5 0 1 1 20.5 11.5Z"/></svg>',share:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7.2 18-3.5-7.3L3 10.2 3 10.2 21 3Z"/><path d="M10.3 13.7 15 9"/></svg>',save:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"/></svg>',more:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>'})[name]||'';
+      const makeAction=(name,label,onClick,extraClass="")=>{const b=document.createElement("button");b.type="button";b.className="jabzy-reel-action "+extraClass;b.innerHTML="<span>"+iconSvg(name)+"</span><small>"+label+"</small>";b.setAttribute("aria-label",label);b.onclick=onClick;return b;};
+      const like=makeAction("heart",String(likeCounts[reel.id]||0),()=>toggleJabzyReelLike(reel.id,like),(liked.has(reel.id)?"liked":""));
+      const comment=makeAction("comment",String(commentCounts[reel.id]||0),()=>openJabzyReelComments(reel.id));
+      const share=makeAction("share","Share",()=>shareJabzyReel(reel));
+      const savedKey="jabzy_saved_reels_"+(me?.id||"guest");
+      let savedIds=[];try{savedIds=JSON.parse(localStorage.getItem(savedKey)||"[]");if(!Array.isArray(savedIds))savedIds=[];}catch(_){savedIds=[];}
+      const save=makeAction("save","Save",()=>{let ids=[];try{ids=JSON.parse(localStorage.getItem(savedKey)||"[]");if(!Array.isArray(ids))ids=[];}catch(_){ids=[];}const isSaved=ids.includes(String(reel.id));ids=isSaved?ids.filter(x=>x!==String(reel.id)):[...ids,String(reel.id)];try{localStorage.setItem(savedKey,JSON.stringify(ids));}catch(e){appStatus("Save storage unavailable on this device.");return;}save.classList.toggle("saved",!isSaved);save.querySelector("small").textContent=!isSaved?"Saved":"Save";});
+      if(savedIds.includes(String(reel.id))){save.classList.add("saved");save.querySelector("small").textContent="Saved";}
+      const more=makeAction("more","More",()=>{const choice=prompt("Reel options: type report to report this Reel, or cancel to close.","");if(choice&&choice.trim().toLowerCase()==="report")appStatus("Report feature is not connected yet.");});
+      actions.append(like,comment,share,save,more);
       card.append(video,shade,info,actions);feed.appendChild(card);
     });
     jabzySetupReelAutoplay();
@@ -15110,10 +15116,18 @@ body.jabzy-reels-active .jabzy-reel-info,body.jabzy-reels-active .jabzy-reel-act
 .jabzy-reel-follow{border:1px solid #ffffffb5;border-radius:7px;background:#ffffff18;color:#fff;padding:5px 10px;font-size:11px;font-weight:800}
 .jabzy-reel-caption{font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;max-height:4.35em;overflow:hidden}
 .jabzy-reel-actions{position:absolute;right:12px;bottom:calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px}
-.jabzy-reel-action{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:#fff;padding:4px;text-shadow:0 1px 5px #000}
-.jabzy-reel-action span{font-size:26px;line-height:1}
-.jabzy-reel-action small{font-size:10px;font-weight:800}
-.jabzy-reel-action.liked span{color:#ff4d91}
+.jabzy-reel-actions{gap:13px!important}
+.jabzy-reel-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:38px;min-height:42px;border:0;background:transparent;color:#fff;padding:2px;text-shadow:0 1px 5px #000;-webkit-tap-highlight-color:transparent}
+.jabzy-reel-action span{width:29px;height:29px;display:grid;place-items:center;line-height:1}
+.jabzy-reel-action svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 3px rgba(0,0,0,.65))}
+.jabzy-reel-action small{font-size:10px;font-weight:800;line-height:1.1;color:inherit}
+.jabzy-reel-action.liked svg{fill:#ff304f;stroke:#ff304f}
+.jabzy-reel-action.saved svg{fill:currentColor;stroke:currentColor}
+body.light-theme .jabzy-reel-action{color:#fff}
+body.light-theme .jabzy-reel-action span{background:rgba(35,24,48,.42);border:1px solid rgba(255,255,255,.28);border-radius:50%;width:34px;height:34px}
+body.light-theme .jabzy-reel-action svg{width:23px;height:23px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+body.light-theme .jabzy-reel-action.liked svg{fill:#ff304f;stroke:#ff304f}
+body.light-theme .jabzy-reel-action.saved svg{fill:#fff;stroke:#fff}
 .jabzy-reels-empty{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:28px;text-align:center;color:#e9dff2;font-size:13px}
 .jabzy-reels-empty b{font-size:18px}.jabzy-reels-empty span{max-width:260px;color:#bfaecb;line-height:1.5}.jabzy-reels-empty-icon{width:66px;height:66px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#35204d,#21152f);border:1px solid #694582;font-size:31px;box-shadow:0 10px 28px rgba(160,75,205,.18)}
 .jabzy-reel-modal{position:fixed;inset:0;z-index:2147482500;background:rgba(5,3,10,.82);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
