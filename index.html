@@ -12446,6 +12446,7 @@ if(!window.__jabzyHomeVideoPauseReady){
 
 function showTab(tab,fromBack=false){
   if(tab==="friends")tab="chats";
+  document.body.classList.toggle("jabzy-reels-active",tab==="reels");
   if(tab!=="home")pauseHomeFeedVideos();
   const previousTab=localStorage.getItem("jabzyLastTab")||"home";
   if(!fromBack && previousTab!==tab){
@@ -14954,7 +14955,7 @@ body.light-theme .jabzy-message-request-skeleton>*:after{background:linear-gradi
 /* JABZY REELS UI - dark and light themes */
 #reelsScreen{position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;background:#08060c;color:#fff;display:flex;flex-direction:column;z-index:99998!important;padding:0!important}
 body.jabzy-reels-active{overflow:hidden!important}
-body.jabzy-reels-active .bottom-nav{display:none!important}
+body.jabzy-reels-active .bottom-nav{display:none!important;visibility:hidden!important;pointer-events:none!important}
 .jabzy-reels-header{position:absolute;z-index:5;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 15px 12px;background:linear-gradient(180deg,rgba(0,0,0,.48),transparent);border:0;flex:0 0 auto;pointer-events:none}
 .jabzy-reels-header>div,.jabzy-reels-header button{pointer-events:auto}
 .jabzy-reels-header h2{font-size:20px;margin:2px 0 0;color:#fff;text-shadow:0 1px 5px #000}
