@@ -1669,7 +1669,42 @@ body.dark-theme .jabzy-friend-empty,body.dark .jabzy-friend-empty{
 body.dark-theme .jabzy-friend-empty span,body.dark .jabzy-friend-empty small,body.dark .jabzy-friend-empty p,
 body.dark .jabzy-friend-empty{color:#f5effa!important}
 body.dark-theme .jabzy-friend-empty button,body.dark .jabzy-friend-empty button{color:#fff!important}
-</style></head>
+</style>
+<style id="jabzy-friends-list-redesign">
+#matchesScreen .jabzy-friends-inner-tabs{display:flex;align-items:center;gap:7px;margin:0 0 14px;padding:4px;border:1px solid rgba(180,145,210,.2);border-radius:999px;background:#21182d}
+#matchesScreen .jabzy-friends-inner-tabs button{flex:1;min-width:0;min-height:38px;margin:0;padding:8px 10px;border:0;border-radius:999px;background:transparent;color:#c9bdd4;font-size:12px;font-weight:800;box-shadow:none}
+#matchesScreen .jabzy-friends-inner-tabs button.active{background:linear-gradient(110deg,#a447d5,#e34d9c);color:#fff;box-shadow:0 3px 10px rgba(164,71,213,.22)}
+#matchesScreen .jabzy-friends-search-wrap{display:flex;align-items:center;gap:9px;min-height:44px;margin:0 0 12px;padding:0 12px;border:1px solid #40334d;border-radius:13px;background:#211a2b;color:#cbb8df}
+#matchesScreen .jabzy-friends-search-wrap>span:first-child{font-size:22px;line-height:1}
+#matchesScreen .jabzy-friends-search-wrap input{flex:1;min-width:0;margin:0;padding:10px 0;border:0!important;outline:0;background:transparent!important;color:#fff!important;font-size:13px;box-shadow:none!important}
+#matchesScreen .jabzy-friends-search-wrap input::placeholder{color:#a99ab5}
+#matchesScreen .jabzy-friends-count{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:99px;background:#453052;color:#fff;font-size:11px;font-weight:900}
+#matchesScreen .jabzy-friends-list{display:flex;flex-direction:column;gap:8px}
+#matchesScreen .jabzy-friend-row{display:flex;align-items:center;gap:11px;min-width:0;padding:10px;border:1px solid rgba(180,145,210,.16);border-radius:14px;background:#211a2b;color:#fff;cursor:pointer}
+#matchesScreen .jabzy-friend-avatar{position:relative;display:grid;place-items:center;width:46px;height:46px;flex:0 0 46px;overflow:hidden;border-radius:50%;background:linear-gradient(135deg,#a447d5,#e34d9c);color:#fff;font-size:18px;font-weight:900}
+#matchesScreen .jabzy-friend-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+#matchesScreen .jabzy-friend-details{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+#matchesScreen .jabzy-friend-name{overflow:hidden;color:#fff;font-size:14px;font-weight:850;text-overflow:ellipsis;white-space:nowrap}
+#matchesScreen .jabzy-friend-status{color:#b7a9c2;font-size:11px}
+#matchesScreen .jabzy-friend-status.is-online{color:#39d98a}
+#matchesScreen .jabzy-friend-chat{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;margin:0;padding:0;border:1px solid #684b80;border-radius:50%;background:#38264b;color:#fff;font-size:16px;box-shadow:none}
+#matchesScreen .jabzy-friends-note{margin:10px 2px;color:#b7a9c2;font-size:12px}
+body.light-theme #matchesScreen .jabzy-friends-inner-tabs{background:#f0eaf5;border-color:#e3d7eb}
+body.light-theme #matchesScreen .jabzy-friends-inner-tabs button{color:#6c5c77}
+body.light-theme #matchesScreen .jabzy-friends-inner-tabs button.active{color:#fff}
+body.light-theme #matchesScreen .jabzy-friends-search-wrap{background:#fff;border-color:#e3d7eb;color:#80668e}
+body.light-theme #matchesScreen .jabzy-friends-search-wrap input{color:#30233b!important}
+body.light-theme #matchesScreen .jabzy-friends-search-wrap input::placeholder{color:#887994}
+body.light-theme #matchesScreen .jabzy-friends-count{background:#f0e5f7;color:#853db0}
+body.light-theme #matchesScreen .jabzy-friend-row{background:#fff;border-color:#e8deee;color:#30233b;box-shadow:0 3px 12px rgba(50,25,70,.05)}
+body.light-theme #matchesScreen .jabzy-friend-name{color:#30233b}
+body.light-theme #matchesScreen .jabzy-friend-status{color:#786b82}
+body.light-theme #matchesScreen .jabzy-friend-status.is-online{color:#16834e}
+body.light-theme #matchesScreen .jabzy-friend-chat{background:#f3eafa;border-color:#e1c9ef;color:#853db0}
+body.light-theme #matchesScreen .jabzy-friends-note{color:#786b82}
+@media(max-width:360px){#matchesScreen .jabzy-friend-row{gap:8px;padding:8px}#matchesScreen .jabzy-friend-avatar{width:42px;height:42px;flex-basis:42px}}
+</style>
+</head>
 <body>
   
   
@@ -2555,8 +2590,8 @@ box-sizing:border-box;
     <div id="friendRequestsPanel" style="display:none"><div id="friendRequestsList">Loading...</div></div>
   </div>
   <div id="friendsChatSection" style="display:none">
-    <div class="jabzy-friends-inner-tabs"><button id="friendsListTab" class="active" onclick="showFriendsSection('friends')">Friends List</button><button id="findFriendsTab" onclick="showFriendsSection('discover')">Find Friends</button></div>
-    <div id="myFriendsPanel"><div id="myFriendsCount">0 Friends</div><div id="myFriendsList">Loading your friends...</div></div>
+    <div class="jabzy-friends-inner-tabs" role="tablist" aria-label="Friends sections"><button type="button" id="friendsListTab" class="active" role="tab" aria-selected="true" onclick="showFriendsSection('friends')">Friends List</button><button type="button" id="findFriendsTab" role="tab" aria-selected="false" onclick="showFriendsSection('discover')">Find Friends</button></div>
+    <div id="myFriendsPanel"><label class="jabzy-friends-search-wrap"><span aria-hidden="true">⌕</span><input id="myFriendsSearch" type="search" placeholder="Search friends..." oninput="filterMyFriends(this.value)" aria-label="Search friends"><span id="myFriendsCount" class="jabzy-friends-count">0</span></label><div id="myFriendsList">Loading your friends...</div></div>
   </div>
 </div>
 
@@ -5385,15 +5420,12 @@ async function setupFriendsRealtime(){
 }
 
 async function loadMyFriends(silent=false){
-  if(friendsRefreshInProgress){
-    friendsRefreshQueued=true;
-    return;
-  }
+  if(friendsRefreshInProgress){friendsRefreshQueued=true;return;}
   friendsRefreshInProgress=true;
   const box=document.getElementById("myFriendsList");
   const countBox=document.getElementById("myFriendsCount");
   if(!box||!countBox){friendsRefreshInProgress=false;return;}
-  if(!silent && box.dataset.loaded!=="true")box.innerText="Loading your circle...";
+  if(!silent&&box.dataset.loaded!=="true")box.innerText="Loading your circle...";
   try{
     const {data:requests,error}=await db.from("friend_requests")
       .select("sender_id,receiver_id")
@@ -5402,67 +5434,94 @@ async function loadMyFriends(silent=false){
     if(error)throw error;
     const ids=[...new Set((requests||[]).map(r=>r.sender_id===me.id?r.receiver_id:r.sender_id))];
     const nextContent=document.createElement("div");
+    nextContent.className="jabzy-friends-list";
     if(ids.length===0){
       nextContent.textContent="Your circle is waiting for friends ❤️";
-      countBox.innerText="0 Friends";
-      box.replaceChildren(...nextContent.childNodes);
-      friendsCachedIds=[];
-      box.dataset.loaded="true";
-      return;
+      countBox.textContent="0";
+      box.replaceChildren(nextContent);
+      friendsCachedIds=[];box.dataset.loaded="true";return;
     }
     const {data:friends,error:friendError}=await db.from("profiles")
-      .select("id,username,photo_url").in("id",ids);
+      .select("id,username,photo_url,last_seen").in("id",ids);
     if(friendError)throw friendError;
     const profileMap=new Map((friends||[]).map(friend=>[friend.id,friend]));
     const adminFlags=await Promise.all(ids.map(friendId=>isOfficialAdminUser(friendId)));
     for(let i=0;i<ids.length;i++){
       const friendId=ids[i];
-      const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:""};
-      const row=document.createElement("button");
-      row.type="button";
-      const light=document.body.classList.contains("light-theme");
-      row.style.cssText="display:flex;align-items:center;gap:12px;width:100%;padding:10px;margin-top:8px;border:0;border-radius:12px;background:"+(light?"#ffffff":"#ffffff18")+";color:"+(light?"#241b30":"#ffffff")+";text-align:left;";
-      const img=document.createElement("img");
-      img.src=friend.photo_url||"";
-      img.alt="";
-      img.style.cssText="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#555;";
-      const name=document.createElement("span");
-      name.style.cssText="display:flex;align-items:center;flex-wrap:wrap;min-width:0;font-weight:700;";
-      name.textContent=friend.username&&friend.username.trim()?friend.username:"JABZY Friend";
+      const friend=profileMap.get(friendId)||{id:friendId,username:"",photo_url:"",last_seen:null};
+      const username=(friend.username||"JABZY Friend").trim()||"JABZY Friend";
+      const row=document.createElement("div");
+      row.className="jabzy-friend-row";
+      row.dataset.search=(username+" @"+username.replace(/\\s+/g,"").toLowerCase()).toLowerCase();
+      row.addEventListener("click",()=>openPublicProfile(friendId));
+      const avatar=document.createElement("div");
+      avatar.className="jabzy-friend-avatar";
+      const initial=document.createElement("span");
+      initial.textContent=username.charAt(0).toUpperCase();
+      avatar.appendChild(initial);
+      if(friend.photo_url){
+        const img=document.createElement("img");
+        img.src=friend.photo_url;img.alt="";img.loading="lazy";
+        img.onerror=function(){this.remove();};
+        avatar.appendChild(img);
+      }
+      const details=document.createElement("div");
+      details.className="jabzy-friend-details";
+      const name=document.createElement("div");
+      name.className="jabzy-friend-name";
+      name.textContent=username;
       if(adminFlags[i])addOfficialAdminMark(name);
-      row.append(img,name);
-      row.onclick=()=>openPublicProfile(friendId);
+      const seen=friend.last_seen?new Date(friend.last_seen).getTime():0;
+      const online=seen>0&&(Date.now()-seen)<120000;
+      const status=document.createElement("div");
+      status.className="jabzy-friend-status"+(online?" is-online":"");
+      status.textContent=online?"● Online":"@"+username.replace(/\\s+/g,"").toLowerCase();
+      details.append(name,status);
+      const chat=document.createElement("button");
+      chat.type="button";chat.className="jabzy-friend-chat";
+      chat.setAttribute("aria-label","Message "+username);chat.title="Message";
+      chat.textContent="💬";
+      chat.addEventListener("click",event=>{event.stopPropagation();chooseUser(friendId,username);});
+      row.append(avatar,details,chat);
       nextContent.appendChild(row);
     }
     if(!friends||friends.length===0){
       const note=document.createElement("p");
       note.textContent="Friend profiles load nahi hui. Aapke friends ka record hai, lekin unki profile details available nahi hain.";
-      note.style.cssText="font-size:12px;color:#d9c9e8;margin:10px 2px;";
+      note.className="jabzy-friends-note";
       nextContent.appendChild(note);
     }
-    box.replaceChildren(...nextContent.childNodes);
-    countBox.innerText=ids.length+" Friends";
-    friendsCachedIds=ids;
-    box.dataset.loaded="true";
+    box.replaceChildren(nextContent);
+    countBox.textContent=String(ids.length);
+    friendsCachedIds=ids;box.dataset.loaded="true";
+    const search=document.getElementById("myFriendsSearch");
+    if(search&&search.value)filterMyFriends(search.value);
   }catch(error){
     console.error("Friends load error:",error);
-    if(!silent || box.dataset.loaded!=="true")box.innerText=error.message||"Friends load nahi ho sake.";
+    if(!silent||box.dataset.loaded!=="true")box.innerText=error.message||"Friends load nahi ho sake.";
   }finally{
     friendsRefreshInProgress=false;
-    if(friendsRefreshQueued){
-      friendsRefreshQueued=false;
-      loadMyFriends(true);
-    }
+    if(friendsRefreshQueued){friendsRefreshQueued=false;loadMyFriends(true);}
   }
 }
-
+function filterMyFriends(value){
+  const query=(value||"").trim().toLowerCase();
+  document.querySelectorAll("#myFriendsList .jabzy-friend-row").forEach(row=>{
+    row.style.display=!query||row.dataset.search.includes(query)?"flex":"none";
+  });
+}
   function showFriendsSection(section){
-  if(section==="discover"){showTab("discover");return;}
+  if(section==="discover"){
+    const findTab=document.getElementById("findFriendsTab"),listTab=document.getElementById("friendsListTab");
+    if(findTab){findTab.classList.add("active");findTab.setAttribute("aria-selected","true");}
+    if(listTab){listTab.classList.remove("active");listTab.setAttribute("aria-selected","false");}
+    showTab("discover");return;
+  }
   const list=document.getElementById("myFriendsList");
   const findTab=document.getElementById("findFriendsTab");
   const listTab=document.getElementById("friendsListTab");
-  if(listTab)listTab.classList.add("active");
-  if(findTab)findTab.classList.remove("active");
+  if(listTab){listTab.classList.add("active");listTab.setAttribute("aria-selected","true");}
+  if(findTab){findTab.classList.remove("active");findTab.setAttribute("aria-selected","false");}
   if(!list||list.dataset.loaded!=="true")loadMyFriends();
 }
 function showRequestSubsection(section){
