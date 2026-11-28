@@ -1704,6 +1704,42 @@ body.light-theme #matchesScreen .jabzy-friend-chat{background:#f3eafa;border-col
 body.light-theme #matchesScreen .jabzy-friends-note{color:#786b82}
 @media(max-width:360px){#matchesScreen .jabzy-friend-row{gap:8px;padding:8px}#matchesScreen .jabzy-friend-avatar{width:42px;height:42px;flex-basis:42px}}
 </style>
+<style id="jabzy-reel-share-sheet-css">
+.jabzy-reel-share-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.56);overscroll-behavior:contain}
+.jabzy-reel-share-panel{width:100%;max-width:560px;height:64dvh;max-height:760px;min-height:390px;display:flex;flex-direction:column;gap:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:hidden;border-radius:24px 24px 0 0;background:#fff;color:#19151d;box-shadow:0 -10px 40px #0003;transition:height .22s ease,border-radius .22s ease}
+.jabzy-reel-share-panel.is-expanded{height:100dvh;max-height:100dvh;min-height:100dvh;border-radius:0;padding-top:calc(8px + env(safe-area-inset-top))}
+.jabzy-reel-share-drag{height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;position:relative;touch-action:pan-y}
+.jabzy-reel-share-drag:before{content:"";width:42px;height:4px;border-radius:9px;background:#c8c8cc}
+.jabzy-reel-share-expand{position:absolute;inset:0;width:100%;height:22px;margin:0;padding:0;border:0;background:transparent;color:transparent;font-size:0}
+.jabzy-reel-share-heading{height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;position:relative;font-size:17px}
+.jabzy-reel-share-close{position:absolute;right:0;top:3px;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:50%;background:#f1f1f3;color:#333;font-size:23px;line-height:1}
+.jabzy-reel-share-searchrow{display:flex;align-items:center;gap:10px;margin:5px 0 13px}
+.jabzy-reel-share-searchwrap{height:42px;flex:1;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:12px;background:#f1f1f3;color:#777}
+.jabzy-reel-share-searchwrap span{font-size:22px;line-height:1}
+.jabzy-reel-share-search{width:100%;height:100%;margin:0;padding:0;border:0!important;outline:0;background:transparent!important;color:#222!important;font-size:14px!important;box-shadow:none!important}
+.jabzy-reel-share-group{width:42px;height:42px;flex:0 0 42px;margin:0;padding:0;border:0;border-radius:50%;background:#f1eafa;color:#7042bd;font-size:23px}
+.jabzy-reel-share-friends-title{flex:0 0 auto;margin:0 0 10px;font-size:14px;font-weight:800;color:#222}
+.jabzy-reel-share-grid{flex:1;min-height:100px;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:15px 8px;padding:3px 2px 12px}
+.jabzy-reel-share-person{min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;padding:0;border:0;background:transparent;color:#222}
+.jabzy-reel-share-photo{width:66px;height:66px;position:relative;display:block;flex:0 0 66px;overflow:visible;border-radius:50%;background:#eee3f6}
+.jabzy-reel-share-photo>img{display:block;width:66px;height:66px;border-radius:50%;object-fit:cover}
+.jabzy-reel-share-photo.has-fallback{display:grid;place-items:center;border-radius:50%;font-size:22px;font-weight:800;color:#7543a8}
+.jabzy-reel-share-check{position:absolute;right:-2px;bottom:-1px;width:21px;height:21px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:#7045d6;color:#fff;font-size:13px;font-weight:900;opacity:0}
+.jabzy-reel-share-person.is-selected .jabzy-reel-share-check{opacity:1}
+.jabzy-reel-share-person.is-selected .jabzy-reel-share-photo>img{outline:3px solid #7045d6;outline-offset:2px}
+.jabzy-reel-share-online{position:absolute;right:0;bottom:1px;width:13px;height:13px;border:2px solid #fff;border-radius:50%;background:#20b45b}
+.jabzy-reel-share-recent{position:absolute;right:-9px;bottom:-3px;padding:2px 4px;border:1px solid #fff;border-radius:8px;background:#20a85a;color:#fff;font-size:8px;font-style:normal;font-weight:800}
+.jabzy-reel-share-name{display:block;width:100%;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:11px;font-weight:650;color:#26222b}
+.jabzy-reel-share-empty{grid-column:1/-1;padding:24px 8px;text-align:center;color:#777;font-size:13px}
+.jabzy-reel-share-send{height:44px;flex:0 0 44px;align-items:center;justify-content:center;margin:7px 0 9px;padding:0;border:0;border-radius:12px;background:linear-gradient(100deg,#8a48cf,#5147d5);color:#fff;font-size:14px;font-weight:850}
+.jabzy-reel-share-send:disabled{opacity:.65}
+.jabzy-reel-share-actions{flex:0 0 auto;display:flex;gap:17px;overflow-x:auto;overscroll-behavior-x:contain;padding:10px 1px 3px;border-top:1px solid #ececf0;scrollbar-width:none}
+.jabzy-reel-share-actions::-webkit-scrollbar{display:none}
+.jabzy-reel-share-actions button{width:62px;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;padding:0;border:0;background:transparent;color:#29252d}
+.jabzy-reel-share-actions button>span{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#f0f0f3;font-size:23px}
+.jabzy-reel-share-actions small{font-size:10px;font-weight:650;white-space:nowrap}
+@media(max-width:360px){.jabzy-reel-share-panel{padding-left:12px;padding-right:12px}.jabzy-reel-share-grid{gap:12px 4px}.jabzy-reel-share-actions{gap:10px}}
+</style>
 </head>
 <body>
   
@@ -12540,6 +12576,7 @@ function handleJabzyAndroidBack(){
   // Close the Create Room modal before navigating away from the current tab.
   const createRoomOverlay=document.getElementById("createLiveRoomOverlay");
   if(createRoomOverlay){jabzyBackPressAt=0;createRoomOverlay.remove();return true;}
+  if(visible("jabzyReelShareSheet")){jabzyBackPressAt=0;jabzyCloseReelShare();return true;}
   if(visible("jabzyReelUploadModal")){jabzyBackPressAt=0;closeJabzyReelUpload();return true;}
   // Close the most recently opened app overlay/sub-screen before changing tabs.
   if(visible("jabzySearchScreen")){ jabzyBackPressAt=0; closeJabzySearch(); return true; }
@@ -14811,10 +14848,100 @@ async function openJabzyReelComments(reelId){
   if(insertError){appStatus(insertError.message);return;}
   await loadJabzyReels(true);
 }
-async function shareJabzyReel(reel){
-  const url=location.origin+location.pathname+"#reel="+encodeURIComponent(reel.id);
-  const shareData={title:"JABZY Reel",text:reel.caption||"Watch this Reel on JABZY",url};
-  try{if(navigator.share)await navigator.share(shareData);else if(navigator.clipboard){await navigator.clipboard.writeText(url);appStatus("Reel link copied.");}else prompt("Copy Reel link:",url);}catch(error){if(error.name!=="AbortError")console.warn("Reel share:",error);}
+let jabzyReelShareState={reel:null,friends:[],selected:new Set(),expanded:false,busy:false};
+function jabzyReelShareUrl(reel){return location.origin+location.pathname+"#reel="+encodeURIComponent(reel.id);}
+function jabzyReelShareText(reel){return ["🎬 JABZY Reel",reel.caption||"Watch this Reel on JABZY",jabzyReelShareUrl(reel)].filter(Boolean).join("\n");}
+function jabzyCloseReelShare(){
+  const overlay=document.getElementById("jabzyReelShareSheet");
+  if(overlay)overlay.remove();
+  jabzyReelShareState={reel:null,friends:[],selected:new Set(),expanded:false,busy:false};
+}
+function jabzySetReelShareExpanded(expanded){
+  const panel=document.querySelector("#jabzyReelShareSheet .jabzy-reel-share-panel");
+  if(!panel)return;
+  jabzyReelShareState.expanded=!!expanded;
+  panel.classList.toggle("is-expanded",!!expanded);
+  const button=panel.querySelector(".jabzy-reel-share-expand");
+  if(button){button.setAttribute("aria-label",expanded?"Collapse share panel":"Expand share panel");button.innerHTML=expanded?"⌄":"⌃";}
+}
+function jabzyRenderReelShareFriends(){
+  const overlay=document.getElementById("jabzyReelShareSheet");if(!overlay)return;
+  const grid=overlay.querySelector(".jabzy-reel-share-grid"),send=overlay.querySelector(".jabzy-reel-share-send"),query=(overlay.querySelector(".jabzy-reel-share-search")?.value||"").trim().toLowerCase();
+  grid.replaceChildren();
+  const visible=jabzyReelShareState.friends.filter(friend=>(friend.username||"JABZY Friend").toLowerCase().includes(query));
+  if(!visible.length){const empty=document.createElement("div");empty.className="jabzy-reel-share-empty";empty.textContent=query?"No friends found.":"No friends yet.";grid.appendChild(empty);}
+  visible.forEach(friend=>{
+    const chosen=jabzyReelShareState.selected.has(friend.id);
+    const item=document.createElement("button");item.type="button";item.className="jabzy-reel-share-person"+(chosen?" is-selected":"");item.setAttribute("aria-pressed",chosen?"true":"false");
+    const photo=document.createElement("span");photo.className="jabzy-reel-share-photo";
+    if(friend.photo_url){const img=document.createElement("img");img.src=friend.photo_url;img.alt="";img.loading="lazy";img.onerror=()=>{img.remove();photo.classList.add("has-fallback");photo.textContent=(friend.username||"J").slice(0,1).toUpperCase();};photo.appendChild(img);}else{photo.classList.add("has-fallback");photo.textContent=(friend.username||"J").slice(0,1).toUpperCase();}
+    const check=document.createElement("span");check.className="jabzy-reel-share-check";check.textContent=chosen?"✓":"";
+    photo.appendChild(check);
+    if(friend.last_seen){const age=Date.now()-new Date(friend.last_seen).getTime();if(Number.isFinite(age)&&age>=0&&age<2*60*1000){const online=document.createElement("i");online.className="jabzy-reel-share-online";photo.appendChild(online);}else if(Number.isFinite(age)&&age<60*60*1000){const recent=document.createElement("i");recent.className="jabzy-reel-share-recent";recent.textContent=Math.max(1,Math.floor(age/60000))+"m";photo.appendChild(recent);}}
+    const name=document.createElement("span");name.className="jabzy-reel-share-name";name.textContent=friend.username||"JABZY Friend";
+    item.append(photo,name);item.onclick=()=>{if(jabzyReelShareState.selected.has(friend.id))jabzyReelShareState.selected.delete(friend.id);else jabzyReelShareState.selected.add(friend.id);jabzyRenderReelShareFriends();};
+    grid.appendChild(item);
+  });
+  send.style.display=jabzyReelShareState.selected.size?"flex":"none";
+  send.textContent="Send"+(jabzyReelShareState.selected.size?" ("+jabzyReelShareState.selected.size+")":"");
+}
+async function jabzySendReelToSelected(){
+  const state=jabzyReelShareState;if(state.busy||!me||!state.reel||!state.selected.size)return;
+  const overlay=document.getElementById("jabzyReelShareSheet"),send=overlay?.querySelector(".jabzy-reel-share-send");state.busy=true;if(send){send.disabled=true;send.textContent="Sending…";}
+  const message=jabzyReelShareText(state.reel),ids=[...state.selected];let sent=0;const failures=[];
+  for(const id of ids){const {error}=await db.from("messages").insert({sender_id:me.id,receiver_id:id,message,reply_to:null});if(error)failures.push(error.message);else sent++;}
+  state.busy=false;
+  if(send)send.disabled=false;
+  if(sent&& !failures.length){appStatus(sent===1?"Reel sent to friend.":"Reel sent to "+sent+" friends.");jabzyCloseReelShare();}
+  else{if(send){send.textContent="Retry sending";send.style.display="flex";}appStatus((sent?sent+" sent. ":"")+"Could not send to "+failures.length+" friend(s). "+(failures[0]||""));}
+}
+async function jabzyLoadReelShareFriends(){
+  const overlay=document.getElementById("jabzyReelShareSheet"),grid=overlay?.querySelector(".jabzy-reel-share-grid");if(!overlay||!me||!grid)return;
+  grid.innerHTML='<div class="jabzy-reel-share-empty">Loading friends…</div>';
+  try{
+    const {data:requests,error}=await db.from("friend_requests").select("sender_id,receiver_id").eq("status","accepted").or("sender_id.eq."+me.id+",receiver_id.eq."+me.id);
+    if(error)throw error;
+    const ids=[...new Set((requests||[]).map(row=>row.sender_id===me.id?row.receiver_id:row.sender_id).filter(Boolean))];
+    if(!ids.length){jabzyReelShareState.friends=[];jabzyRenderReelShareFriends();return;}
+    const {data:friends,error:friendError}=await db.from("profiles").select("id,username,photo_url,last_seen").in("id",ids).order("username",{ascending:true});
+    if(friendError)throw friendError;
+    jabzyReelShareState.friends=friends||[];jabzyRenderReelShareFriends();
+  }catch(error){grid.innerHTML="";const fail=document.createElement("div");fail.className="jabzy-reel-share-empty";fail.textContent="Friends load nahi ho paaye: "+(error.message||"Try again");grid.appendChild(fail);}
+}
+async function jabzyCopyReelLink(){
+  const reel=jabzyReelShareState.reel;if(!reel)return;const url=jabzyReelShareUrl(reel);
+  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);appStatus("Reel link copied.");}else{const field=document.createElement("textarea");field.value=url;field.style.position="fixed";field.style.opacity="0";document.body.appendChild(field);field.select();const ok=document.execCommand("copy");field.remove();appStatus(ok?"Reel link copied.":"Link copy nahi ho paya.");}}catch(error){appStatus("Link copy nahi ho paya.");}
+}
+async function jabzyNativeShareReel(){
+  const reel=jabzyReelShareState.reel;if(!reel)return;const url=jabzyReelShareUrl(reel),data={title:"JABZY Reel",text:reel.caption||"Watch this Reel on JABZY",url};
+  try{if(navigator.share)await navigator.share(data);else await jabzyCopyReelLink();}catch(error){if(error.name!=="AbortError")appStatus("Share nahi ho paya: "+error.message);}
+}
+async function jabzyDownloadReel(){
+  const reel=jabzyReelShareState.reel;if(!reel?.media_url)return;
+  try{const response=await fetch(reel.media_url);if(!response.ok)throw new Error("Video download unavailable");const blob=await response.blob(),objectUrl=URL.createObjectURL(blob),link=document.createElement("a");link.href=objectUrl;link.download="JABZY-Reel-"+reel.id+".mp4";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),1500);appStatus("Reel download started.");}catch(error){appStatus("Download nahi ho paya. Aap Android Share se try kar sakte hain.");}
+}
+function shareJabzyReel(reel){
+  if(!me){appStatus("Please login to share a Reel.");return;}
+  jabzyCloseReelShare();jabzyReelShareState.reel=reel;
+  const overlay=document.createElement("div");overlay.id="jabzyReelShareSheet";overlay.className="jabzy-reel-share-overlay";
+  overlay.innerHTML='<section class="jabzy-reel-share-panel" role="dialog" aria-modal="true" aria-label="Share Reel"><div class="jabzy-reel-share-drag"><button type="button" class="jabzy-reel-share-expand" aria-label="Expand share panel">⌃</button></div><header class="jabzy-reel-share-heading"><strong>Share</strong><button type="button" class="jabzy-reel-share-close" aria-label="Close">×</button></header><div class="jabzy-reel-share-searchrow"><label class="jabzy-reel-share-searchwrap"><span>⌕</span><input class="jabzy-reel-share-search" type="search" placeholder="Search friends"></label><button type="button" class="jabzy-reel-share-group" aria-label="Create group">♧+</button></div><div class="jabzy-reel-share-friends-title">Friends</div><div class="jabzy-reel-share-grid" aria-live="polite"></div><button type="button" class="jabzy-reel-share-send" style="display:none">Send</button><div class="jabzy-reel-share-actions"><button type="button" data-action="story"><span>＋</span><small>Add to story</small></button><button type="button" data-action="copy"><span>▢</span><small>Copy link</small></button><button type="button" data-action="whatsapp"><span>◉</span><small>WhatsApp</small></button><button type="button" data-action="native"><span>↗</span><small>Share</small></button><button type="button" data-action="save"><span>↓</span><small>Save</small></button></div></section>';
+  document.body.appendChild(overlay);
+  const panel=overlay.querySelector(".jabzy-reel-share-panel"),handle=overlay.querySelector(".jabzy-reel-share-drag");
+  overlay.addEventListener("click",event=>{if(event.target===overlay)jabzyCloseReelShare();});
+  overlay.querySelector(".jabzy-reel-share-close").onclick=jabzyCloseReelShare;
+  overlay.querySelector(".jabzy-reel-share-expand").onclick=()=>jabzySetReelShareExpanded(!jabzyReelShareState.expanded);
+  let startY=null;
+  handle.addEventListener("touchstart",event=>{startY=event.touches[0]?.clientY??null;},{passive:true});
+  handle.addEventListener("touchend",event=>{if(startY===null)return;const delta=event.changedTouches[0].clientY-startY;startY=null;if(delta< -45)jabzySetReelShareExpanded(true);else if(delta>45){if(jabzyReelShareState.expanded)jabzySetReelShareExpanded(false);else jabzyCloseReelShare();}},{passive:true});
+  overlay.querySelector(".jabzy-reel-share-search").addEventListener("input",jabzyRenderReelShareFriends);
+  overlay.querySelector(".jabzy-reel-share-send").onclick=jabzySendReelToSelected;
+  overlay.querySelector(".jabzy-reel-share-group").onclick=()=>appStatus("Group chat sharing abhi available nahi hai. Aap multiple friends select karke ek saath Send kar sakte hain.");
+  overlay.querySelector('[data-action="story"]').onclick=()=>{jabzyCloseReelShare();openStoryUpload();};
+  overlay.querySelector('[data-action="copy"]').onclick=jabzyCopyReelLink;
+  overlay.querySelector('[data-action="whatsapp"]').onclick=()=>{const text=jabzyReelShareText(jabzyReelShareState.reel);window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener");};
+  overlay.querySelector('[data-action="native"]').onclick=jabzyNativeShareReel;
+  overlay.querySelector('[data-action="save"]').onclick=jabzyDownloadReel;
+  jabzyLoadReelShareFriends();
 }
 document.addEventListener("jabzy-realtime-update",event=>{
   if(localStorage.getItem("jabzyLastTab")==="reels"&&["reels","reel_likes","reel_comments","reel_views"].includes(event.detail?.table))loadJabzyReels(true);
