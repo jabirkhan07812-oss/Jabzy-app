@@ -14663,12 +14663,14 @@ let jabzyReelsCache=[];
 let jabzyReelUploadBusy=false;
 let jabzyReelViewTimers=new WeakMap();
 let jabzyReelCoverObjectUrl=null;
+let jabzyReelPreviewObjectUrl=null;
 function jabzyReelStatus(message){const el=document.getElementById("jabzyReelUploadStatus");if(el)el.textContent=message||"";}
 function openJabzyReelUpload(){if(!me){appStatus("Please login to create a Reel.");return;}const file=document.getElementById("jabzyReelFile");if(file){file.value="";file.click();}}
 function closeJabzyReelUpload(){
 const modal=document.getElementById("jabzyReelUploadModal");if(modal)modal.style.display="none";
 const file=document.getElementById("jabzyReelFile"),cover=document.getElementById("jabzyReelCoverFile"),preview=document.getElementById("jabzyReelPreview");
-if(file)file.value="";if(cover)cover.value="";if(preview){preview.pause();preview.removeAttribute("src");preview.load();}
+if(file)file.value="";if(cover)cover.value="";if(preview){preview.pause();preview.removeAttribute("src");preview.removeAttribute("poster");preview.load();}
+if(jabzyReelPreviewObjectUrl){URL.revokeObjectURL(jabzyReelPreviewObjectUrl);jabzyReelPreviewObjectUrl=null;}
 if(jabzyReelCoverObjectUrl){URL.revokeObjectURL(jabzyReelCoverObjectUrl);jabzyReelCoverObjectUrl=null;}
 ["jabzyReelCaption","jabzyReelLocation","jabzyReelTags"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
 const audience=document.getElementById("jabzyReelAudience");if(audience)audience.value="everyone";jabzyReelStatus("");
@@ -14677,7 +14679,7 @@ function jabzyInsertReelTag(tag){const el=document.getElementById("jabzyReelCapt
 async function jabzyGetVideoDuration(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file),video=document.createElement("video");video.preload="metadata";video.onloadedmetadata=()=>{const duration=video.duration;URL.revokeObjectURL(url);resolve(duration);};video.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Video file read nahi ho payi."));};video.src=url;});}
 document.getElementById("jabzyReelFile")?.addEventListener("change",event=>{
 const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith("video/")){appStatus("Sirf video select karein.");event.target.value="";return;}if(file.size>50*1024*1024){appStatus("Video 50 MB se chhoti honi chahiye.");event.target.value="";return;}
-const modal=document.getElementById("jabzyReelUploadModal"),preview=document.getElementById("jabzyReelPreview");if(!modal||!preview)return;preview.src=URL.createObjectURL(file);modal.style.display="flex";jabzyReelStatus("");
+const modal=document.getElementById("jabzyReelUploadModal"),preview=document.getElementById("jabzyReelPreview");if(!modal||!preview)return;if(jabzyReelPreviewObjectUrl)URL.revokeObjectURL(jabzyReelPreviewObjectUrl);jabzyReelPreviewObjectUrl=URL.createObjectURL(file);preview.src=jabzyReelPreviewObjectUrl;modal.style.display="flex";jabzyReelStatus("");
 });
 document.getElementById("jabzyReelCoverFile")?.addEventListener("change",event=>{
 const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith("image/")){jabzyReelStatus("Cover ke liye image select karein.");return;}if(jabzyReelCoverObjectUrl)URL.revokeObjectURL(jabzyReelCoverObjectUrl);jabzyReelCoverObjectUrl=URL.createObjectURL(file);const preview=document.getElementById("jabzyReelPreview");if(preview)preview.poster=jabzyReelCoverObjectUrl;
