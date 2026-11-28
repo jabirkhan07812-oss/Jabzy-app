@@ -5072,7 +5072,8 @@ async function shareMyProfile(){
 async function loadFriendRequests(){
   const box=document.getElementById("friendRequestsList");
   if(!box||!me)return;
-  box.innerHTML='<div class="jabzy-friend-loading">Loading friend requests...</div>';
+  box.innerHTML=Array.from({length:3},()=>'<article class="jabzy-friend-request-skeleton"><span class="jabzy-friend-request-skeleton-avatar"></span><span class="jabzy-friend-request-skeleton-info"><i></i><i></i></span><span class="jabzy-friend-request-skeleton-actions"><i></i><i></i></span></article>').join("");
+  box.setAttribute("aria-busy","true");
   try{
     const {data:requests,error}=await db.from("friend_requests")
       .select("id,sender_id,created_at")
@@ -5088,6 +5089,7 @@ async function loadFriendRequests(){
       empty.className="jabzy-friend-empty";
       empty.innerHTML='<div class="jabzy-friend-empty-icon">👥</div><strong>No friend requests yet</strong><span>When someone sends you a request, it will appear here.</span><button type="button" onclick="openJabzyDiscover()" style="width:auto;margin:8px 0 0;padding:10px 18px;border:0;border-radius:22px;background:linear-gradient(110deg,#ff55a8,#a45bea);color:#fff;font-weight:800;">Discover People</button>';
       box.appendChild(empty);
+      box.removeAttribute("aria-busy");
       return;
     }
     const ids=[...new Set(requests.map(r=>r.sender_id))];
@@ -5134,9 +5136,11 @@ async function loadFriendRequests(){
       card.append(main,actions);
       box.appendChild(card);
     });
+    box.removeAttribute("aria-busy");
   }catch(error){
     console.error("Friend requests load error:",error);
     box.textContent=error.message||"Friend requests load nahi ho sake.";
+    box.removeAttribute("aria-busy");
   }
 }
 
@@ -14356,4 +14360,19 @@ body.light-theme #roomsScreen #communityGroupsSection #createCommunityGroupButto
 body.light-theme #communityGroupsList .jabzy-group-skeleton-card{background:#fff;border-color:#e4d8eb}
 body.light-theme #communityGroupsList .jabzy-group-skeleton-avatar,body.light-theme #communityGroupsList .jabzy-group-skeleton-info i,body.light-theme #communityGroupsList .jabzy-group-skeleton-side{background:#e9e1ef}
 body.light-theme #communityGroupsList .jabzy-group-skeleton-card span:after,body.light-theme #communityGroupsList .jabzy-group-skeleton-info i:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)}
+</style>
+
+<style id="jabzy-friend-request-skeleton">
+#friendsScreen .jabzy-friend-request-skeleton{display:flex;flex-direction:column;gap:12px;padding:15px;border:1px solid rgba(190,145,225,.22);border-radius:19px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.025));overflow:hidden}
+#friendsScreen .jabzy-friend-request-skeleton-avatar,#friendsScreen .jabzy-friend-request-skeleton-info i,#friendsScreen .jabzy-friend-request-skeleton-actions i{display:block;position:relative;overflow:hidden;background:#33283f;border-radius:9px}
+#friendsScreen .jabzy-friend-request-skeleton-avatar{width:62px;height:62px;flex:0 0 62px;border-radius:50%}
+#friendsScreen .jabzy-friend-request-skeleton-info{display:flex;flex:1;flex-direction:column;gap:8px}
+#friendsScreen .jabzy-friend-request-skeleton-info i{height:10px;width:65%}
+#friendsScreen .jabzy-friend-request-skeleton-info i+ i{width:42%;height:8px}
+#friendsScreen .jabzy-friend-request-skeleton-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#friendsScreen .jabzy-friend-request-skeleton-actions i{height:44px;border-radius:12px}
+#friendsScreen .jabzy-friend-request-skeleton span:after,#friendsScreen .jabzy-friend-request-skeleton i:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:jabzySkeletonShimmer 1.2s infinite}
+body.light-theme #friendsScreen .jabzy-friend-request-skeleton{background:linear-gradient(135deg,#fff,#fbf8ff);border-color:#eadcf3}
+body.light-theme #friendsScreen .jabzy-friend-request-skeleton-avatar,body.light-theme #friendsScreen .jabzy-friend-request-skeleton-info i,body.light-theme #friendsScreen .jabzy-friend-request-skeleton-actions i{background:#e9e1ef}
+body.light-theme #friendsScreen .jabzy-friend-request-skeleton span:after,body.light-theme #friendsScreen .jabzy-friend-request-skeleton i:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent)}
 </style>
