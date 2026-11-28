@@ -3105,18 +3105,20 @@ box-sizing:border-box;
   </div>
   <div id="jabzyReelsFeed" class="jabzy-reels-feed"><div class="jabzy-reels-empty">Loading Reels…</div></div>
 </div>
-<div id="jabzyReelUploadModal" class="jabzy-reel-modal" style="display:none" role="dialog" aria-modal="true" aria-label="Create Reel">
-  <div class="jabzy-reel-modal-card">
-    <div class="jabzy-reel-modal-head"><b>Create a Reel</b><button type="button" onclick="closeJabzyReelUpload()" aria-label="Close">✕</button></div>
-    <label class="jabzy-reel-file-label" for="jabzyReelFile">Choose a video (MP4, WebM or MOV)</label>
-    <input id="jabzyReelFile" type="file" accept="video/mp4,video/webm,video/quicktime" />
-    <div id="jabzyReelPreviewWrap" class="jabzy-reel-preview-wrap" style="display:none"><video id="jabzyReelPreview" playsinline controls></video></div>
-    <label for="jabzyReelCaption">Caption</label>
-    <textarea id="jabzyReelCaption" maxlength="2200" rows="3" placeholder="Write a caption…"></textarea>
-    <div id="jabzyReelUploadStatus" class="jabzy-reel-upload-status" aria-live="polite"></div>
-    <button type="button" id="jabzyReelPublish" class="jabzy-reel-publish" onclick="publishJabzyReel()">Publish Reel</button>
-  </div>
-</div>
+<input id="jabzyReelFile" type="file" accept="video/*" hidden />
+<input id="jabzyReelCoverFile" type="file" accept="image/*" hidden />
+<div id="jabzyReelUploadModal" class="jabzy-reel-editor" style="display:none" role="dialog" aria-modal="true" aria-label="New Reel">
+<header class="jabzy-reel-editor-head"><button type="button" onclick="closeJabzyReelUpload()" aria-label="Back">‹</button><b>New Reel</b><span></span></header>
+<main class="jabzy-reel-editor-body">
+<div class="jabzy-reel-preview-wrap"><video id="jabzyReelPreview" playsinline muted loop controls></video></div>
+<button type="button" class="jabzy-reel-cover-button" onclick="document.getElementById('jabzyReelCoverFile').click()">Edit Cover</button>
+<textarea id="jabzyReelCaption" maxlength="2200" rows="3" placeholder="Write a caption…"></textarea>
+<div class="jabzy-reel-hashtags"><button type="button" onclick="jabzyInsertReelTag('#jabzy')">#jabzy</button><button type="button" onclick="jabzyInsertReelTag('#trending')">#trending</button></div>
+<label class="jabzy-reel-option"><span>⌖　Add Location</span><input id="jabzyReelLocation" maxlength="120" placeholder="Add location" /></label>
+<label class="jabzy-reel-option"><span>＠　Tag People</span><input id="jabzyReelTags" placeholder="Search usernames, comma separated" /></label>
+<label class="jabzy-reel-option"><span>◉　Audience</span><select id="jabzyReelAudience"><option value="everyone">Everyone</option><option value="followers">Followers</option><option value="only_me">Only me</option></select></label>
+<div id="jabzyReelUploadStatus" class="jabzy-reel-upload-status" aria-live="polite"></div>
+</main><footer class="jabzy-reel-editor-footer"><button type="button" id="jabzyReelPublish" class="jabzy-reel-publish" onclick="publishJabzyReel()">Share</button></footer></div>
 <div class="bottom-nav">
   <button data-tab="home" data-lang-nav="home" aria-label="Home" onclick="showTab('home')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></svg></span><span class="nav-label">Home</span></button>
   <button data-tab="reels" data-lang-nav="reels" aria-label="Reels" onclick="showTab('reels')"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m10 8 6 4-6 4z"/></svg></span><span class="nav-label">Reels</span></button>
@@ -12493,7 +12495,7 @@ function showTab(tab,fromBack=false){
   const rewardsIsFullScreen=tab==="dailyRewards";
   const reelsIsFullScreen=tab==="reels";
   if(nav){
-    nav.style.display=(roomIsFullScreen || rewardsIsFullScreen || reelsIsFullScreen) ? "none" : "flex";
+    nav.style.display=(roomIsFullScreen || rewardsIsFullScreen) ? "none" : "flex";
     nav.querySelectorAll("button[data-tab]").forEach(button=>{
       button.classList.toggle("active",button.dataset.tab===tab);
     });
@@ -12538,6 +12540,7 @@ function handleJabzyAndroidBack(){
   // Close the Create Room modal before navigating away from the current tab.
   const createRoomOverlay=document.getElementById("createLiveRoomOverlay");
   if(createRoomOverlay){jabzyBackPressAt=0;createRoomOverlay.remove();return true;}
+  if(visible("jabzyReelUploadModal")){jabzyBackPressAt=0;closeJabzyReelUpload();return true;}
   // Close the most recently opened app overlay/sub-screen before changing tabs.
   if(visible("jabzySearchScreen")){ jabzyBackPressAt=0; closeJabzySearch(); return true; }
   if(visible("dailyRewardsScreen")){ jabzyBackPressAt=0; closeDailyRewards(); return true; }
@@ -14659,74 +14662,44 @@ let jabzyReelsLoading=false;
 let jabzyReelsCache=[];
 let jabzyReelUploadBusy=false;
 let jabzyReelViewTimers=new WeakMap();
+let jabzyReelCoverObjectUrl=null;
 function jabzyReelStatus(message){const el=document.getElementById("jabzyReelUploadStatus");if(el)el.textContent=message||"";}
-function openJabzyReelUpload(){
-  if(!me){appStatus("Please login to create a Reel.");return;}
-  const modal=document.getElementById("jabzyReelUploadModal");
-  if(modal)modal.style.display="flex";
-  jabzyReelStatus("");
-}
+function openJabzyReelUpload(){if(!me){appStatus("Please login to create a Reel.");return;}const file=document.getElementById("jabzyReelFile");if(file){file.value="";file.click();}}
 function closeJabzyReelUpload(){
-  const modal=document.getElementById("jabzyReelUploadModal");
-  if(modal)modal.style.display="none";
-  const file=document.getElementById("jabzyReelFile");
-  const preview=document.getElementById("jabzyReelPreview");
-  if(file)file.value="";
-  if(preview){preview.pause();preview.removeAttribute("src");preview.load();}
-  const wrap=document.getElementById("jabzyReelPreviewWrap");
-  if(wrap)wrap.style.display="none";
-  const caption=document.getElementById("jabzyReelCaption");
-  if(caption)caption.value="";
-  jabzyReelStatus("");
+const modal=document.getElementById("jabzyReelUploadModal");if(modal)modal.style.display="none";
+const file=document.getElementById("jabzyReelFile"),cover=document.getElementById("jabzyReelCoverFile"),preview=document.getElementById("jabzyReelPreview");
+if(file)file.value="";if(cover)cover.value="";if(preview){preview.pause();preview.removeAttribute("src");preview.load();}
+if(jabzyReelCoverObjectUrl){URL.revokeObjectURL(jabzyReelCoverObjectUrl);jabzyReelCoverObjectUrl=null;}
+["jabzyReelCaption","jabzyReelLocation","jabzyReelTags"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+const audience=document.getElementById("jabzyReelAudience");if(audience)audience.value="everyone";jabzyReelStatus("");
 }
-async function jabzyGetVideoDuration(file){
-  return new Promise((resolve,reject)=>{
-    const url=URL.createObjectURL(file),video=document.createElement("video");
-    video.preload="metadata";
-    video.onloadedmetadata=()=>{const duration=video.duration;URL.revokeObjectURL(url);resolve(duration);};
-    video.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Video file read nahi ho payi."));};
-    video.src=url;
-  });
-}
+function jabzyInsertReelTag(tag){const el=document.getElementById("jabzyReelCaption");if(!el)return;el.value+=(el.value.trim()?" ":"")+tag+" ";el.focus();}
+async function jabzyGetVideoDuration(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file),video=document.createElement("video");video.preload="metadata";video.onloadedmetadata=()=>{const duration=video.duration;URL.revokeObjectURL(url);resolve(duration);};video.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Video file read nahi ho payi."));};video.src=url;});}
 document.getElementById("jabzyReelFile")?.addEventListener("change",event=>{
-  const file=event.target.files?.[0],preview=document.getElementById("jabzyReelPreview"),wrap=document.getElementById("jabzyReelPreviewWrap");
-  if(!file||!preview||!wrap)return;
-  if(!file.type.startsWith("video/")){jabzyReelStatus("Sirf video file select karein.");event.target.value="";return;}
-  if(file.size>50*1024*1024){jabzyReelStatus("Video 50 MB se chhoti honi chahiye.");event.target.value="";return;}
-  preview.src=URL.createObjectURL(file);wrap.style.display="block";jabzyReelStatus("");
+const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith("video/")){appStatus("Sirf video select karein.");event.target.value="";return;}if(file.size>50*1024*1024){appStatus("Video 50 MB se chhoti honi chahiye.");event.target.value="";return;}
+const modal=document.getElementById("jabzyReelUploadModal"),preview=document.getElementById("jabzyReelPreview");if(!modal||!preview)return;preview.src=URL.createObjectURL(file);modal.style.display="flex";jabzyReelStatus("");
+});
+document.getElementById("jabzyReelCoverFile")?.addEventListener("change",event=>{
+const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith("image/")){jabzyReelStatus("Cover ke liye image select karein.");return;}if(jabzyReelCoverObjectUrl)URL.revokeObjectURL(jabzyReelCoverObjectUrl);jabzyReelCoverObjectUrl=URL.createObjectURL(file);const preview=document.getElementById("jabzyReelPreview");if(preview)preview.poster=jabzyReelCoverObjectUrl;
 });
 async function publishJabzyReel(){
-  if(jabzyReelUploadBusy)return;
-  if(!me){jabzyReelStatus("Please login first.");return;}
-  const input=document.getElementById("jabzyReelFile"),captionEl=document.getElementById("jabzyReelCaption"),button=document.getElementById("jabzyReelPublish");
-  const file=input?.files?.[0],caption=(captionEl?.value||"").trim();
-  if(!file){jabzyReelStatus("Pehle video select karein.");return;}
-  if(!file.type.startsWith("video/")){jabzyReelStatus("Valid video select karein.");return;}
-  if(file.size>50*1024*1024){jabzyReelStatus("Video 50 MB se chhoti honi chahiye.");return;}
-  jabzyReelUploadBusy=true;if(button){button.disabled=true;button.textContent="Uploading…";}
-  let storagePath=null;
-  try{
-    const duration=await jabzyGetVideoDuration(file);
-    if(!Number.isFinite(duration)||duration<=0||duration>180)throw new Error("Reel ki length 3 minutes se zyada nahi ho sakti.");
-    const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
-    storagePath=me.id+"/"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2))+"."+ext;
-    const {error:uploadError}=await db.storage.from("reels").upload(storagePath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
-    if(uploadError)throw uploadError;
-    const {data:urlData}=db.storage.from("reels").getPublicUrl(storagePath);
-    const mediaUrl=urlData?.publicUrl;
-    if(!mediaUrl)throw new Error("Video URL create nahi hua.");
-    const {error:insertError}=await db.from("reels").insert({user_id:me.id,caption,media_url:mediaUrl,media_path:storagePath,duration_seconds:Math.round(duration),status:"published"});
-    if(insertError)throw insertError;
-    closeJabzyReelUpload();
-    await loadJabzyReels(true);
-    appStatus("Your Reel is published!");
-  }catch(error){
-    console.error("JABZY Reel upload failed:",error);
-    if(storagePath){try{await db.storage.from("reels").remove([storagePath]);}catch(cleanupError){console.warn("Reel media cleanup:",cleanupError);}}
-    jabzyReelStatus(error.message||"Reel upload nahi ho payi. Dobara try karein.");
-  }finally{
-    jabzyReelUploadBusy=false;if(button){button.disabled=false;button.textContent="Publish Reel";}
-  }
+if(jabzyReelUploadBusy)return;if(!me){jabzyReelStatus("Please login first.");return;}
+const input=document.getElementById("jabzyReelFile"),captionEl=document.getElementById("jabzyReelCaption"),button=document.getElementById("jabzyReelPublish");
+const file=input?.files?.[0],caption=(captionEl?.value||"").trim(),coverFile=document.getElementById("jabzyReelCoverFile")?.files?.[0];
+const locationValue=(document.getElementById("jabzyReelLocation")?.value||"").trim(),tagsValue=(document.getElementById("jabzyReelTags")?.value||"").trim(),audience=document.getElementById("jabzyReelAudience")?.value||"everyone";
+if(!file){jabzyReelStatus("Pehle video select karein.");return;}if(!file.type.startsWith("video/")){jabzyReelStatus("Valid video select karein.");return;}if(file.size>50*1024*1024){jabzyReelStatus("Video 50 MB se chhoti honi chahiye.");return;}
+jabzyReelUploadBusy=true;if(button){button.disabled=true;button.textContent="Sharing…";}let storagePath=null,coverPath=null;
+try{
+const duration=await jabzyGetVideoDuration(file);if(!Number.isFinite(duration)||duration<=0||duration>180)throw new Error("Reel ki length 3 minutes se zyada nahi ho sakti.");
+const unique=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2),ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
+storagePath=me.id+"/"+unique()+"."+ext;const {error:uploadError}=await db.storage.from("reels").upload(storagePath,file,{cacheControl:"3600",upsert:false,contentType:file.type});if(uploadError)throw uploadError;
+const mediaUrl=db.storage.from("reels").getPublicUrl(storagePath).data?.publicUrl;if(!mediaUrl)throw new Error("Video URL create nahi hua.");
+let thumbnailUrl=null;if(coverFile){if(coverFile.size>5*1024*1024)throw new Error("Cover image 5 MB se chhoti honi chahiye.");const ce=(coverFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";coverPath=me.id+"/"+unique()+"-cover."+ce;const {error}=await db.storage.from("reels").upload(coverPath,coverFile,{cacheControl:"3600",upsert:false,contentType:coverFile.type});if(error)throw error;thumbnailUrl=db.storage.from("reels").getPublicUrl(coverPath).data?.publicUrl||null;}
+let taggedIds=[];if(tagsValue){const names=tagsValue.split(",").map(x=>x.trim().replace(/^@/,"")).filter(Boolean).slice(0,10);const {data:tagged,error}=await db.from("profiles").select("id,username").in("username",names);if(error)throw error;const found=new Map((tagged||[]).map(x=>[x.username.toLowerCase(),x.id]));const missing=names.filter(x=>!found.has(x.toLowerCase()));if(missing.length)throw new Error("Username nahi mila: "+missing.join(", "));taggedIds=[...new Set(names.map(x=>found.get(x.toLowerCase())))];}
+const {error:insertError}=await db.from("reels").insert({user_id:me.id,caption,media_url:mediaUrl,media_path:storagePath,thumbnail_url:thumbnailUrl,duration_seconds:Math.round(duration),status:"published",location:locationValue||null,tagged_user_ids:taggedIds,audience});if(insertError)throw insertError;
+closeJabzyReelUpload();await loadJabzyReels(true);appStatus("Your Reel is shared!");
+}catch(error){console.error("JABZY Reel upload failed:",error);const paths=[storagePath,coverPath].filter(Boolean);if(paths.length){try{await db.storage.from("reels").remove(paths);}catch(cleanupError){console.warn("Reel media cleanup:",cleanupError);}}jabzyReelStatus(error.message||"Reel upload nahi ho payi. Dobara try karein.");}
+finally{jabzyReelUploadBusy=false;if(button){button.disabled=false;button.textContent="Share";}}
 }
 async function loadJabzyReels(force=false){
   const feed=document.getElementById("jabzyReelsFeed");
@@ -14734,7 +14707,7 @@ async function loadJabzyReels(force=false){
   jabzyReelsLoading=true;
   if(!force)feed.innerHTML='<div class="jabzy-reels-empty">Loading Reels…</div>';
   try{
-    const {data,error}=await db.from("reels").select("id,user_id,caption,media_url,thumbnail_url,duration_seconds,created_at").eq("status","published").order("created_at",{ascending:false}).limit(40);
+    const {data,error}=await db.from("reels").select("id,user_id,caption,media_url,thumbnail_url,duration_seconds,created_at,location,tagged_user_ids,audience").eq("status","published").order("created_at",{ascending:false}).limit(40);
     if(error)throw error;
     const rows=data||[];
     const ids=[...new Set(rows.map(x=>x.user_id).filter(Boolean))];
@@ -14775,12 +14748,15 @@ async function loadJabzyReels(force=false){
         creatorRow.appendChild(follow);
       }
       const cap=document.createElement("div");cap.className="jabzy-reel-caption";cap.textContent=reel.caption||"";
-      info.append(creatorRow,cap);
+      if((reel.caption||"").length>90){cap.classList.add("is-clamped");const moreText=document.createElement("button");moreText.type="button";moreText.className="jabzy-reel-more-text";moreText.textContent="…more";moreText.onclick=()=>{cap.classList.toggle("is-clamped");moreText.textContent=cap.classList.contains("is-clamped")?"…more":"less";};info.append(creatorRow,cap,moreText);}else info.append(creatorRow,cap);
+      if(reel.location){const loc=document.createElement("div");loc.className="jabzy-reel-location";loc.textContent="⌖ "+reel.location;info.appendChild(loc);}
+      const audio=document.createElement("div");audio.className="jabzy-reel-audio";audio.textContent="♫ Original audio • "+(profile.username||"JABZY Member");info.appendChild(audio);
       const actions=document.createElement("div");actions.className="jabzy-reel-actions";
       const like=document.createElement("button");like.type="button";like.className="jabzy-reel-action"+(liked.has(reel.id)?" liked":"");like.innerHTML="<span>♥</span><small>"+(likeCounts[reel.id]||0)+"</small>";like.setAttribute("aria-label","Like Reel");like.onclick=()=>toggleJabzyReelLike(reel.id,like);
       const comment=document.createElement("button");comment.type="button";comment.className="jabzy-reel-action";comment.innerHTML="<span>💬</span><small>"+(commentCounts[reel.id]||0)+"</small>";comment.setAttribute("aria-label","Comment on Reel");comment.onclick=()=>openJabzyReelComments(reel.id);
       const share=document.createElement("button");share.type="button";share.className="jabzy-reel-action";share.innerHTML="<span>↗</span><small>Share</small>";share.onclick=()=>shareJabzyReel(reel);
-      actions.append(like,comment,share);
+      const more=document.createElement("button");more.type="button";more.className="jabzy-reel-action";more.innerHTML="<span>⋯</span><small>More</small>";more.onclick=()=>{const choice=prompt("Reel options: type report to report this Reel, or cancel to close.","");if(choice&&choice.trim().toLowerCase()==="report")appStatus("Report feature is not connected yet.");};
+      actions.append(like,comment,share,more);
       card.append(video,shade,info,actions);feed.appendChild(card);
     });
     jabzySetupReelAutoplay();
@@ -14955,7 +14931,13 @@ body.light-theme .jabzy-message-request-skeleton>*:after{background:linear-gradi
 /* JABZY REELS UI - dark and light themes */
 #reelsScreen{position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;background:#08060c;color:#fff;display:flex;flex-direction:column;z-index:99998!important;padding:0!important}
 body.jabzy-reels-active{overflow:hidden!important}
-body.jabzy-reels-active .bottom-nav{display:none!important;visibility:hidden!important;pointer-events:none!important}
+body.jabzy-reels-active .bottom-nav{display:flex!important;visibility:visible!important;pointer-events:auto!important;position:fixed!important;z-index:100000!important;left:0!important;right:0!important;bottom:0!important;background:#050505!important;border-top:1px solid #343434!important;border-radius:0!important;padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;box-shadow:0 -5px 18px rgba(0,0,0,.25)!important}
+body.jabzy-reels-active .bottom-nav button{background:transparent!important;color:#fff!important;border:0!important;box-shadow:none!important;padding:5px 3px!important}
+body.jabzy-reels-active .bottom-nav .nav-icon,body.jabzy-reels-active .bottom-nav .nav-label{color:#fff!important}
+body.jabzy-reels-active .bottom-nav .nav-icon svg{stroke:#fff!important;fill:none!important}
+body.jabzy-reels-active #reelsScreen{padding-bottom:64px!important}
+body.jabzy-reels-active .jabzy-reels-feed{padding-bottom:64px!important;box-sizing:border-box!important}
+body.jabzy-reels-active .jabzy-reel-info,body.jabzy-reels-active .jabzy-reel-actions{bottom:calc(78px + env(safe-area-inset-bottom))!important}
 .jabzy-reels-header{position:absolute;z-index:5;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 15px 12px;background:linear-gradient(180deg,rgba(0,0,0,.48),transparent);border:0;flex:0 0 auto;pointer-events:none}
 .jabzy-reels-header>div,.jabzy-reels-header button{pointer-events:auto}
 .jabzy-reels-header h2{font-size:20px;margin:2px 0 0;color:#fff;text-shadow:0 1px 5px #000}
@@ -14991,10 +14973,10 @@ body.jabzy-reels-active .bottom-nav{display:none!important;visibility:hidden!imp
 .jabzy-reel-publish{width:100%;border:0;border-radius:12px;padding:13px;background:linear-gradient(100deg,#e34b9d,#8c55e8);color:#fff;font-weight:900}
 body.light-theme #reelsScreen{background:#08060c;color:#fff}
 body.light-theme .jabzy-reels-header h2{color:#fff}
-body.light-theme .jabzy-reels-header{background:#fff;border-color:#e4d8ed}
-body.light-theme .jabzy-reels-kicker{color:#8c45ad}
-body.light-theme .jabzy-reels-feed{background:#eee8f3}
-body.light-theme .jabzy-reel-card{background:#e7deed}
+body.light-theme .jabzy-reels-header{background:linear-gradient(180deg,rgba(0,0,0,.48),transparent);border-color:transparent}
+body.light-theme .jabzy-reels-kicker{color:#d18aff}
+body.light-theme .jabzy-reels-feed{background:#08060c}
+body.light-theme .jabzy-reel-card{background:#08060c}
 body.light-theme .jabzy-reels-empty{color:#382748}
 body.light-theme .jabzy-reels-empty span{color:#6f5c7c}body.light-theme .jabzy-reels-empty-icon{background:linear-gradient(145deg,#f2e5fa,#e8d8f2);border-color:#dcc4e9}
 body.light-theme .jabzy-reel-modal-card{background:#fff;border-color:#dfcce9;color:#30213b}
@@ -15002,4 +14984,25 @@ body.light-theme .jabzy-reel-modal-head button{background:#eee4f4;color:#3d2851}
 body.light-theme .jabzy-reel-modal-card input[type=file],body.light-theme .jabzy-reel-modal-card textarea{background:#faf7fc;color:#30213b;border-color:#d9c7e4}
 @media(max-width:380px){.jabzy-reels-header{padding:calc(9px + env(safe-area-inset-top)) 12px 10px}.jabzy-reel-info{left:12px;bottom:calc(18px + env(safe-area-inset-bottom))}.jabzy-reel-actions{right:8px;bottom:calc(18px + env(safe-area-inset-bottom))}}
 
+
+.jabzy-reel-editor{position:fixed;inset:0;z-index:2147482500;background:#fff;color:#21172a;display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top);box-sizing:border-box}
+.jabzy-reel-editor-head{height:54px;flex:0 0 54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #eee;box-sizing:border-box}
+.jabzy-reel-editor-head b{font-size:17px}.jabzy-reel-editor-head button{border:0;background:transparent;color:#24172e;font-size:32px;line-height:1;width:40px;text-align:left}
+.jabzy-reel-editor-body{flex:1;min-height:0;overflow-y:auto;padding:16px;box-sizing:border-box}
+.jabzy-reel-editor .jabzy-reel-preview-wrap{width:140px;height:240px;margin:0 auto 9px;border-radius:12px;background:#111;overflow:hidden;display:block}
+.jabzy-reel-editor .jabzy-reel-preview-wrap video{width:100%;height:100%;object-fit:cover}
+.jabzy-reel-cover-button{display:block;margin:0 auto 17px;border:0;background:transparent;color:#7e43c0;font-weight:800;font-size:12px}
+.jabzy-reel-editor textarea{width:100%;min-height:90px;resize:vertical;border:0!important;outline:none;background:transparent!important;color:#21172a!important;padding:10px 0!important;font-size:15px;box-sizing:border-box}
+.jabzy-reel-hashtags{display:flex;gap:8px;margin:0 0 16px}.jabzy-reel-hashtags button{border:0;border-radius:15px;background:#f2eafa;color:#7b43ae;padding:6px 11px;font-size:12px;font-weight:700}
+.jabzy-reel-option{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:52px;border-top:1px solid #eee;font-size:13px;font-weight:700}
+.jabzy-reel-option input,.jabzy-reel-option select{max-width:58%;width:58%;border:0;background:transparent;color:#5b4a67;text-align:right;font-size:12px;outline:none}
+.jabzy-reel-editor-footer{flex:0 0 auto;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #eee;background:#fff}
+.jabzy-reel-editor .jabzy-reel-publish{width:100%;border:0;border-radius:12px;padding:14px;background:linear-gradient(100deg,#e34b9d,#8c55e8);color:#fff;font-weight:900;font-size:15px}
+.jabzy-reel-editor .jabzy-reel-upload-status{color:#bd246f}
+.jabzy-reel-caption.is-clamped{max-height:2.9em}
+.jabzy-reel-more-text{border:0;background:transparent;color:#fff;padding:2px 0;font-size:12px;font-weight:800;text-shadow:0 1px 4px #000}
+.jabzy-reel-location{font-size:11px;margin-top:5px;color:#fff;text-shadow:0 1px 5px #000}
+.jabzy-reel-audio{margin-top:9px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:700;animation:jabzyReelAudioMove 9s linear infinite}
+@keyframes jabzyReelAudioMove{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(7px)}}
+body.light-theme .jabzy-reel-editor{background:#fff;color:#21172a}
 </style>
