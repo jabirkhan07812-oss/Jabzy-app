@@ -1705,8 +1705,11 @@ body.light-theme #matchesScreen .jabzy-friends-note{color:#786b82}
 @media(max-width:360px){#matchesScreen .jabzy-friend-row{gap:8px;padding:8px}#matchesScreen .jabzy-friend-avatar{width:42px;height:42px;flex-basis:42px}}
 </style>
 <style id="jabzy-reel-share-sheet-css">
-.jabzy-reel-share-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.56);overscroll-behavior:contain}
-.jabzy-reel-share-panel{width:100%;max-width:560px;height:64dvh;max-height:760px;min-height:390px;display:flex;flex-direction:column;gap:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:hidden;border-radius:24px 24px 0 0;background:#fff;color:#19151d;box-shadow:0 -10px 40px #0003;transition:height .22s ease,border-radius .22s ease}
+.jabzy-reel-share-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.56);overscroll-behavior:contain;animation:jabzyShareDimIn .24s ease both}
+.jabzy-reel-share-overlay.is-closing{background:rgba(0,0,0,0);transition:background .24s ease;pointer-events:none}
+.jabzy-reel-share-panel{width:100%;max-width:560px;height:64dvh;max-height:760px;min-height:390px;display:flex;flex-direction:column;gap:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:hidden;border-radius:24px 24px 0 0;background:#fff;color:#19151d;box-shadow:0 -10px 40px #0003;transform:translate3d(0,0,0);transition:height .34s cubic-bezier(.22,.8,.25,1),border-radius .34s cubic-bezier(.22,.8,.25,1),transform .28s cubic-bezier(.22,.8,.25,1);will-change:height,transform}
+@keyframes jabzyShareDimIn{from{background:rgba(0,0,0,0)}to{background:rgba(0,0,0,.56)}}
+.jabzy-reel-share-drag{touch-action:none!important;user-select:none;-webkit-user-select:none;cursor:grab}
 .jabzy-reel-share-panel.is-expanded{height:100dvh;max-height:100dvh;min-height:100dvh;border-radius:0;padding-top:calc(8px + env(safe-area-inset-top))}
 .jabzy-reel-share-drag{height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;position:relative;touch-action:pan-y}
 .jabzy-reel-share-drag:before{content:"";width:42px;height:4px;border-radius:9px;background:#c8c8cc}
@@ -14880,7 +14883,12 @@ function jabzyReelShareUrl(reel){return location.origin+location.pathname+"#reel
 function jabzyReelShareText(reel){return ["🎬 JABZY Reel",reel.caption||"Watch this Reel on JABZY",jabzyReelShareUrl(reel)].filter(Boolean).join("\n");}
 function jabzyCloseReelShare(){
   const overlay=document.getElementById("jabzyReelShareSheet");
-  if(overlay)overlay.remove();
+  if(overlay&&!overlay.classList.contains("is-closing")){
+    overlay.classList.add("is-closing");
+    const panel=overlay.querySelector(".jabzy-reel-share-panel");
+    if(panel)panel.style.transform="translate3d(0,100%,0)";
+    setTimeout(()=>overlay.remove(),260);
+  }
   jabzyReelShareState={reel:null,friends:[],selected:new Set(),expanded:false,busy:false};
 }
 function jabzySetReelShareExpanded(expanded){
@@ -14962,9 +14970,10 @@ function shareJabzyReel(reel){
   overlay.addEventListener("click",event=>{if(event.target===overlay)jabzyCloseReelShare();});
   overlay.querySelector(".jabzy-reel-share-close").onclick=jabzyCloseReelShare;
   overlay.querySelector(".jabzy-reel-share-expand").onclick=()=>jabzySetReelShareExpanded(!jabzyReelShareState.expanded);
-  let startY=null;
-  handle.addEventListener("touchstart",event=>{startY=event.touches[0]?.clientY??null;},{passive:true});
-  handle.addEventListener("touchend",event=>{if(startY===null)return;const delta=event.changedTouches[0].clientY-startY;startY=null;if(delta< -45)jabzySetReelShareExpanded(true);else if(delta>45){if(jabzyReelShareState.expanded)jabzySetReelShareExpanded(false);else jabzyCloseReelShare();}},{passive:true});
+  let startY=null,lastDelta=0;
+  handle.addEventListener("touchstart",event=>{startY=event.touches[0]?.clientY??null;lastDelta=0;panel.style.transition="none";},{passive:true});
+  handle.addEventListener("touchmove",event=>{if(startY===null)return;const delta=event.touches[0].clientY-startY;lastDelta=delta;if(delta>0)panel.style.transform="translate3d(0,"+Math.min(delta,window.innerHeight*.72)+"px,0)";},{passive:true});
+  handle.addEventListener("touchend",()=>{if(startY===null)return;const delta=lastDelta;startY=null;panel.style.transition="";panel.style.transform="";if(delta< -55){jabzySetReelShareExpanded(true);}else if(delta>55){if(jabzyReelShareState.expanded)jabzySetReelShareExpanded(false);else jabzyCloseReelShare();}else{panel.style.transform="translate3d(0,0,0)";}lastDelta=0;},{passive:true});
   overlay.querySelector(".jabzy-reel-share-search").addEventListener("input",jabzyRenderReelShareFriends);
   overlay.querySelector(".jabzy-reel-share-send").onclick=jabzySendReelToSelected;
   overlay.querySelector(".jabzy-reel-share-group").onclick=()=>appStatus("Group chat sharing abhi available nahi hai. Aap multiple friends select karke ek saath Send kar sakte hain.");
